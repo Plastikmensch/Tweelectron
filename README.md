@@ -13,7 +13,14 @@ No installation required! Just [download](https://github.com/Plastikmensch/Tweet
 
 ## Settings
 Settings are saved in `settings.json` and will be generated when you first start the app.<br>
-The `settings.json` file is located where the exe is.
+The `settings.json` file is located where the exe is.<br>
+Example:
+```
+use-tor = 1
+use-round-pics = 0
+width = 1337
+height = 720
+```
 
 ## Building source
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
