@@ -246,7 +246,7 @@ function createMenu() {
         },
         {
           label: 'Reload',
-          accelerator: 'F5',
+          accelerator: 'F5',//'CmdOrCtrl+R'
           click (item, focusedWindow) {
             if (focusedWindow) focusedWindow.reload()
           }
