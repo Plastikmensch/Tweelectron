@@ -17,6 +17,6 @@ The `settings.json` file is located there the exe is.
 
 ## Building source
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
-´´´sh
+```sh
 electron-packager <src> --platform=win32 --arch=all --overwrite --asar.unpackDir="tor-win32-0.3.0.7"
-´´´
+```
