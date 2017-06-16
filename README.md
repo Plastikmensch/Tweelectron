@@ -3,13 +3,13 @@ Missing TweetDeck for Desktop? This is for you.<br>
 TweetDeck client built with [Electron](https://electron.atom.io/)
 
 ## Features
-- Tor support
+- [Tor](https://www.torproject.org/) support
 - keep angular profile pictures
 - copy links, usernames, hashtags or pictures
 - open links in your default browser
 
 ## Installation
-No installation required! Just unzip and double-click `TweetElectronDeck.exe`
+No installation required! Just [download](https://github.com/Plastikmensch/TweetElectronDeck/releases), unzip and double-click `TweetElectronDeck.exe`
 
 ## Settings
 Settings are saved in `settings.json` and will be generated when you first start the app.<br>
