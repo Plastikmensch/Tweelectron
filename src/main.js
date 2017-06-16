@@ -34,7 +34,7 @@ function createWindow (useTor,roundPics) {
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
-    if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
+    if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)//prevents external opening when clicking on "Home" or "Twitter"
     {
       event.preventDefault()
       shell.openExternal(url)
@@ -45,7 +45,7 @@ function createWindow (useTor,roundPics) {
     if(url.search('https://twitter.com/login') == 0)
     {
       event.preventDefault()
-      const twitterwin = new BrowserWindow({autoHideMenuBar: true})
+      const twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
       if(useTor==1)
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
@@ -61,7 +61,7 @@ function createWindow (useTor,roundPics) {
         twitterwin.loadURL(url2)
       })
       event.newGuest = twitterwin
-      twitterwin.webContents.on('will-navigate', (event,url) => {
+      twitterwin.webContents.on('will-navigate', (event,url) => { //close window when login successful
         mainWindow.loadURL(url)
         twitterwin.close()
       })
