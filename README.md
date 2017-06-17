@@ -24,7 +24,7 @@ use-custom-proxy = 0
 customProxy = {foopy:80}
 ```
 
-## Building source
+## Packaging source
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
 ```sh
 # make sure to always include --asar-unpackDir or else Tor won't run
