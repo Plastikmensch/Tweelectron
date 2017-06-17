@@ -4,7 +4,7 @@
 
 ### Report Bugs
 
-if you encounter a bug, please create an issue on the [issue tracker](https://github.com/Plastikmensch/TweetElectronDeck/issues)  
+if you encounter a bug, please create an issue on the [issue tracker](https://github.com/Plastikmensch/Tweelectron/issues)  
 Please include the following information:
   - what did you do and what happened?
   - information about your OS
@@ -15,4 +15,4 @@ Please include the following information:
 
 ### Suggest Enhancements
 
-Do you think some features are missing? Feel free to create a new issue on the [issue tracker](https://github.com/Plastikmensch/TweetElectronDeck/issues)
+Do you think some features are missing? Feel free to create a new issue on the [issue tracker](https://github.com/Plastikmensch/Tweelectron/issues)

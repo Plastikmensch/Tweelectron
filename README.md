@@ -1,4 +1,4 @@
-# TweetElectronDeck
+# Tweelectron
 Missing TweetDeck for Desktop? This is for you.<br>
 TweetDeck client built with [Electron](https://electron.atom.io/)
 
@@ -9,7 +9,7 @@ TweetDeck client built with [Electron](https://electron.atom.io/)
 - open links in your default browser
 
 ## Installation
-No installation required! Just [download](https://github.com/Plastikmensch/TweetElectronDeck/releases), unzip and double-click `TweetElectronDeck.exe`
+No installation required! Just [download](https://github.com/Plastikmensch/Tweelectron/releases), unzip and double-click `Tweelectron.exe`
 
 ## Settings
 Settings are saved in `settings.json` and will be generated when you first start the app.<br>

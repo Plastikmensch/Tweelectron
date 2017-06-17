@@ -1,10 +1,10 @@
 {
-  "productName" : "TweetElectronDeck",
+  "productName" : "Tweelectron",
   "version" : "1.0.1",
   "main" : "main.js",
   "description": "TweetDeck for Desktop",
   "author": {
-    "name": "Plastikmensch_"
+    "name": "Plastikmensch"
   },
   "devDependencies": {
     "electron": "^1.6.0"
