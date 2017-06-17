@@ -6,7 +6,7 @@
 
 if you encounter a bug, please create an issue on the [issue tracker](https://github.com/Plastikmensch/TweetElectronDeck/issues)  
 Please include the following information:
-  - what did you do and what happend?
+  - what did you do and what happened?
   - information about your OS
   - what build did you use (version number)?
 
