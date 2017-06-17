@@ -1,28 +1,40 @@
+/*
+    TO-DO:
+     [] use an array or object to store settings variables
+     [] save settings when app quits
+     [x] add custom proxy support
+     [x] create function to process settingsData
+*/
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog} = require('electron')
 const fs = require('fs')
 
-let useTor
-let roundPics
-const settingsFile = app.getPath('exe').replace("TweetElectronDeck.exe","settings.json")
-const tor = app.getPath('exe').replace("TweetElectronDeck.exe","resources\\app.asar.unpacked") + "\\tor-win32-0.3.0.7\\Tor\\tor.exe"
-
+let useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy
+const settingsFile = "./settings.json"
+const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.7/Tor/tor.exe"
 let mainWindow
 
-function createWindow (useTor,roundPics) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: 1345, height: 720})
+function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy) {
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: windowWidth, height: windowHeight})
 
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const url = 'https://tweetdeck.twitter.com/'
-  if(useTor == 1)
+  if(useTor == 1 && useProxy == 0)
   {
     mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
       mainWindow.loadURL(url)
       console.log("using Tor")
-    });
+    })
+  }
+  else if(useProxy == 1)
+  {
+    mainWindow.webContents.session.setProxy({proxyRules: customProxy}, () => {
+      mainWindow.loadURL(url)
+      console.log("using custom Proxy")
+    })
   }
   else {
     mainWindow.loadURL(url)
-    console.log("Not using Tor")
+    console.log("Not using Tor or custom Proxy")
   }
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.loadURL(url2)
@@ -46,16 +58,23 @@ function createWindow (useTor,roundPics) {
     {
       event.preventDefault()
       const twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
-      if(useTor==1)
+      if(useTor == 1 && useProxy == 0)
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
           twitterwin.loadURL(url)
           console.log("using Tor")
-        });
+        })
+      }
+      else if(useProxy == 1)
+      {
+        mainWindow.webContents.session.setProxy({proxyRules: customProxy}, () => {
+          mainWindow.loadURL(url)
+          console.log("using custom Proxy")
+        })
       }
       else {
         twitterwin.loadURL(url)
-        console.log("Not using Tor")
+        console.log("Not using Tor or custom Proxy")
       }
       twitterwin.webContents.on('did-fail-load',() => {
         twitterwin.loadURL(url2)
@@ -67,8 +86,11 @@ function createWindow (useTor,roundPics) {
       })
     }
   })
-
-  // Emitted when the window is closed.
+  mainWindow.on('close', (event) => {
+    const size = mainWindow.getSize()
+    windowWidth = size[0]
+    windowHeight = size[1]
+  })
   mainWindow.on('closed', function () {
     app.quit()
   })
@@ -93,54 +115,73 @@ app.on('ready', () => {
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
-        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = 0', (err) =>{
+        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = 0\nwidth = 1337\nheight = 720\nuse-custom-proxy = 0\ncustomProxy = {foopy:80}', (err) =>{
           if(err) return console.log(err)
           console.log("wrote file")
         })
+        console.log("clicked YES")
         useTor = 1
         roundPics = 0
-        console.log("clicked YES")
-
+        windowWidth = 1337
+        windowHeight = 720
+        useProxy = 0
         startTor()
-        createWindow(useTor,roundPics)
-      }
+        createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
+        }
       else {
-        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = 0', (err) => {
+        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = 0\nwidth = 1337\nheight = 720\nuse-custom-proxy = 0\ncustomProxy = {foopy:80}', (err) => {
           if(err) return console.log(err)
           console.log("wrote file")
         })
         console.log("clicked NO")
         useTor = 0
         roundPics = 0
-        createWindow(useTor,roundPics)
+        windowWidth = 1337
+        windowHeight = 720
+        useProxy = 0
+        createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
       }
     })
   }
   else if(fs.existsSync(settingsFile)) {
     const settingsData= fs.readFileSync(settingsFile,'utf8')
-    console.log("Data:" + settingsData)
-    useTor = settingsData.slice(settingsData.indexOf("use-tor =")+10,settingsData.indexOf("use-tor =")+11)
-    roundPics = settingsData.slice(settingsData.indexOf("use-round-pics =")+17,settingsData.indexOf("use-round-pics =")+18)
+    console.log("Data:\n" + settingsData + "\nend of data")
+    useTor = getData(settingsData,"use-tor =",1)
+    roundPics = getData(settingsData,"use-round-pics =",1)
+    windowWidth = Number(getData(settingsData,"width =",4))
+    windowHeight = Number(getData(settingsData,"height =",4))
+    useProxy = getData(settingsData,"use-custom-proxy =",1)
+    customProxy = getData(settingsData,"customProxy =",settingsData.length-1).slice(1,-1)
     console.log("useTor: " + useTor)
     console.log("roundPics: " + roundPics)
+    console.log("windowWidth: " + windowWidth)
+    console.log("windowHeight: " + windowHeight)
+    console.log("use-custom-proxy: " + useProxy)
+    console.log("customProxy: " + customProxy)
     if(useTor>1||useTor<0)
     {
-      dialog.showMessageBox({type:'error',message:'use-tor is set to an invalid value'},(response) =>{
+      dialog.showMessageBox({type:'error',message:'use-tor is set to an invalid value!'},(response) =>{
         app.quit()
       })
     }
     else if(roundPics>1||roundPics<0)
     {
-      dialog.showMessageBox({type:'error',message: 'use-round-pics is set to an invalid value'},(response) =>{
+      dialog.showMessageBox({type:'error',message: 'use-round-pics is set to an invalid value!'},(response) =>{
+        app.quit()
+      })
+    }
+    else if(isNaN(windowWidth)||isNaN(windowHeight)||windowWidth<0||windowHeight<0)
+    {
+      dialog.showMessageBox({type:'error',message: 'width or height is set to an invalid value!'},(response) =>{
         app.quit()
       })
     }
     else {
-      if(useTor == 1)
+      if(useTor == 1 && useProxy == 0)
       {
         startTor()
       }
-      createWindow(useTor,roundPics)
+      createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
     }
   }
   else { //unreachable code, but... you know
@@ -207,6 +248,10 @@ app.on('window-all-closed', function () {
   // to stay active until the user quits explicitly with Cmd + Q
     app.quit()
 })
+function getData(data,valueName,maxEntry) {
+  const value = data.slice(data.indexOf(valueName)+valueName.length+1,data.indexOf(valueName) + valueName.length + (maxEntry+1))
+  return value
+}
 
 function createMenu() {
   if (Menu.getApplicationMenu()) return
@@ -235,7 +280,7 @@ function createMenu() {
       label: 'View',
       submenu: [
         {
-          label: 'Home',
+          label: 'TweetDeck',
           click (item, focusedWindow) {
             if (focusedWindow) focusedWindow.loadURL("https://tweetdeck.twitter.com/")}
         },

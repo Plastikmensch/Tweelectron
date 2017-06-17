@@ -20,6 +20,8 @@ use-tor = 1
 use-round-pics = 0
 width = 1337
 height = 720
+use-custom-proxy = 0
+customProxy = {foopy:80}
 ```
 
 ## Building source

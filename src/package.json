@@ -1,7 +1,7 @@
 {
-  "productName"    : "TweetElectronDeck",
-  "version" : "1.0.0",
-  "main"    : "main.js",
+  "productName" : "TweetElectronDeck",
+  "version" : "1.0.1",
+  "main" : "main.js",
   "description": "TweetDeck for Desktop",
   "author": {
     "name": "Plastikmensch_"
