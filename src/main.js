@@ -10,7 +10,7 @@ const fs = require('fs')
 
 let useTor,roundPics = 0,windowWidth = 1337,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
 const settingsFile = "./settings.json"
-const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.7/Tor/tor.exe"
+const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.8/Tor/tor.exe"
 let mainWindow
 
 function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy) {
