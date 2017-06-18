@@ -1,14 +1,14 @@
 /*
     TO-DO:
      [] use an array or object to store settings variables
-     [] save settings when app quits
+     [x] save settings when app quits
      [x] add custom proxy support
      [x] create function to process settingsData
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog} = require('electron')
 const fs = require('fs')
 
-let useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy
+let useTor,roundPics = 0,windowWidth = 1337,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
 const settingsFile = "./settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.7/Tor/tor.exe"
 let mainWindow
@@ -90,6 +90,9 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     const size = mainWindow.getSize()
     windowWidth = size[0]
     windowHeight = size[1]
+    fs.writeFileSync(settingsFile,'use-tor = '+ useTor + '\nuse-round-pics = ' + roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy = ' + useProxy + '\ncustomProxy = {' + customProxy + '}', (err)=>{
+      if(err) return console.log(err)
+    })
   })
   mainWindow.on('closed', function () {
     app.quit()
@@ -121,10 +124,6 @@ app.on('ready', () => {
         })
         console.log("clicked YES")
         useTor = 1
-        roundPics = 0
-        windowWidth = 1337
-        windowHeight = 720
-        useProxy = 0
         startTor()
         createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
         }
@@ -135,10 +134,6 @@ app.on('ready', () => {
         })
         console.log("clicked NO")
         useTor = 0
-        roundPics = 0
-        windowWidth = 1337
-        windowHeight = 720
-        useProxy = 0
         createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
       }
     })
@@ -152,21 +147,21 @@ app.on('ready', () => {
     windowHeight = Number(getData(settingsData,"height =",4))
     useProxy = getData(settingsData,"use-custom-proxy =",1)
     customProxy = getData(settingsData,"customProxy =",settingsData.length-1).slice(1,-1)
-    console.log("useTor: " + useTor)
-    console.log("roundPics: " + roundPics)
-    console.log("windowWidth: " + windowWidth)
-    console.log("windowHeight: " + windowHeight)
-    console.log("use-custom-proxy: " + useProxy)
-    console.log("customProxy: " + customProxy)
-    if(useTor>1||useTor<0)
+    if(useTor>1||useTor<0||isNaN(useTor))
     {
       dialog.showMessageBox({type:'error',message:'use-tor is set to an invalid value!'},(response) =>{
         app.quit()
       })
     }
-    else if(roundPics>1||roundPics<0)
+    else if(roundPics>1||roundPics<0||isNaN(roundPics))
     {
       dialog.showMessageBox({type:'error',message: 'use-round-pics is set to an invalid value!'},(response) =>{
+        app.quit()
+      })
+    }
+    else if(useProxy>1||useProxy<0||isNaN(useProxy))
+    {
+      dialog.showMessageBox({type:'error',message: 'use-custom-proxy is set to an invalid value!'},(response) =>{
         app.quit()
       })
     }
