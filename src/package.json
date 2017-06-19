@@ -1,6 +1,6 @@
 {
   "productName" : "Tweelectron",
-  "version" : "1.0.2",
+  "version" : "1.0.3",
   "main" : "main.js",
   "description": "TweetDeck for Desktop",
   "author": {

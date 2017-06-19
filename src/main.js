@@ -4,14 +4,16 @@
      [x] save settings when app quits
      [x] add custom proxy support
      [x] create function to process settingsData
+     [x] add in-app settings
+     [x] make settings beautiful
 */
-const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog} = require('electron')
+const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let useTor,roundPics = 0,windowWidth = 1337,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
+let useTor,roundPics = 0,windowWidth = 1336,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
 const settingsFile = "./settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.8/Tor/tor.exe"
-let mainWindow
+let mainWindow,settingsWin
 
 function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy) {
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: windowWidth, height: windowHeight})
@@ -57,7 +59,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     if(url.search('https://twitter.com/login') == 0)
     {
       event.preventDefault()
-      const twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
+      let twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
       if(useTor == 1 && useProxy == 0)
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
@@ -97,6 +99,18 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
   mainWindow.on('closed', function () {
     app.quit()
   })
+  ipcMain.on('Settings',(event,torSetting,picsSetting,proxySetting,proxyAddress) => {
+    console.log('Tor: ' + torSetting +'\nroundPics: ' + picsSetting +'\nproxy: ' + proxySetting + '\nproxyAddress: ' + proxyAddress)
+    if(torSetting) useTor = 1
+    else if(!torSetting) useTor = 0
+    if(picsSetting) roundPics = 1
+    else if(!picsSetting) roundPics = 0
+    if(proxySetting) useProxy = 1
+    else if(!proxySetting) useProxy = 0
+    if(proxyAddress != "") customProxy = proxyAddress
+    console.log('Settings:\nuseTor: ' + useTor + '\nroundPics: ' + roundPics + '\nuseProxy: ' + useProxy + '\nproxyAddress: ' + customProxy)
+    event.returnValue = 'true'
+  })
 }
 function startTor() {
   var child = require('child_process').execFile
@@ -107,20 +121,18 @@ function startTor() {
     console.log(data.toString())
   })
 }
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-
 app.on('ready', () => {
 
   if(!fs.existsSync(settingsFile))
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
-        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = 0\nwidth = 1337\nheight = 720\nuse-custom-proxy = 0\ncustomProxy = {foopy:80}', (err) =>{
+        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = '+ roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{
           if(err) return console.log(err)
-          console.log("wrote file")
+          else return console.log("wrote file")
         })
         console.log("clicked YES")
         useTor = 1
@@ -128,9 +140,9 @@ app.on('ready', () => {
         createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
         }
       else {
-        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = 0\nwidth = 1337\nheight = 720\nuse-custom-proxy = 0\ncustomProxy = {foopy:80}', (err) => {
+        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = '+ roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{          if(err) return console.log(err)
           if(err) return console.log(err)
-          console.log("wrote file")
+          else return console.log("wrote file")
         })
         console.log("clicked NO")
         useTor = 0
@@ -310,6 +322,13 @@ function createMenu() {
       submenu: [
         {
           role: 'quit'
+        },
+        {
+          label: 'Settings',
+          click () {
+            settingsWin = new BrowserWindow({autoHideMenuBar: true})
+            settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+          }
         }
       ]
     })

@@ -13,7 +13,7 @@ No installation required! Just [download](https://github.com/Plastikmensch/Tweel
 
 ## Settings
 Settings are saved in `settings.json` and will be generated when you first start the app.<br>
-The `settings.json` file is located where the exe is.<br>
+The `settings.json` file is in the same folder as `Tweelectron.exe`<br>
 Example:
 ```
 use-tor = 1
@@ -28,5 +28,5 @@ customProxy = {foopy:80}
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
 ```sh
 # make sure to always include --asar-unpackDir or else Tor won't run
-electron-packager <src> <options> --asar.unpackDir="tor-win32-0.3.0.7"
+electron-packager <src> <options> --asar.unpackDir="tor-win32-0.3.0.8"
 ```

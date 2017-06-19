@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.body {
+background: linear-gradient(141deg, #2a2a2a 50%, #282828 10%, #2f2f2f 60%) fixed;
+margin-left: 2%;
+color: white;
+}
+.header {
+  text-align: center;
+  background: linear-gradient(141deg, #2a2a2a 40%, #282828 10%, #2f2f2f 60%);
+  width: 350px;
+  border-radius: 10px;
+  margin-left: inherit;
+  color:inherit;
+}
+.form {
+  background: linear-gradient(141deg, #2a2a2a 40%, #282828 10%, #2f2f2f 60%);
+  width: 350px;
+  border-radius: 10px;
+  margin-left: inherit;
+  text-align: left;
+  color: inherit;
+}
+.button {
+  background-color: #202020;
+  color: inherit;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  margin-left: 40%;
+}
+.button:hover {
+  background-color: #252525;
+  border: none;
+  color: inherit;
+}
+input[type=text] {
+  border: none;
+  width: 230px;
+  margin-left: 10px;
+}
+</style></head>
+<body class='body'>
+  <h1 class='header'>Settings</h1>
+  <form class='form'>
+    <input type="checkbox" id="use-tor">Use Tor</input><br>
+    <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
+    <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
+    Proxy Address:<input type="text" id="customProxy"></input><br>
+    <button type='button' class='button' onclick="saveData()">Save</button>
+  </form>
+<p id="success"></p>
+
+<script type="text/javascript">
+const fs = require('fs')
+const {ipcRenderer} = require('electron')
+var settingsData = fs.readFileSync('./settings.json','utf8')
+var useTor = getData(settingsData,"use-tor =",1)
+var roundPics = getData(settingsData,"use-round-pics =",1)
+var useProxy = getData(settingsData,"use-custom-proxy =",1)
+var customProxy = getData(settingsData,"customProxy =",settingsData.length-1).slice(1,-1)
+if(useTor==1){
+  document.getElementById("use-tor").checked=true
+}
+if(roundPics==1){
+  document.getElementById("use-round-pics").checked=true
+}
+if(useProxy==1){
+  document.getElementById("use-custom-proxy").checked=true
+}
+document.getElementById("customProxy").value= customProxy
+function getData(data,valueName,maxEntry) {
+  const value = data.slice(data.indexOf(valueName)+valueName.length+1,data.indexOf(valueName) + valueName.length + (maxEntry+1))
+  return value
+}
+function saveData() {
+ipcRenderer.sendSync('Settings',document.getElementById("use-tor").checked,document.getElementById("use-round-pics").checked,document.getElementById("use-custom-proxy").checked,document.getElementById("customProxy").value)
+document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
+}
+</script>
+</body>
+</html>
