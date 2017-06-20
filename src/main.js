@@ -7,6 +7,8 @@
      [x] add in-app settings
      [x] make settings beautiful
      [x] add 'already saved' to settings
+     [] add about page
+     [] praise energy drinks
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -49,7 +51,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
-    if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)//prevents external opening when clicking on "Home" or "Twitter"
+    if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
     {
       event.preventDefault()
       shell.openExternal(url)
@@ -60,7 +62,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     if(url.search('https://twitter.com/login') == 0)
     {
       event.preventDefault()
-      let twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
+      let twitterwin = new BrowserWindow({autoHideMenuBar: true})
       twitterwin.setMenu(null)
       if(useTor == 1 && useProxy == 0)
       {
@@ -84,7 +86,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
         twitterwin.loadURL(url2)
       })
       event.newGuest = twitterwin
-      twitterwin.webContents.on('will-navigate', (event,url) => { //close window when login successful
+      twitterwin.webContents.on('will-navigate', (event,url) => {
         mainWindow.loadURL(url)
         twitterwin.close()
       })
@@ -126,9 +128,7 @@ function startTor() {
     console.log(data.toString())
   })
 }
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+
 app.on('ready', () => {
 
   if(!fs.existsSync(settingsFile))
@@ -270,6 +270,22 @@ function createMenu() {
 
   const template = [
     {
+      label: 'App',
+      submenu: [
+        {
+          role: 'quit'
+        },
+        {
+          label: 'Settings',
+          click () {
+            settingsWin = new BrowserWindow({autoHideMenuBar: true})
+            settingsWin.setMenu(null)
+            settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+          }
+        }
+      ]
+    },
+    {
       label: 'Edit',
       submenu: [
         {
@@ -296,10 +312,10 @@ function createMenu() {
           click (item, focusedWindow) {
             if (focusedWindow) focusedWindow.loadURL("https://tweetdeck.twitter.com/")}
         },
-          {
-               label: 'Twitter',
-               click (item, focusedWindow) {
-               if(focusedWindow) focusedWindow.loadURL("https://twitter.com/")}
+        {
+          label: 'Twitter',
+          click (item, focusedWindow) {
+            if(focusedWindow) focusedWindow.loadURL("https://twitter.com/")}
         },
         {
           label: 'Reload',
@@ -321,23 +337,6 @@ function createMenu() {
       ]
     }
   ]
-
-    template.unshift({
-      label: 'App',
-      submenu: [
-        {
-          role: 'quit'
-        },
-        {
-          label: 'Settings',
-          click () {
-            settingsWin = new BrowserWindow({autoHideMenuBar: true})
-            settingsWin.setMenu(null)
-            settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
-          }
-        }
-      ]
-    })
 
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)

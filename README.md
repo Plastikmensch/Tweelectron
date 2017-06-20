@@ -23,7 +23,7 @@ height = 720
 use-custom-proxy = 0
 customProxy = {foopy:80}
 ```
-
+Or use the in-app settings! Press `Alt` -> App -> Settings
 ## Packaging source
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
 ```sh

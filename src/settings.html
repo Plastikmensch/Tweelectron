@@ -48,13 +48,13 @@ input[type=text] {
 </style></head>
 <body class='body'>
   <h1 class='header'>Settings</h1>
-  <form class='form'>
+  <div class='form'>
     <input type="checkbox" id="use-tor">Use Tor</input><br>
     <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
     <button type='button' class='button' onclick="saveData()">Save</button>
-  </form>
+  </div>
 <p id="success"></p>
 
 <script type="text/javascript">
@@ -80,14 +80,16 @@ function getData(data,valueName,maxEntry) {
   return value
 }
 function saveData() {
+  var timer
+  clearTimeout(timer)
   if(ipcRenderer.sendSync('Settings',Number(document.getElementById("use-tor").checked),Number(document.getElementById("use-round-pics").checked),Number(document.getElementById("use-custom-proxy").checked),document.getElementById("customProxy").value))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
-    setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
   }
   else {
     document.getElementById("success").innerHTML = "<b>Already saved!</b>"
-    setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
   }
 }
 </script>
