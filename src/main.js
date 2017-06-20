@@ -6,6 +6,7 @@
      [x] create function to process settingsData
      [x] add in-app settings
      [x] make settings beautiful
+     [] add 'already saved' to settings
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -100,16 +101,19 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     app.quit()
   })
   ipcMain.on('Settings',(event,torSetting,picsSetting,proxySetting,proxyAddress) => {
-    console.log('Tor: ' + torSetting +'\nroundPics: ' + picsSetting +'\nproxy: ' + proxySetting + '\nproxyAddress: ' + proxyAddress)
-    if(torSetting) useTor = 1
-    else if(!torSetting) useTor = 0
-    if(picsSetting) roundPics = 1
-    else if(!picsSetting) roundPics = 0
-    if(proxySetting) useProxy = 1
-    else if(!proxySetting) useProxy = 0
-    if(proxyAddress != "") customProxy = proxyAddress
+    console.log('torSetting: ' + torSetting +'\npicsSetting: ' + picsSetting +'\nproxySetting: ' + proxySetting + '\nproxyAddress: ' + proxyAddress)
+    if(torSetting == useTor && picsSetting == roundPics && proxySetting == useProxy && proxyAddress === customProxy)
+    {
+      event.returnValue = false
+    }
+    else {
+      useTor = torSetting
+      roundPics = picsSetting
+      useProxy = proxySetting
+      customProxy = proxyAddress
+      event.returnValue = true
+    }
     console.log('Settings:\nuseTor: ' + useTor + '\nroundPics: ' + roundPics + '\nuseProxy: ' + useProxy + '\nproxyAddress: ' + customProxy)
-    event.returnValue = 'true'
   })
 }
 function startTor() {
