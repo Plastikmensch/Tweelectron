@@ -61,6 +61,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     {
       event.preventDefault()
       let twitterwin = new BrowserWindow({autoHideMenuBar: true}) //creates a new Window for login. For some reason login doesn't work in mainWindow
+      twitterwin.setMenu(null)
       if(useTor == 1 && useProxy == 0)
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
@@ -70,8 +71,8 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
       }
       else if(useProxy == 1)
       {
-        mainWindow.webContents.session.setProxy({proxyRules: customProxy}, () => {
-          mainWindow.loadURL(url)
+        twitterwin.webContents.session.setProxy({proxyRules: customProxy}, () => {
+          twitterwin.loadURL(url)
           console.log("using custom Proxy")
         })
       }
@@ -331,6 +332,7 @@ function createMenu() {
           label: 'Settings',
           click () {
             settingsWin = new BrowserWindow({autoHideMenuBar: true})
+            settingsWin.setMenu(null)
             settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
           }
         }
