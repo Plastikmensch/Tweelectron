@@ -6,7 +6,7 @@
      [x] create function to process settingsData
      [x] add in-app settings
      [x] make settings beautiful
-     [] add 'already saved' to settings
+     [x] add 'already saved' to settings
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
