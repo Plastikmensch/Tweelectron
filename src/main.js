@@ -13,12 +13,12 @@
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let useTor,roundPics = 0,windowWidth = 1336,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
+let useTor,roundPics = 0,trulyDark = 1,windowWidth = 1336,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
 const settingsFile = "./settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.8/Tor/tor.exe"
 let mainWindow,settingsWin
 
-function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy) {
+function createWindow (useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy) {
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: windowWidth, height: windowHeight})
 
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
@@ -49,7 +49,10 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
     }
-    mainWindow.webContents.insertCSS(".txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+    if(trulyDark==1)
+    {
+      mainWindow.webContents.insertCSS(".caret-inner{border-bottom: 6px solid #131619 !important}.bg-r-white{background-color: #131619 !important}.txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+    }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
     if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
@@ -97,22 +100,23 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     const size = mainWindow.getSize()
     windowWidth = size[0]
     windowHeight = size[1]
-    fs.writeFileSync(settingsFile,'use-tor = '+ useTor + '\nuse-round-pics = ' + roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy = ' + useProxy + '\ncustomProxy = {' + customProxy + '}', (err)=>{
+    fs.writeFileSync(settingsFile,'use-tor = '+ useTor + '\nuse-round-pics = ' + roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy = ' + useProxy + '\ncustomProxy = {' + customProxy + '}', (err)=>{
       if(err) return console.log(err)
     })
   })
   mainWindow.on('closed', function () {
     app.quit()
   })
-  ipcMain.on('Settings',(event,torSetting,picsSetting,proxySetting,proxyAddress) => {
+  ipcMain.on('Settings',(event,torSetting,picsSetting,themeSetting,proxySetting,proxyAddress) => {
     console.log('torSetting: ' + torSetting +'\npicsSetting: ' + picsSetting +'\nproxySetting: ' + proxySetting + '\nproxyAddress: ' + proxyAddress)
-    if(torSetting == useTor && picsSetting == roundPics && proxySetting == useProxy && proxyAddress === customProxy)
+    if(torSetting == useTor && picsSetting == roundPics && themeSetting == trulyDark && proxySetting == useProxy && proxyAddress === customProxy)
     {
       event.returnValue = false
     }
     else {
       useTor = torSetting
       roundPics = picsSetting
+      trulyDark = themeSetting
       useProxy = proxySetting
       customProxy = proxyAddress
       event.returnValue = true
@@ -136,23 +140,23 @@ app.on('ready', () => {
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
-        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = '+ roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{
+        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = '+ roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{
           if(err) return console.log(err)
           else return console.log("wrote file")
         })
         console.log("clicked YES")
         useTor = 1
         startTor()
-        createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
+        createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
         }
       else {
-        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = '+ roundPics + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{          if(err) return console.log(err)
+        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = '+ roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{          if(err) return console.log(err)
           if(err) return console.log(err)
           else return console.log("wrote file")
         })
         console.log("clicked NO")
         useTor = 0
-        createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
+        createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
       }
     })
   }
@@ -161,6 +165,7 @@ app.on('ready', () => {
     console.log("Data:\n" + settingsData + "\nend of data")
     useTor = getData(settingsData,"use-tor =",1)
     roundPics = getData(settingsData,"use-round-pics =",1)
+    trulyDark = getData(settingsData,"truly-dark =",1)
     windowWidth = Number(getData(settingsData,"width =",4))
     windowHeight = Number(getData(settingsData,"height =",4))
     useProxy = getData(settingsData,"use-custom-proxy =",1)
@@ -194,7 +199,7 @@ app.on('ready', () => {
       {
         startTor()
       }
-      createWindow(useTor,roundPics,windowWidth,windowHeight,useProxy,customProxy)
+      createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
     }
   }
   else { //unreachable code, but... you know
