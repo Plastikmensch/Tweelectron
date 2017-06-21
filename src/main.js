@@ -22,23 +22,23 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: windowWidth, height: windowHeight})
 
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
-  const url = 'https://tweetdeck.twitter.com/'
+  const home = 'https://tweetdeck.twitter.com/'
   if(useTor == 1 && useProxy == 0)
   {
     mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
-      mainWindow.loadURL(url)
+      mainWindow.loadURL(home)
       console.log("using Tor")
     })
   }
   else if(useProxy == 1)
   {
     mainWindow.webContents.session.setProxy({proxyRules: customProxy}, () => {
-      mainWindow.loadURL(url)
+      mainWindow.loadURL(home)
       console.log("using custom Proxy")
     })
   }
   else {
-    mainWindow.loadURL(url)
+    mainWindow.loadURL(home)
     console.log("Not using Tor or custom Proxy")
   }
   mainWindow.webContents.on('did-fail-load', () => {
@@ -49,6 +49,7 @@ function createWindow (useTor,roundPics,windowWidth,windowHeight,useProxy,custom
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
     }
+    mainWindow.webContents.insertCSS(".txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
   })
   mainWindow.webContents.on('new-window', (event,url) => {
     if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
