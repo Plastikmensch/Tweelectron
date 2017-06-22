@@ -1,6 +1,6 @@
 /*
     TO-DO:
-     [] use an array or object to store settings variables
+     [x] use an array or object to store settings variables
      [x] save settings when app quits
      [x] add custom proxy support
      [x] create function to process settingsData
@@ -13,26 +13,43 @@
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let useTor,roundPics = 0,trulyDark = 1,windowWidth = 1336,windowHeight = 720,useProxy = 0,customProxy = 'foopy:80'
+let Settings = [
+  undefined, //useTor
+  false,//roundPics
+  true,//trulyDark
+  1336,//windowWidth
+  720,//windowHeight
+  false,//useProxy
+  'foopy:80'//customProxy
+]
+let settingsName = [
+  'use-tor =',
+  'use-round-pics =',
+  'truly-dark =',
+  'width =',
+  'height =',
+  'use-custom-proxy =',
+  'customProxy ='
+]
 const settingsFile = "./settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.8/Tor/tor.exe"
 let mainWindow,settingsWin
 
-function createWindow (useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: windowWidth, height: windowHeight})
-
+function createWindow (Settings) {
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3], height: Settings[4]})
+  console.log(Settings)
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
-  if(useTor == 1 && useProxy == 0)
+  if(Settings[0] && !Settings[5])
   {
     mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
       mainWindow.loadURL(home)
       console.log("using Tor")
     })
   }
-  else if(useProxy == 1)
+  else if(Settings[5])
   {
-    mainWindow.webContents.session.setProxy({proxyRules: customProxy}, () => {
+    mainWindow.webContents.session.setProxy({proxyRules: Settings[6]}, () => {
       mainWindow.loadURL(home)
       console.log("using custom Proxy")
     })
@@ -45,13 +62,13 @@ function createWindow (useTor,roundPics,trulyDark,windowWidth,windowHeight,usePr
     mainWindow.loadURL(url2)
   })
   mainWindow.webContents.on('did-finish-load', () => {
-    if(roundPics==0)
+    if(!Settings[1])
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
     }
-    if(trulyDark==1)
+    if(Settings[2])
     {
-      mainWindow.webContents.insertCSS(".caret-inner{border-bottom: 6px solid #131619 !important}.bg-r-white{background-color: #131619 !important}.txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+      mainWindow.webContents.insertCSS(".caret-inner{border-bottom: 6px solid #131619 !important}.bg-r-white{background-color: #131619 !important}.txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")//#222426
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
@@ -68,16 +85,16 @@ function createWindow (useTor,roundPics,trulyDark,windowWidth,windowHeight,usePr
       event.preventDefault()
       let twitterwin = new BrowserWindow({autoHideMenuBar: true})
       twitterwin.setMenu(null)
-      if(useTor == 1 && useProxy == 0)
+      if(Settings[0] && !Settings[5])
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
           twitterwin.loadURL(url)
           console.log("using Tor")
         })
       }
-      else if(useProxy == 1)
+      else if(Settings[5])
       {
-        twitterwin.webContents.session.setProxy({proxyRules: customProxy}, () => {
+        twitterwin.webContents.session.setProxy({proxyRules: Settings[6]}, () => {
           twitterwin.loadURL(url)
           console.log("using custom Proxy")
         })
@@ -98,30 +115,31 @@ function createWindow (useTor,roundPics,trulyDark,windowWidth,windowHeight,usePr
   })
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    windowWidth = size[0]
-    windowHeight = size[1]
-    fs.writeFileSync(settingsFile,'use-tor = '+ useTor + '\nuse-round-pics = ' + roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy = ' + useProxy + '\ncustomProxy = {' + customProxy + '}', (err)=>{
+    Settings[3] = size[0]
+    Settings[4] = size[1]
+    var saveSettings
+    for(var i=0;i<Settings.length;i++)
+    {
+      saveSettings += (settingsName[i] + Settings[i] + '\n')
+    }
+    fs.writeFileSync(settingsFile,saveSettings, (err) =>{
       if(err) return console.log(err)
     })
   })
   mainWindow.on('closed', function () {
     app.quit()
   })
-  ipcMain.on('Settings',(event,torSetting,picsSetting,themeSetting,proxySetting,proxyAddress) => {
-    console.log('torSetting: ' + torSetting +'\npicsSetting: ' + picsSetting +'\nproxySetting: ' + proxySetting + '\nproxyAddress: ' + proxyAddress)
-    if(torSetting == useTor && picsSetting == roundPics && themeSetting == trulyDark && proxySetting == useProxy && proxyAddress === customProxy)
+  ipcMain.on('Settings',(event,newSettings) => {
+    console.log(newSettings)
+    if(newSettings.toString() == Settings.toString())
     {
       event.returnValue = false
     }
     else {
-      useTor = torSetting
-      roundPics = picsSetting
-      trulyDark = themeSetting
-      useProxy = proxySetting
-      customProxy = proxyAddress
+      Settings = newSettings
       event.returnValue = true
     }
-    console.log('Settings:\nuseTor: ' + useTor + '\nroundPics: ' + roundPics + '\nuseProxy: ' + useProxy + '\nproxyAddress: ' + customProxy)
+    console.log(Settings)
   })
 }
 function startTor() {
@@ -140,67 +158,57 @@ app.on('ready', () => {
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
-        fs.writeFileSync(settingsFile,'use-tor = 1\nuse-round-pics = '+ roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{
+        Settings[0] = true
+        var saveSettings
+        for(var i=0;i<Settings.length;i++)
+        {
+          saveSettings += (settingsName[i] + Settings[i] + '\n')
+        }
+        fs.writeFileSync(settingsFile,saveSettings, (err) =>{
           if(err) return console.log(err)
           else return console.log("wrote file")
         })
         console.log("clicked YES")
-        useTor = 1
         startTor()
-        createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
+        createWindow(Settings)
         }
       else {
-        fs.writeFileSync(settingsFile,'use-tor = 0\nuse-round-pics = '+ roundPics + '\ntruly-dark = '+ trulyDark + '\nwidth = ' + windowWidth + '\nheight = ' + windowHeight + '\nuse-custom-proxy ='+ useProxy +'\ncustomProxy = {' + customProxy +'}', (err) =>{          if(err) return console.log(err)
+        Settings[0] = false
+        var saveSettings
+        for(var i=0;i<Settings.length;i++)
+        {
+          saveSettings += (settingsName[i] + Settings[i] + '\n')
+        }
+        fs.writeFileSync(settingsFile,saveSettings, (err) =>{
           if(err) return console.log(err)
           else return console.log("wrote file")
         })
         console.log("clicked NO")
-        useTor = 0
-        createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
+        createWindow(Settings)
       }
     })
   }
   else if(fs.existsSync(settingsFile)) {
     const settingsData= fs.readFileSync(settingsFile,'utf8')
     console.log("Data:\n" + settingsData + "\nend of data")
-    useTor = getData(settingsData,"use-tor =",1)
-    roundPics = getData(settingsData,"use-round-pics =",1)
-    trulyDark = getData(settingsData,"truly-dark =",1)
-    windowWidth = Number(getData(settingsData,"width =",4))
-    windowHeight = Number(getData(settingsData,"height =",4))
-    useProxy = getData(settingsData,"use-custom-proxy =",1)
-    customProxy = getData(settingsData,"customProxy =",settingsData.length-1).slice(1,-1)
-    if(useTor>1||useTor<0||isNaN(useTor))
+
+    for(var i=0;i<Settings.length;i++)
     {
-      dialog.showMessageBox({type:'error',message:'use-tor is set to an invalid value!'},(response) =>{
-        app.quit()
-      })
+      Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i])))
+      if(Settings[i] == 'true'||Settings[i] == 'false')
+      {
+        Settings[i] = (Settings[i] == 'true')
+      }
+      else if(!isNaN(Number(Settings[i]))){
+        Settings[i] = Number(Settings[i])
+      }
     }
-    else if(roundPics>1||roundPics<0||isNaN(roundPics))
-    {
-      dialog.showMessageBox({type:'error',message: 'use-round-pics is set to an invalid value!'},(response) =>{
-        app.quit()
-      })
-    }
-    else if(useProxy>1||useProxy<0||isNaN(useProxy))
-    {
-      dialog.showMessageBox({type:'error',message: 'use-custom-proxy is set to an invalid value!'},(response) =>{
-        app.quit()
-      })
-    }
-    else if(isNaN(windowWidth)||isNaN(windowHeight)||windowWidth<0||windowHeight<0)
-    {
-      dialog.showMessageBox({type:'error',message: 'width or height is set to an invalid value!'},(response) =>{
-        app.quit()
-      })
-    }
-    else {
-      if(useTor == 1 && useProxy == 0)
+    console.log(Settings)
+      if(Settings[0] && !Settings[1])
       {
         startTor()
       }
-      createWindow(useTor,roundPics,trulyDark,windowWidth,windowHeight,useProxy,customProxy)
-    }
+      createWindow(Settings)
   }
   else { //unreachable code, but... you know
     console.log("Something went terribly wrong")
@@ -266,11 +274,6 @@ app.on('window-all-closed', function () {
   // to stay active until the user quits explicitly with Cmd + Q
     app.quit()
 })
-function getData(data,valueName,maxEntry) {
-  const value = data.slice(data.indexOf(valueName)+valueName.length+1,data.indexOf(valueName) + valueName.length + (maxEntry+1))
-  return value
-}
-
 function createMenu() {
   if (Menu.getApplicationMenu()) return
 
@@ -334,7 +337,7 @@ function createMenu() {
           label: 'DevTools',
           accelerator: 'F12',
           click (item, focusedWindow){
-            if(focusedWindow) focusedWindow.webContents.openDevTools()
+            if(focusedWindow) focusedWindow.webContents.toggleDevTools()
           }
         },
         {
