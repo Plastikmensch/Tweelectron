@@ -13,7 +13,7 @@
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let Settings = [
+let Settings = [//Could do smth. like Settings[1] [settingsName] see: https://stackoverflow.com/a/966234
   undefined, //useTor
   false,//roundPics
   true,//trulyDark
@@ -68,7 +68,7 @@ function createWindow (Settings) {
     }
     if(Settings[2])
     {
-      mainWindow.webContents.insertCSS(".caret-inner{border-bottom: 6px solid #131619 !important}.bg-r-white{background-color: #131619 !important}.txt-seamful-black{color: #666 !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #131619 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #131619 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")//#222426
+      mainWindow.webContents.insertCSS(".lst-profile{background-color: #2a2c2d !important}.text-like-keyboard-key{color: #000 !important}.social-proof-container{background-color: #2a2e31 !important}.is-inverted-dark{color: #fff !important}.prf-stats a strong{color: #8899a6 !important}.caret-inner{border-bottom: 6px solid #222426 !important}.bg-r-white,.prf-meta{background-color: #222426 !important}.txt-seamful-black{color: #fff !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")//#222426 #131619
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
