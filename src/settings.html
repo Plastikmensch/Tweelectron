@@ -104,14 +104,11 @@ if(Settings[5]){
   document.getElementById("use-custom-proxy").checked=true
 }
 document.getElementById("customProxy").value= Settings[6]
-function getData(data,valueName,maxEntry) {
-  const value = data.slice(data.indexOf(valueName)+valueName.length+1,data.indexOf(valueName) + valueName.length + (maxEntry+1))
-  return value
-}
+
 function saveData() {
   var timer
   clearTimeout(timer)
-  var newSettings = [document.getElementById("use-tor").checked,document.getElementById("use-round-pics").checked,document.getElementById("truly-dark").checked,document.getElementById("use-custom-proxy").checked,document.getElementById("customProxy").value]
+  var newSettings = [document.getElementById("use-tor").checked,document.getElementById("use-round-pics").checked,document.getElementById("truly-dark").checked,Settings[3],Settings[4],document.getElementById("use-custom-proxy").checked,document.getElementById("customProxy").value]
   if(ipcRenderer.sendSync('Settings',newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
