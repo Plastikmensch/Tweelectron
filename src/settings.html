@@ -62,24 +62,48 @@ input[type=text] {
 const fs = require('fs')
 const {ipcRenderer} = require('electron')
 var settingsData = fs.readFileSync('./settings.json','utf8')
-var useTor = getData(settingsData,"use-tor =",1)
-var roundPics = getData(settingsData,"use-round-pics =",1)
-var trulyDark = getData(settingsData,"truly-dark =",1)
-var useProxy = getData(settingsData,"use-custom-proxy =",1)
-var customProxy = getData(settingsData,"customProxy =",settingsData.length-1).slice(1,-1)
-if(useTor==1){
+let Settings = [
+  undefined, //useTor
+  false,//roundPics
+  true,//trulyDark
+  1336,//windowWidth
+  720,//windowHeight
+  false,//useProxy
+  'foopy:80'//customProxy
+]
+let settingsName = [
+  'use-tor =',
+  'use-round-pics =',
+  'truly-dark =',
+  'width =',
+  'height =',
+  'use-custom-proxy =',
+  'customProxy ='
+]
+for(var i=0;i<Settings.length;i++)
+{
+  Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i])))
+  if(Settings[i] == 'true'||Settings[i] == 'false')
+  {
+    Settings[i] = (Settings[i] == 'true')
+  }
+  else if(!isNaN(Number(Settings[i]))){
+    Settings[i] = Number(Settings[i])
+  }
+}
+if(Settings[0]){
   document.getElementById("use-tor").checked=true
 }
-if(roundPics==1){
+if(Settings[1]){
   document.getElementById("use-round-pics").checked=true
 }
-if(useProxy==1){
-  document.getElementById("use-custom-proxy").checked=true
-}
-if(trulyDark==1){
+if(Settings[2]){
   document.getElementById("truly-dark").checked=true
 }
-document.getElementById("customProxy").value= customProxy
+if(Settings[5]){
+  document.getElementById("use-custom-proxy").checked=true
+}
+document.getElementById("customProxy").value= Settings[6]
 function getData(data,valueName,maxEntry) {
   const value = data.slice(data.indexOf(valueName)+valueName.length+1,data.indexOf(valueName) + valueName.length + (maxEntry+1))
   return value
@@ -87,7 +111,8 @@ function getData(data,valueName,maxEntry) {
 function saveData() {
   var timer
   clearTimeout(timer)
-  if(ipcRenderer.sendSync('Settings',Number(document.getElementById("use-tor").checked),Number(document.getElementById("use-round-pics").checked),Number(document.getElementById("truly-dark").checked),Number(document.getElementById("use-custom-proxy").checked),document.getElementById("customProxy").value))
+  var newSettings = [document.getElementById("use-tor").checked,document.getElementById("use-round-pics").checked,document.getElementById("truly-dark").checked,document.getElementById("use-custom-proxy").checked,document.getElementById("customProxy").value]
+  if(ipcRenderer.sendSync('Settings',newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
     timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
