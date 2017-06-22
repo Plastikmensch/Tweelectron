@@ -117,7 +117,7 @@ function createWindow (Settings) {
     const size = mainWindow.getSize()
     Settings[3] = size[0]
     Settings[4] = size[1]
-    var saveSettings
+    var saveSettings = ""
     for(var i=0;i<Settings.length;i++)
     {
       saveSettings += (settingsName[i] + Settings[i] + '\n')
@@ -159,7 +159,7 @@ app.on('ready', () => {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
         Settings[0] = true
-        var saveSettings
+        var saveSettings = ""
         for(var i=0;i<Settings.length;i++)
         {
           saveSettings += (settingsName[i] + Settings[i] + '\n')
@@ -174,7 +174,7 @@ app.on('ready', () => {
         }
       else {
         Settings[0] = false
-        var saveSettings
+        var saveSettings = ""
         for(var i=0;i<Settings.length;i++)
         {
           saveSettings += (settingsName[i] + Settings[i] + '\n')
