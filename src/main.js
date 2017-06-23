@@ -69,6 +69,16 @@ function createWindow (Settings) {
     if(Settings[2])
     {
       mainWindow.webContents.insertCSS("\
+      .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
+      .list-account .username{color: #eaeaea !important}\
+      .list-account .fullname{color: #eaeaea !important}\
+      .list-account:hover{background-color: #666 !important}\
+      .list-account{text-shadow: 0 1px 0 #000 !important}\
+      .is-inverted-dark .column-scroller::-webkit-scrollbar-thumb{background-color: #666 !important}\
+      .column-background-fill{background-color: #222426 !important}\
+      .scroll-alt::-webkit-scrollbar-thumb{background-color: #666 !important}\
+      .is-inverted-dark .stream-item{background-color: #222426 !important}\
+      .is-inverted-dark .account-link{color: #e1e8ed !important}\
       .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
       .s-following .follow-btn{background-color: #50a5e6 !important}\
       .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
@@ -84,7 +94,7 @@ function createWindow (Settings) {
       .txt-seamful-black{color: #fff !important}\
       .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
       .list-link:hover{background-color: #0e0e0e !important}\
-      .mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
+      .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
       .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
     }
   })
