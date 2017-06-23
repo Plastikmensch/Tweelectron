@@ -68,7 +68,24 @@ function createWindow (Settings) {
     }
     if(Settings[2])
     {
-      mainWindow.webContents.insertCSS(".lst-profile{background-color: #2a2c2d !important}.text-like-keyboard-key{color: #000 !important}.social-proof-container{background-color: #2a2e31 !important}.is-inverted-dark{color: #fff !important}.prf-stats a strong{color: #8899a6 !important}.caret-inner{border-bottom: 6px solid #222426 !important}.bg-r-white,.prf-meta{background-color: #222426 !important}.txt-seamful-black{color: #fff !important}.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}.list-link:hover{background-color: #0e0e0e !important}.mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}.frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")//#222426 #131619
+      mainWindow.webContents.insertCSS("\
+      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
+      .s-following .follow-btn{background-color: #50a5e6 !important}\
+      .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
+      .is-inverted-dark .btn-square:focus{color: #eaeaea !important;background-color: #292f33 !important}\
+      .is-inverted-dark .btn-square{color: #e1e8ed !important;background-color: #292f33 !important;border-color: #111 !important} \
+      .lst-profile{background-color: #2a2c2d !important}\
+      .text-like-keyboard-key{color: #000 !important}\
+      .social-proof-container{background-color: #2a2e31 !important}\
+      .is-inverted-dark{color: #fff !important}\
+      .prf-stats a strong{color: #8899a6 !important}\
+      .caret-inner{border-bottom: 6px solid #222426 !important}\
+      .bg-r-white,.prf-meta{background-color: #222426 !important}\
+      .txt-seamful-black{color: #fff !important}\
+      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
+      .list-link:hover{background-color: #0e0e0e !important}\
+      .mdl,.mdl-inner,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
+      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
