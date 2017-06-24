@@ -4,7 +4,7 @@
 <style>
 .body {
 background: linear-gradient(141deg, #2a2a2a 50%, #282828 10%, #2f2f2f 60%) fixed;
-margin-left: 2%;
+margin-left: 5%;
 color: white;
 }
 .header {
@@ -51,7 +51,7 @@ input[type=text] {
   <div class='form'>
     <input type="checkbox" id="use-tor">Use Tor</input><br>
     <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
-    <input type="checkbox" id="truly-dark"></input>Truly dark TweetDeck (experimental)<br>
+    <input type="checkbox" id="truly-dark"></input>Truly dark TweetDeck<br>
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
     <button type='button' class='button' onclick="saveData()">Save</button>
@@ -82,7 +82,7 @@ let settingsName = [
 ]
 for(var i=0;i<Settings.length;i++)
 {
-  Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i])))
+  Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i]))).trim()
   if(Settings[i] == 'true'||Settings[i] == 'false')
   {
     Settings[i] = (Settings[i] == 'true')

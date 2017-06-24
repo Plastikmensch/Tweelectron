@@ -16,7 +16,7 @@ const fs = require('fs')
 let Settings = [//Could do smth. like Settings[1] [settingsName] see: https://stackoverflow.com/a/966234
   undefined, //useTor
   false,//roundPics
-  true,//trulyDark
+  false,//trulyDark
   1336,//windowWidth
   720,//windowHeight
   false,//useProxy
@@ -69,6 +69,7 @@ function createWindow (Settings) {
     if(Settings[2])
     {
       mainWindow.webContents.insertCSS("\
+      .mdl.s-full{background-color: #111 !important}\
       .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
       .list-account .username{color: #eaeaea !important}\
       .list-account .fullname{color: #eaeaea !important}\
@@ -110,7 +111,7 @@ function createWindow (Settings) {
     if(url.search('https://twitter.com/login') == 0)
     {
       event.preventDefault()
-      let twitterwin = new BrowserWindow({autoHideMenuBar: true})
+      let twitterwin = new BrowserWindow({autoHideMenuBar: true,parent: mainWindow})
       twitterwin.setMenu(null)
       if(Settings[0] && !Settings[5])
       {
@@ -221,7 +222,7 @@ app.on('ready', () => {
 
     for(var i=0;i<Settings.length;i++)
     {
-      Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i])))
+      Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i]))).trim()
       if(Settings[i] == 'true'||Settings[i] == 'false')
       {
         Settings[i] = (Settings[i] == 'true')
@@ -314,7 +315,7 @@ function createMenu() {
         {
           label: 'Settings',
           click () {
-            settingsWin = new BrowserWindow({autoHideMenuBar: true})
+            settingsWin = new BrowserWindow({autoHideMenuBar: true,width:450,height:310,parent: mainWindow})
             settingsWin.setMenu(null)
             settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
           }
