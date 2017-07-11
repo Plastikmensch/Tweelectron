@@ -7,13 +7,13 @@
      [x] add in-app settings
      [x] make settings beautiful
      [x] add 'already saved' to settings
-     [] add about page
+     [x] add about page
      [] praise energy drinks
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let Settings = [//Could do smth. like Settings[1] [settingsName] see: https://stackoverflow.com/a/966234
+let Settings = [//Could do smth. like Settings = [[undefined,'use-tor ='],...] see: https://stackoverflow.com/a/966234
   undefined, //useTor
   false,//roundPics
   false,//trulyDark
@@ -32,8 +32,8 @@ let settingsName = [
   'customProxy ='
 ]
 const settingsFile = "./settings.json"
-const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.8/Tor/tor.exe"
-let mainWindow,settingsWin
+const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.9/Tor/tor.exe"
+let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3], height: Settings[4]})
@@ -69,6 +69,7 @@ function createWindow (Settings) {
     if(Settings[2])
     {
       mainWindow.webContents.insertCSS("\
+      .is-inverted-dark .scroll-conversation{background: #222426 !important}\
       .mdl.s-full{background-color: #111 !important}\
       .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
       .list-account .username{color: #eaeaea !important}\
@@ -111,7 +112,7 @@ function createWindow (Settings) {
     if(url.search('https://twitter.com/login') == 0)
     {
       event.preventDefault()
-      let twitterwin = new BrowserWindow({autoHideMenuBar: true,parent: mainWindow})
+      twitterwin = new BrowserWindow({parent: mainWindow})
       twitterwin.setMenu(null)
       if(Settings[0] && !Settings[5])
       {
@@ -171,13 +172,7 @@ function createWindow (Settings) {
   })
 }
 function startTor() {
-  var child = require('child_process').execFile
-  child(tor, (err,data) => {
-    if(err){
-      console.error(err)
-    }
-    console.log(data.toString())
-  })
+  var child = require('child_process').execFile(tor)
 }
 
 app.on('ready', () => {
@@ -372,6 +367,18 @@ function createMenu() {
           role: 'togglefullscreen'
         }
       ]
+    },
+    {
+      label: 'About',
+      click(item){
+        aboutWin = new BrowserWindow({width: 500,height: 300})
+        aboutWin.setMenu(null)
+        aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
+        aboutWin.webContents.on('will-navigate', (event,url) => {
+          event.preventDefault()
+          shell.openExternal(url)
+        })
+      }
     }
   ]
 
