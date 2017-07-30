@@ -14,42 +14,35 @@ const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ip
 const fs = require('fs')
 
 let Settings = [//Could do smth. like Settings = [[undefined,'use-tor ='],...] see: https://stackoverflow.com/a/966234
-  undefined, //useTor
-  false,//roundPics
-  false,//trulyDark
-  1336,//windowWidth
-  720,//windowHeight
-  false,//useProxy
-  'foopy:80'//customProxy
+  [undefined,'use-tor ='], //useTor
+  [false,'use-round-pics ='],//roundPics
+  [false,'truly-dark ='],//trulyDark
+  [1336,'width ='],//windowWidth
+  [720,'height ='],//windowHeight
+  [false,'use-custom-proxy ='],//useProxy
+  ['foopy:80','customProxy =']//customProxy
 ]
-let settingsName = [
-  'use-tor =',
-  'use-round-pics =',
-  'truly-dark =',
-  'width =',
-  'height =',
-  'use-custom-proxy =',
-  'customProxy ='
-]
+
 const settingsFile = "./settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.9/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3], height: Settings[4]})
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0]})
   console.log(Settings)
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
-  if(Settings[0] && !Settings[5])
+  var retries = 0
+  if(Settings[0][0] && !Settings[5][0])
   {
     mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
       mainWindow.loadURL(home)
       console.log("using Tor")
     })
   }
-  else if(Settings[5])
+  else if(Settings[5][0])
   {
-    mainWindow.webContents.session.setProxy({proxyRules: Settings[6]}, () => {
+    mainWindow.webContents.session.setProxy({proxyRules: Settings[6][0]}, () => {
       mainWindow.loadURL(home)
       console.log("using custom Proxy")
     })
@@ -59,14 +52,16 @@ function createWindow (Settings) {
     console.log("Not using Tor or custom Proxy")
   }
   mainWindow.webContents.on('did-fail-load', () => {
-    mainWindow.loadURL(url2)
+    mainWindow.loadURL(home)
+    if(retries==3) mainWindow.loadURL(url2)
+    retries++
   })
   mainWindow.webContents.on('did-finish-load', () => {
-    if(!Settings[1])
+    if(!Settings[1][0])
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
     }
-    if(Settings[2])
+    if(Settings[2][0])
     {
       mainWindow.webContents.insertCSS("\
       .is-inverted-dark .scroll-conversation{background: #222426 !important}\
@@ -114,16 +109,16 @@ function createWindow (Settings) {
       event.preventDefault()
       twitterwin = new BrowserWindow({parent: mainWindow})
       twitterwin.setMenu(null)
-      if(Settings[0] && !Settings[5])
+      if(Settings[0][0] && !Settings[5][0])
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
           twitterwin.loadURL(url)
           console.log("using Tor")
         })
       }
-      else if(Settings[5])
+      else if(Settings[5][0])
       {
-        twitterwin.webContents.session.setProxy({proxyRules: Settings[6]}, () => {
+        twitterwin.webContents.session.setProxy({proxyRules: Settings[6][0]}, () => {
           twitterwin.loadURL(url)
           console.log("using custom Proxy")
         })
@@ -144,12 +139,12 @@ function createWindow (Settings) {
   })
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    Settings[3] = size[0]
-    Settings[4] = size[1]
+    Settings[3][0] = size[0]
+    Settings[4][0] = size[1]
     var saveSettings = ""
     for(var i=0;i<Settings.length;i++)
     {
-      saveSettings += (settingsName[i] + Settings[i] + '\n')
+      saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
     }
     fs.writeFileSync(settingsFile,saveSettings, (err) =>{
       if(err) return console.log(err)
@@ -181,11 +176,11 @@ app.on('ready', () => {
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
       if(response){
-        Settings[0] = true
+        Settings[0][0] = true
         var saveSettings = ""
         for(var i=0;i<Settings.length;i++)
         {
-          saveSettings += (settingsName[i] + Settings[i] + '\n')
+          saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
         }
         fs.writeFileSync(settingsFile,saveSettings, (err) =>{
           if(err) return console.log(err)
@@ -196,11 +191,11 @@ app.on('ready', () => {
         createWindow(Settings)
         }
       else {
-        Settings[0] = false
+        Settings[0][0] = false
         var saveSettings = ""
         for(var i=0;i<Settings.length;i++)
         {
-          saveSettings += (settingsName[i] + Settings[i] + '\n')
+          saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
         }
         fs.writeFileSync(settingsFile,saveSettings, (err) =>{
           if(err) return console.log(err)
@@ -217,17 +212,17 @@ app.on('ready', () => {
 
     for(var i=0;i<Settings.length;i++)
     {
-      Settings[i] = settingsData.slice(settingsData.search(settingsName[i])+settingsName[i].length,settingsData.indexOf('\n',settingsData.search(settingsName[i]))).trim()
-      if(Settings[i] == 'true'||Settings[i] == 'false')
+      Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+      if(Settings[i][0] == 'true'||Settings[i][0] == 'false')
       {
-        Settings[i] = (Settings[i] == 'true')
+        Settings[i][0] = (Settings[i][0] == 'true')
       }
-      else if(!isNaN(Number(Settings[i]))){
-        Settings[i] = Number(Settings[i])
+      else if(!isNaN(Number(Settings[i][0]))){
+        Settings[i][0] = Number(Settings[i][0])
       }
     }
     console.log(Settings)
-      if(Settings[0] && !Settings[1])
+      if(Settings[0][0] && !Settings[1][0])
       {
         startTor()
       }
@@ -310,9 +305,15 @@ function createMenu() {
         {
           label: 'Settings',
           click () {
-            settingsWin = new BrowserWindow({autoHideMenuBar: true,width:450,height:310,parent: mainWindow})
-            settingsWin.setMenu(null)
-            settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+            if(settingsWin != undefined) settingsWin.focus()
+            else {
+              settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow})
+              settingsWin.setMenu(null)
+              settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+            }
+            settingsWin.on('closed', () => {
+              settingsWin = undefined
+            })
           }
         }
       ]
@@ -370,10 +371,16 @@ function createMenu() {
     },
     {
       label: 'About',
-      click(item){
-        aboutWin = new BrowserWindow({width: 500,height: 300})
-        aboutWin.setMenu(null)
-        aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
+      click(){
+        if(aboutWin != undefined) aboutWin.focus()
+        else {
+          aboutWin = new BrowserWindow({width: 500,height: 300,parent: mainWindow})
+          aboutWin.setMenu(null)
+          aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
+        }
+        aboutWin.on('closed', ()=> {
+          aboutWin = undefined
+        })
         aboutWin.webContents.on('will-navigate', (event,url) => {
           event.preventDefault()
           shell.openExternal(url)
