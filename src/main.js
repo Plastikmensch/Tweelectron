@@ -13,14 +13,14 @@
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
 
-let Settings = [//Could do smth. like Settings = [[undefined,'use-tor ='],...] see: https://stackoverflow.com/a/966234
-  [undefined,'use-tor ='], //useTor
-  [false,'use-round-pics ='],//roundPics
-  [false,'truly-dark ='],//trulyDark
-  [1336,'width ='],//windowWidth
-  [720,'height ='],//windowHeight
-  [false,'use-custom-proxy ='],//useProxy
-  ['foopy:80','customProxy =']//customProxy
+let Settings = [
+  [undefined,'use-tor ='],
+  [false,'use-round-pics ='],
+  [false,'truly-dark ='],
+  [1336,'width ='],
+  [720,'height ='],
+  [false,'use-custom-proxy ='],
+  ['foopy:80','customProxy =']
 ]
 
 const settingsFile = "./settings.json"
@@ -64,6 +64,7 @@ function createWindow (Settings) {
     if(Settings[2][0])
     {
       mainWindow.webContents.insertCSS("\
+      .cmp-replyto{background-color: #222426 !important}\
       .is-inverted-dark .scroll-conversation{background: #222426 !important}\
       .mdl.s-full{background-color: #111 !important}\
       .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
@@ -160,7 +161,15 @@ function createWindow (Settings) {
       event.returnValue = false
     }
     else {
+      var reload = false
+      if(Settings[2][0]!==newSettings[2][0])
+      {
+        reload = true
+      }
       Settings = newSettings
+      if(reload){
+        mainWindow.reload()
+      }
       event.returnValue = true
     }
     console.log(Settings)
@@ -174,7 +183,7 @@ app.on('ready', () => {
 
   if(!fs.existsSync(settingsFile))
   {
-    dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'This app is capable of using Tor.\n Do you want to use Tor?'}, (response)=>{
+    dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'Do you want to use Tor?'}, (response)=>{
       if(response){
         Settings[0][0] = true
         var saveSettings = ""
