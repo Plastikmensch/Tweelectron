@@ -1,12 +1,12 @@
 {
   "productName" : "Tweelectron",
-  "version" : "1.0.5",
+  "version" : "1.0.6",
   "main" : "main.js",
   "description": "TweetDeck for Desktop",
   "author": {
     "name": "Plastikmensch"
   },
   "devDependencies": {
-    "electron": "^1.6.0"
+    "electron": "^1.7.0"
   }
 }

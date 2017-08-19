@@ -24,7 +24,7 @@ let Settings = [
 ]
 
 const settingsFile = "./settings.json"
-const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.9/Tor/tor.exe"
+const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.10/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
@@ -176,7 +176,10 @@ function createWindow (Settings) {
   })
 }
 function startTor() {
-  var child = require('child_process').execFile(tor)
+  if(process.platform == 'win32')
+  {
+    var child = require('child_process').execFile(tor)
+  }
 }
 
 app.on('ready', () => {
