@@ -17,7 +17,7 @@ let Settings = [
   [undefined,'use-tor ='],
   [false,'use-round-pics ='],
   [false,'truly-dark ='],
-  [1336,'width ='],
+  [1320,'width ='],
   [720,'height ='],
   [false,'use-custom-proxy ='],
   ['foopy:80','customProxy =']
@@ -28,7 +28,7 @@ const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.10/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0]})
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200})
   console.log(Settings)
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
@@ -140,8 +140,8 @@ function createWindow (Settings) {
   })
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    Settings[3][0] = size[0]
-    Settings[4][0] = size[1]
+    Settings[3][0] = size[0]//width
+    Settings[4][0] = size[1]//height
     var saveSettings = ""
     for(var i=0;i<Settings.length;i++)
     {
