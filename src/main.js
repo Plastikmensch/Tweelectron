@@ -24,7 +24,7 @@ let Settings = [
 ]
 
 const settingsFile = "./settings.json"
-const tor = "./resources/app.asar.unpacked/tor-win32-0.3.0.10/Tor/tor.exe"
+const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
