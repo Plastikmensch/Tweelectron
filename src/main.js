@@ -52,6 +52,7 @@ function createWindow (Settings) {
     console.log("Not using Tor or custom Proxy")
   }
   mainWindow.webContents.on('did-fail-load', () => {
+    console.log("failed to load. Retrying...")
     mainWindow.loadURL(home)
     if(retries==3) mainWindow.loadURL(url2)
     retries++
@@ -60,8 +61,9 @@ function createWindow (Settings) {
     if(!Settings[1][0])
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
+      console.log("inserted code for angular profile pics")
     }
-    if(Settings[2][0])
+    if(Settings[2][0] && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
       mainWindow.webContents.insertCSS("\
       .cmp-replyto{background-color: #222426 !important}\
@@ -94,6 +96,7 @@ function createWindow (Settings) {
       .list-link:hover{background-color: #0e0e0e !important}\
       .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
       .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+      console.log("inserted code for dark theme")
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {
@@ -101,6 +104,7 @@ function createWindow (Settings) {
     {
       event.preventDefault()
       shell.openExternal(url)
+      console.log("opened link external")
     }
   })
   mainWindow.webContents.on('will-navigate', (event, url) => {
@@ -179,11 +183,12 @@ function startTor() {
   if(process.platform == 'win32')
   {
     var child = require('child_process').execFile(tor)
+    console.log("started Tor")
   }
 }
 
 app.on('ready', () => {
-
+app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
   if(!fs.existsSync(settingsFile))
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'Do you want to use Tor?'}, (response)=>{

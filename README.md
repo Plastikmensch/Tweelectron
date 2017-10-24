@@ -28,7 +28,3 @@ customProxy =foopy:80
 Or use the in-app settings! Press `Alt` -> `App` -> `Settings`
 ## Packaging source
 you can use [electron-packager](https://github.com/electron-userland/electron-packager)
-```sh
-# make sure to always include --asar-unpackDir or else Tor won't run
-electron-packager <src> <options> --asar.unpackDir="tor-win32-0.3.0.9"
-```
