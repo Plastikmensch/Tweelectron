@@ -66,6 +66,7 @@ function createWindow (Settings) {
     if(Settings[2][0] && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
       mainWindow.webContents.insertCSS("\
+      html.dark .bg-twitter-faint-gray{background-color: #222426 !important} \
       .cmp-replyto{background-color: #222426 !important}\
       .is-inverted-dark .scroll-conversation{background: #222426 !important}\
       .mdl.s-full{background-color: #111 !important}\
