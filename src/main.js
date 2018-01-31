@@ -8,7 +8,7 @@
      [x] make settings beautiful
      [x] add 'already saved' to settings
      [x] add about page
-     [] praise energy drinks
+     [] find and fix cause of extreme long loading time.
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -54,7 +54,10 @@ function createWindow (Settings) {
   mainWindow.webContents.on('did-fail-load', () => {
     console.log("failed to load. Retrying...")
     mainWindow.loadURL(home)
-    if(retries==3) mainWindow.loadURL(url2)
+    if(retries==3) {
+      mainWindow.loadURL(url2)
+      console.log("failed to load")
+    }
     retries++
   })
   mainWindow.webContents.on('did-finish-load', () => {
@@ -66,7 +69,10 @@ function createWindow (Settings) {
     if(Settings[2][0] && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
       mainWindow.webContents.insertCSS("\
-      html.dark .bg-twitter-faint-gray{background-color: #222426 !important} \
+      .txt-twitter-dark-black{color: #999 !important}\
+      html.dark .list-filter{color: #fff !important}\
+      html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
+      html.dark .bg-twitter-lightest-gray{background-color: #222426 !important}\
       .cmp-replyto{background-color: #222426 !important}\
       .is-inverted-dark .scroll-conversation{background: #222426 !important}\
       .mdl.s-full{background-color: #111 !important}\
@@ -135,6 +141,7 @@ function createWindow (Settings) {
       }
       twitterwin.webContents.on('did-fail-load',() => {
         twitterwin.loadURL(url2)
+        console.log("failed to load")
       })
       event.newGuest = twitterwin
       twitterwin.webContents.on('will-navigate', (event,url) => {
@@ -304,10 +311,7 @@ app.on('browser-window-created', function (event, win) {
   })
 })
 
-// Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
     app.quit()
 })
 function createMenu() {
