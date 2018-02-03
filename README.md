@@ -7,7 +7,7 @@ TweetDeck client built with [Electron](https://electron.atom.io/)
 - keep angular profile pictures
 - copy links, usernames, hashtags or pictures
 - open links in your default browser
-- a truly dark theme
+- 2 themes (Truly Dark, Dreamy Blue)
 
 ## Installation
 No installation required! Just [download](https://github.com/Plastikmensch/Tweelectron/releases), unzip and double-click `Tweelectron.exe`
@@ -19,7 +19,7 @@ Example:
 ```
 use-tor =true
 use-round-pics =false
-truly-dark =true
+theme =2
 width =1336
 height =720
 use-custom-proxy =false

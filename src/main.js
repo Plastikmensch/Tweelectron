@@ -22,7 +22,7 @@ const fs = require('fs')
 let Settings = [
   [undefined,'use-tor ='],
   [false,'use-round-pics ='],
-  [0,'theme ='],//0 = no theme, 1 = truly dark, 2 =
+  [0,'theme ='],//0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
   [1320,'width ='],
   [720,'height ='],
   [false,'use-custom-proxy ='],
