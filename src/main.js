@@ -9,6 +9,12 @@
      [x] add 'already saved' to settings
      [x] add about page
      [] find and fix cause of extreme long loading time.
+     [x] adjust theme for TweetDecks awful color choice.
+     [] rework old theme
+     [] add theme selection
+     [] find motivation to work on this list
+     [] find a way to include Tor in linux
+     [] write install script for linux
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -68,7 +74,57 @@ function createWindow (Settings) {
     }
     if(Settings[2][0] && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
+      //First: Dropdown menu (Settings, account actions)
+      //Second: Keyboard shortcuts
+      //Third: Settings
+      //Fourth: Search
+      //Fifth: Profile
+      //Sixth: Profile -> Tweets, Mentions, Lists etc.
+      //Seventh: Tweets (Pictures, Videos)
       mainWindow.webContents.insertCSS("\
+      html.dark .dropdown-menu{background-color: #243447 !important}\
+      html.dark .non-selectable-item{color: #e1e8ed !important}\
+      html.dark .dropdown-menu .typeahead-item, html.dark .dropdown-menu [data-action]{color: #e1e8ed !important}\
+      \
+      html.dark .mdl{background-color: #243447 !important}\
+      html.dark .text-like-keyboard-key{color: #292f33 !important}\
+      html.dark .keyboard-shortcut-list{color: #e1e8ed !important}\
+      html.dark .mdl-header{color: #e1e8ed !important}\
+      html.dark .mdl-dismiss{color: #e1e8ed !important}\
+      .txt-r-deep-gray{color: #e1e8ed !important}\
+      .bg-r-white{background-color: #243447 !important}\
+      \
+      html.dark .mdl-col-settings{background-color: #243447 !important}\
+      html.dark .frm{color: #e1e8ed !important}\
+      html.dark .bg-twitter-lightest-gray{background-color: #243447 !important}\
+      html.dark .is-inverted-dark .list-link{color: #e1e8ed !important}\
+      html.dark .list-filter{color: #e1e8ed !important}\
+      html.dark .list-link:hover:hover{color: #e1e8ed !important; background-color: #1B2836 !important}\
+      \
+      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
+      .txt-twitter-dark-black{color: #e1e8ed !important}\
+      html.dark .is-inverted-dark{color: #e1e8ed !important}\
+      html.dark .popover{background-color: #243447 !important}\
+      .caret-inner{border-bottom: 6px solid #243447 !important}\
+      html.dark .list-item{color: #e1e8ed !important}\
+      \
+      html.dark .prf-meta{background-color: #1B2836 !important}\
+      html.dark .prf-stats a strong{color: #e1e8ed !important}\
+      html.dark .social-proof-container{background-color: #1B2836 !important}\
+      html.dark .is-inverted-dark .btn:hover, html.dark .is-inverted-dark .btn:focus{background-color: #243447 !important}\
+      \
+      html.dark .mdl-column-med{background: #243447 !important}\
+      html.dark .mdl-column-rhs{background: #243447 !important}\
+      html.dark .is-inverted-dark .stream-item{background-color: #1B2836 !important}\
+      html.dark .is-inverted-dark .account-link{color: #e1e8ed !important}\
+      html.dark .list-account .fullname{color: #e1e8ed !important}\
+      html.dark .column-background-fill{background-color: #243447 !important}\
+      html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
+      \
+      html.dark .med-fullpanel{background-color: #111 !important}\
+      ")
+      /*mainWindow.webContents.insertCSS("\
+      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
       .txt-twitter-dark-black{color: #999 !important}\
       html.dark .list-filter{color: #fff !important}\
       html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
@@ -102,7 +158,7 @@ function createWindow (Settings) {
       .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
       .list-link:hover{background-color: #0e0e0e !important}\
       .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
-      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")*/
       console.log("inserted code for dark theme")
     }
   })
