@@ -10,8 +10,8 @@
      [x] add about page
      [] find and fix cause of extreme long loading time.
      [x] adjust theme for TweetDecks awful color choice.
-     [] rework old theme
-     [] add theme selection
+     [x] rework old theme
+     [x] add theme selection
      [] find motivation to work on this list
      [] find a way to include Tor in linux
      [] write install script for linux
@@ -22,7 +22,7 @@ const fs = require('fs')
 let Settings = [
   [undefined,'use-tor ='],
   [false,'use-round-pics ='],
-  [false,'truly-dark ='],
+  [0,'theme ='],//0 = no theme, 1 = truly dark, 2 =
   [1320,'width ='],
   [720,'height ='],
   [false,'use-custom-proxy ='],
@@ -72,7 +72,66 @@ function createWindow (Settings) {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
       console.log("inserted code for angular profile pics")
     }
-    if(Settings[2][0] && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
+    if(Settings[2][0]==1 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
+    {
+      //First: Overall appearance (Tweets, sidebar etc.)
+      //Second: Column options
+      //Third: Old stuff that need sorting (everything else)
+      mainWindow.webContents.insertCSS("\
+      html.dark .stream-item{background-color: #222426 !important}\
+      html.dark .column-nav-item{background-color: #292f33 !important}\
+      html.dark .app-header{background-color: #292f33 !important}\
+      html.dark .app-navigator{background-color: #292f33 !important}\
+      html.dark .app-title{background-color: #292f33 !important}\
+      html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\
+      html.dark .column-message{background-color: #292f33 !important}\
+      html.dark .app-content{background-color: #222426 !important}\
+      html.dark .column{background-color: #222426 !important}\
+      html.dark .app-columns-container{background-color: #14171a !important}\
+      \
+      html.dark .column-options{background-color: #2a2c2d !important}\
+      html.dark .column-options .button-tray{background-color: #2a2c2d !important}\
+      html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\
+      html.dark .facet-type.is-active{background-color: #2a2c2d !important}\
+      \
+      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
+      .txt-twitter-dark-black{color: #999 !important}\
+      html.dark .list-filter{color: #fff !important}\
+      html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
+      html.dark .bg-twitter-lightest-gray{background-color: #222426 !important}\
+      .cmp-replyto{background-color: #222426 !important}\
+      .is-inverted-dark .scroll-conversation{background: #222426 !important}\
+      .mdl.s-full{background-color: #111 !important}\
+      .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
+      .list-account .username{color: #eaeaea !important}\
+      .list-account .fullname{color: #eaeaea !important}\
+      .list-account:hover{background-color: #666 !important}\
+      .list-account{text-shadow: 0 1px 0 #000 !important}\
+      .is-inverted-dark .column-scroller::-webkit-scrollbar-thumb{background-color: #666 !important}\
+      .column-background-fill{background-color: #222426 !important}\
+      .scroll-alt::-webkit-scrollbar-thumb{background-color: #666 !important}\
+      .is-inverted-dark .stream-item{background-color: #222426 !important}\
+      .is-inverted-dark .account-link{color: #e1e8ed !important}\
+      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
+      .s-following .follow-btn{background-color: #50a5e6 !important}\
+      .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
+      .is-inverted-dark .btn-square:focus{color: #eaeaea !important;background-color: #292f33 !important}\
+      .is-inverted-dark .btn-square{color: #e1e8ed !important;background-color: #292f33 !important;border-color: #111 !important} \
+      .lst-profile{background-color: #2a2c2d !important}\
+      .text-like-keyboard-key{color: #000 !important}\
+      html.dark .social-proof-container{background-color: #222426 !important}\
+      .is-inverted-dark{color: #fff !important}\
+      .prf-stats a strong{color: #8899a6 !important}\
+      .caret-inner{border-bottom: 6px solid #222426 !important}\
+      .bg-r-white,.prf-meta{background-color: #222426 !important}\
+      .txt-seamful-black{color: #fff !important}\
+      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
+      .list-link:hover{background-color: #0e0e0e !important}\
+      .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
+      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+      console.log("inserted code for dark theme")
+    }
+    if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
       //First: Dropdown menu (Settings, account actions)
       //Second: Keyboard shortcuts
@@ -123,43 +182,7 @@ function createWindow (Settings) {
       \
       html.dark .med-fullpanel{background-color: #111 !important}\
       ")
-      /*mainWindow.webContents.insertCSS("\
-      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
-      .txt-twitter-dark-black{color: #999 !important}\
-      html.dark .list-filter{color: #fff !important}\
-      html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
-      html.dark .bg-twitter-lightest-gray{background-color: #222426 !important}\
-      .cmp-replyto{background-color: #222426 !important}\
-      .is-inverted-dark .scroll-conversation{background: #222426 !important}\
-      .mdl.s-full{background-color: #111 !important}\
-      .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
-      .list-account .username{color: #eaeaea !important}\
-      .list-account .fullname{color: #eaeaea !important}\
-      .list-account:hover{background-color: #666 !important}\
-      .list-account{text-shadow: 0 1px 0 #000 !important}\
-      .is-inverted-dark .column-scroller::-webkit-scrollbar-thumb{background-color: #666 !important}\
-      .column-background-fill{background-color: #222426 !important}\
-      .scroll-alt::-webkit-scrollbar-thumb{background-color: #666 !important}\
-      .is-inverted-dark .stream-item{background-color: #222426 !important}\
-      .is-inverted-dark .account-link{color: #e1e8ed !important}\
-      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
-      .s-following .follow-btn{background-color: #50a5e6 !important}\
-      .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
-      .is-inverted-dark .btn-square:focus{color: #eaeaea !important;background-color: #292f33 !important}\
-      .is-inverted-dark .btn-square{color: #e1e8ed !important;background-color: #292f33 !important;border-color: #111 !important} \
-      .lst-profile{background-color: #2a2c2d !important}\
-      .text-like-keyboard-key{color: #000 !important}\
-      .social-proof-container{background-color: #2a2e31 !important}\
-      .is-inverted-dark{color: #fff !important}\
-      .prf-stats a strong{color: #8899a6 !important}\
-      .caret-inner{border-bottom: 6px solid #222426 !important}\
-      .bg-r-white,.prf-meta{background-color: #222426 !important}\
-      .txt-seamful-black{color: #fff !important}\
-      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
-      .list-link:hover{background-color: #0e0e0e !important}\
-      .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
-      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")*/
-      console.log("inserted code for dark theme")
+      console.log("inserted code for blue theme")
     }
   })
   mainWindow.webContents.on('new-window', (event,url) => {

@@ -51,7 +51,11 @@ input[type=text] {
   <div class='form'>
     <input type="checkbox" id="use-tor">Use Tor</input><br>
     <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
-    <input type="checkbox" id="truly-dark"></input>Truly dark TweetDeck<br>
+    Theme: <select id="theme">
+      <option>No theme</option>
+      <option>Truly Dark</option>
+      <option>Dreamy Blue</option>
+    </select><br>
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
     <button type='button' class='button' onclick="saveData()">Save</button>
@@ -65,7 +69,7 @@ var settingsData = fs.readFileSync('./settings.json','utf8')
 let Settings = [
   [undefined,'use-tor ='], //useTor
   [false,'use-round-pics ='],//roundPics
-  [false,'truly-dark ='],//trulyDark
+  [0,'theme ='],//theme
   [1336,'width ='],//windowWidth
   [720,'height ='],//windowHeight
   [false,'use-custom-proxy ='],//useProxy
@@ -88,9 +92,7 @@ if(Settings[0][0]){
 if(Settings[1][0]){
   document.getElementById("use-round-pics").checked=true
 }
-if(Settings[2][0]){
-  document.getElementById("truly-dark").checked=true
-}
+document.getElementById("theme").selectedIndex= Settings[2][0]
 if(Settings[5][0]){
   document.getElementById("use-custom-proxy").checked=true
 }
@@ -99,7 +101,7 @@ document.getElementById("customProxy").value= Settings[6][0]
 function saveData() {
   var timer
   clearTimeout(timer)
-  var newSettings = [[document.getElementById("use-tor").checked,Settings[0][1]],[document.getElementById("use-round-pics").checked,Settings[1][1]],[document.getElementById("truly-dark").checked,Settings[2][1]],[Settings[3][0],Settings[3][1]],
+  var newSettings = [[document.getElementById("use-tor").checked,Settings[0][1]],[document.getElementById("use-round-pics").checked,Settings[1][1]],[document.getElementById("theme").selectedIndex,Settings[2][1]],[Settings[3][0],Settings[3][1]],
   [Settings[4][0],Settings[4][1]],[document.getElementById("use-custom-proxy").checked,Settings[5][1]],[document.getElementById("customProxy").value,Settings[6][1]]]
   if(ipcRenderer.sendSync('Settings',newSettings))
   {
