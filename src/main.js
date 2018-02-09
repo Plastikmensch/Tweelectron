@@ -78,7 +78,7 @@ function createWindow (Settings) {
       //Second: Column options
       //Third: Search Tips
       //Fourth: Keyboard shortcuts
-      //Last: Old stuff that need sorting (everything else)
+      //Last: Old stuff that needs sorting (everything else)
       mainWindow.webContents.insertCSS("\
       html.dark .stream-item{background-color: #222426 !important}\
       html.dark .column-nav-item{background-color: #292f33 !important}\
@@ -245,17 +245,7 @@ function createWindow (Settings) {
     }
   })
   mainWindow.on('close', (event) => {
-    const size = mainWindow.getSize()
-    Settings[3][0] = size[0]//width
-    Settings[4][0] = size[1]//height
-    var saveSettings = ""
-    for(var i=0;i<Settings.length;i++)
-    {
-      saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
-    }
-    fs.writeFileSync(settingsFile,saveSettings, (err) =>{
-      if(err) return console.log(err)
-    })
+    SaveSettings(Settings)
   })
   mainWindow.on('closed', function () {
     app.quit()
@@ -276,6 +266,7 @@ function createWindow (Settings) {
       if(reload){
         mainWindow.reload()
       }
+      SaveSettings(Settings)
       event.returnValue = true
     }
     console.log(Settings)
@@ -287,6 +278,19 @@ function startTor() {
     var child = require('child_process').execFile(tor)
     console.log("started Tor")
   }
+}
+function SaveSettings(Settings){
+  const size = mainWindow.getSize()
+  Settings[3][0] = size[0]//width
+  Settings[4][0] = size[1]//height
+  var saveSettings = ""
+  for(var i=0;i<Settings.length;i++)
+  {
+    saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
+  }
+  fs.writeFileSync(settingsFile,saveSettings, (err) =>{
+    if(err) return console.log(err)
+  })
 }
 
 app.on('ready', () => {
