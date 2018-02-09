@@ -76,7 +76,9 @@ function createWindow (Settings) {
     {
       //First: Overall appearance (Tweets, sidebar etc.)
       //Second: Column options
-      //Third: Old stuff that need sorting (everything else)
+      //Third: Search Tips
+      //Fourth: Keyboard shortcuts
+      //Last: Old stuff that need sorting (everything else)
       mainWindow.webContents.insertCSS("\
       html.dark .stream-item{background-color: #222426 !important}\
       html.dark .column-nav-item{background-color: #292f33 !important}\
@@ -94,11 +96,19 @@ function createWindow (Settings) {
       html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\
       html.dark .facet-type.is-active{background-color: #2a2c2d !important}\
       \
+      html.dark .bg-color-twitter-white{background-color: #222426 !important}\
+      html.dark .color-twitter-dark-gray{color: #fff !important}\
+      html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\
+      html.dark .Button{background-color: #111 !important}\
+      html.dark .Button:hover{background-color: #111 !important}\
+      \
+      html.dark .color-twitter-dark-black{color: #fff !important}\
+      \
       html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
       .txt-twitter-dark-black{color: #999 !important}\
       html.dark .list-filter{color: #fff !important}\
       html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
-      html.dark .bg-twitter-lightest-gray{background-color: #222426 !important}\
+      html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\
       .cmp-replyto{background-color: #222426 !important}\
       .is-inverted-dark .scroll-conversation{background: #222426 !important}\
       .mdl.s-full{background-color: #111 !important}\
@@ -155,7 +165,7 @@ function createWindow (Settings) {
       \
       html.dark .mdl-col-settings{background-color: #243447 !important}\
       html.dark .frm{color: #e1e8ed !important}\
-      html.dark .bg-twitter-lightest-gray{background-color: #243447 !important}\
+      html.dark .bg-color-twitter-lightest-gray{background-color: #243447 !important}\
       html.dark .is-inverted-dark .list-link{color: #e1e8ed !important}\
       html.dark .list-filter{color: #e1e8ed !important}\
       html.dark .list-link:hover:hover{color: #e1e8ed !important; background-color: #1B2836 !important}\
@@ -166,6 +176,11 @@ function createWindow (Settings) {
       html.dark .popover{background-color: #243447 !important}\
       .caret-inner{border-bottom: 6px solid #243447 !important}\
       html.dark .list-item{color: #e1e8ed !important}\
+      html.dark .bg-color-twitter-white{background-color: #243447 !important}\
+      html.dark .color-twitter-dark-gray{color:#fff !important}\
+      html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #1B2836 !important}\
+      html.dark .Button{background-color: #1B2836 !important}\
+      html.dark .Button:hover{background-color: #1B2836 !important}\
       \
       html.dark .prf-meta{background-color: #1B2836 !important}\
       html.dark .prf-stats a strong{color: #e1e8ed !important}\
