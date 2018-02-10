@@ -28,6 +28,11 @@ color: white;
 <body>
 <h1>About Tweelectron</h1>
 <p>
+Tweelectron version:
+<script>
+const fs = require('fs')
+document.write(fs.readFileSync('./resources/app.asar/tweelectron-version','utf8'))
+</script><br>
 Electron version: <script>document.write(process.versions.electron)</script><br>
 Tor version: 0.3.2.9<br>
 GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a>
