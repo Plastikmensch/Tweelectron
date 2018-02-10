@@ -15,6 +15,7 @@
      [] find motivation to work on this list
      [] find a way to include Tor in linux
      [] write install script for linux
+     [] rework windows
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -76,9 +77,11 @@ function createWindow (Settings) {
     {
       //First: Overall appearance (Tweets, sidebar etc.)
       //Second: Column options
-      //Third: Search Tips
-      //Fourth: Keyboard shortcuts
-      //Last: Old stuff that needs sorting (everything else)
+      //Third: Dropdown
+      //Fourth: Search Tips
+      //Fifth: Keyboard shortcuts
+      //Sixth: Settings
+      //Seventh: Profile
       mainWindow.webContents.insertCSS("\
       html.dark .stream-item{background-color: #222426 !important}\
       html.dark .column-nav-item{background-color: #292f33 !important}\
@@ -90,55 +93,59 @@ function createWindow (Settings) {
       html.dark .app-content{background-color: #222426 !important}\
       html.dark .column{background-color: #222426 !important}\
       html.dark .app-columns-container{background-color: #14171a !important}\
+      html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\
+      html.dark .is-inverted-dark{color: #fff !important}\
+      html.dark .scroll-conversation{background: #222426 !important}\
+      html.dark .detail-view-inline{background-color: #222426 !important}\
+      html.dark .detail-view-inline-text{background-color: #292f33 !important}\
+      html.dark .app-search-input{background-color: #222426 !important}\
       \
       html.dark .column-options{background-color: #2a2c2d !important}\
       html.dark .column-options .button-tray{background-color: #2a2c2d !important}\
       html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\
       html.dark .facet-type.is-active{background-color: #2a2c2d !important}\
       \
+      .caret-inner{border-bottom: 6px solid #222426 !important}\
+      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
+      html.dark .non-selectable-item{color: #fff !important}\
+      \
       html.dark .bg-color-twitter-white{background-color: #222426 !important}\
       html.dark .color-twitter-dark-gray{color: #fff !important}\
       html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\
       html.dark .Button{background-color: #111 !important}\
       html.dark .Button:hover{background-color: #111 !important}\
+      html.dark .mdl-dismiss{color: #fff !important}\
       \
       html.dark .color-twitter-dark-black{color: #fff !important}\
+      .text-like-keyboard-key{color: #000 !important}\
       \
-      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
-      .txt-twitter-dark-black{color: #999 !important}\
-      html.dark .list-filter{color: #fff !important}\
-      html.dark .bg-twitter-faint-gray{background-color: #222426 !important}\
+      .list-link:hover{background-color: #0e0e0e !important}\
+      html.dark .mdl{background-color: #222426 !important}\
+      html.dark .mdl-col-settings{background-color: #222426 !important}\
       html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\
-      .cmp-replyto{background-color: #222426 !important}\
-      .is-inverted-dark .scroll-conversation{background: #222426 !important}\
-      .mdl.s-full{background-color: #111 !important}\
-      .mdl-placeholder{text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important}\
-      .list-account .username{color: #eaeaea !important}\
-      .list-account .fullname{color: #eaeaea !important}\
-      .list-account:hover{background-color: #666 !important}\
-      .list-account{text-shadow: 0 1px 0 #000 !important}\
-      .is-inverted-dark .column-scroller::-webkit-scrollbar-thumb{background-color: #666 !important}\
-      .column-background-fill{background-color: #222426 !important}\
-      .scroll-alt::-webkit-scrollbar-thumb{background-color: #666 !important}\
-      .is-inverted-dark .stream-item{background-color: #222426 !important}\
-      .is-inverted-dark .account-link{color: #e1e8ed !important}\
-      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
+      html.dark .frm{color: #fff !important}\
+      html.dark .is-inverted-dark .list-link{color: #fff !important}\
+      html.dark .list-link:hover:hover{color: #fff !important}\
+      html.dark .list-filter{color: #fff !important}\
+      html.dark .mdl-header{color: #fff !important}\
+      html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\
+      \
       .s-following .follow-btn{background-color: #50a5e6 !important}\
       .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
-      .is-inverted-dark .btn-square:focus{color: #eaeaea !important;background-color: #292f33 !important}\
-      .is-inverted-dark .btn-square{color: #e1e8ed !important;background-color: #292f33 !important;border-color: #111 !important} \
-      .lst-profile{background-color: #2a2c2d !important}\
-      .text-like-keyboard-key{color: #000 !important}\
-      html.dark .social-proof-container{background-color: #222426 !important}\
-      .is-inverted-dark{color: #fff !important}\
+      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
+      html.dark .social-proof-container{background-color: #292f33 !important}\
       .prf-stats a strong{color: #8899a6 !important}\
-      .caret-inner{border-bottom: 6px solid #222426 !important}\
-      .bg-r-white,.prf-meta{background-color: #222426 !important}\
-      .txt-seamful-black{color: #fff !important}\
-      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
-      .list-link:hover{background-color: #0e0e0e !important}\
-      .mdl,.mdl-inner,.mdl-column,.mdl-col-settings,.bg-seamful-faint-gray,.bg-seamful-faded-gray{background-color: #222426 !important}\
-      .frm,.a-list-link,.list-link,.mdl-header,.mdl-dismiss,.non-selectable-item{color: #fff !important}")
+      html.dark .prf-meta{background-color: #222426 !important}\
+      html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\
+      html.dark .mdl-column-med{background: #222426 !important}\
+      html.dark .list-account .fullname{color: #fff !important}\
+      html.dark .list-account:hover:hover{background: #111 !important}\
+      html.dark .is-inverted-dark .account-link{color: #fff !important}\
+      html.dark .column-header-temp{background-color: #222426 !important}\
+      html.dark .column-background-fill{background-color: #222426 !important}\
+      html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\
+      \
+      ")
       console.log("inserted code for dark theme")
     }
     if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
