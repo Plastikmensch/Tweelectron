@@ -8,7 +8,6 @@
      [x] make settings beautiful
      [x] add 'already saved' to settings
      [x] add about page
-     [] find and fix cause of extreme long loading time.
      [x] adjust theme for TweetDecks awful color choice.
      [x] rework old theme
      [x] add theme selection
@@ -16,6 +15,7 @@
      [] find a way to include Tor in linux
      [] write install script for linux
      [] rework windows
+     [] add more comments
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -35,7 +35,7 @@ const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function createWindow (Settings) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200})
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200, webPreferences:{nodeIntegration: false}})
   console.log(Settings)
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
@@ -202,7 +202,7 @@ function createWindow (Settings) {
       html.dark .column-background-fill{background-color: #243447 !important}\
       html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
       \
-      html.dark .med-fullpanel{background-color: #111 !important}\
+      html.dark .med-fullpanel{background-color: #14171A !important}\
       ")
       console.log("inserted code for blue theme")
     }
@@ -434,7 +434,7 @@ function createMenu() {
           click () {
             if(settingsWin != undefined) settingsWin.focus()
             else {
-              settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow})
+              settingsWin = new BrowserWindow({width: 450,height: 260,parent: mainWindow})
               settingsWin.setMenu(null)
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
             }
