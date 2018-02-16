@@ -130,9 +130,6 @@ function createWindow (Settings) {
       html.dark .mdl-header{color: #fff !important}\
       html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\
       \
-      .s-following .follow-btn{background-color: #50a5e6 !important}\
-      .s-following .follow-btn:hover{color:#fff !important;background-color:#a0041e !important}\
-      .follow-btn{background-color: #292f33 !important;color: #fff !important;border-color: #111 !important}\
       html.dark .social-proof-container{background-color: #292f33 !important}\
       .prf-stats a strong{color: #8899a6 !important}\
       html.dark .prf-meta{background-color: #222426 !important}\
@@ -144,6 +141,12 @@ function createWindow (Settings) {
       html.dark .column-header-temp{background-color: #222426 !important}\
       html.dark .column-background-fill{background-color: #222426 !important}\
       html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\
+      html.dark .Button{background-color: #222426 !important}\
+      html.dark .btn-round{background-color: #222426 !important}\
+      html.dark .Button:hover{background-color: #292f33 !important}\
+      html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
+      html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\
+      html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\
       \
       ")
       console.log("inserted code for dark theme")
@@ -193,6 +196,12 @@ function createWindow (Settings) {
       html.dark .prf-stats a strong{color: #e1e8ed !important}\
       html.dark .social-proof-container{background-color: #1B2836 !important}\
       html.dark .is-inverted-dark .btn:hover, html.dark .is-inverted-dark .btn:focus{background-color: #243447 !important}\
+      html.dark .Button{background-color: #1B2836 !important}\
+      html.dark .btn-round{background-color: #1B2836 !important}\
+      html.dark .Button:hover{background-color: #243447 !important}\
+      html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
+      html.dark .s-thats-you .thats-you-text{background-color: #1B2836 !important}\
+      html.dark .s-thats-you .thats-you-text:hover{background-color: #243447 !important}\
       \
       html.dark .mdl-column-med{background: #243447 !important}\
       html.dark .mdl-column-rhs{background: #243447 !important}\
