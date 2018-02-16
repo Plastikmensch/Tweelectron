@@ -147,6 +147,7 @@ function createWindow (Settings) {
       html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
       html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\
       html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\
+      html.dark .s-not-following .follow-text{background-color: #222426 !important}\
       \
       ")
       console.log("inserted code for dark theme")
@@ -202,6 +203,7 @@ function createWindow (Settings) {
       html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
       html.dark .s-thats-you .thats-you-text{background-color: #1B2836 !important}\
       html.dark .s-thats-you .thats-you-text:hover{background-color: #243447 !important}\
+      html.dark .s-not-following .follow-text{background-color: #1b2836 !important}\
       \
       html.dark .mdl-column-med{background: #243447 !important}\
       html.dark .mdl-column-rhs{background: #243447 !important}\
