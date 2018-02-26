@@ -1,35 +1,36 @@
+/* 2a2a2a 50% , #282828 10%, #2f2f2f 60%*/
 body {
-background: linear-gradient(141deg, #2a2a2a 50%, #282828 10%, #2f2f2f 60%) fixed;
+background: linear-gradient(141deg, #1b2836 50%, #1b2836 10%, #243447 60%) fixed;
 margin-left: 5%;
 color: white;
 overflow: hidden;
 }
 a {
-  color: #478ffc
+  color: #478ffc;
+  text-decoration: none;
 }
 h1{
-  background: linear-gradient(141deg, #2a2a2a 50%, #282828 10%, #2f2f2f 60%);
+  background: linear-gradient(141deg, #1b2836 50%, #1b2836 10%, #243447 60%);
   border-radius: 10px;
   width: 450px;
   text-align: center;
 }
 .about{
-  background: linear-gradient(141deg, #2a2a2a 50%, #282828 10%, #2f2f2f 60%);
+  background: linear-gradient(141deg, #1b2836 40%, #1b2836 10%, #243447 60%);
   border-radius: 10px;
   width: 450px;
-  height: 60px;
   margin-top: 20px;
 }
 .header {
   text-align: center;
-  background: linear-gradient(141deg, #2a2a2a 40%, #282828 10%, #2f2f2f 60%);
+  background: linear-gradient(141deg, #1b2836 40%, #1b2836 10%, #243447 60%);
   width: 350px;
   border-radius: 10px;
   margin-left: inherit;
   color:inherit;
 }
 .form {
-  background: linear-gradient(141deg, #2a2a2a 40%, #282828 10%, #2f2f2f 60%);
+  background: linear-gradient(141deg, #1b2836 40%, #1b2836 10%, #243447 60%);
   width: 350px;
   border-radius: 10px;
   margin-left: inherit;
@@ -37,7 +38,7 @@ h1{
   color: inherit;
 }
 .button {
-  background-color: #202020;
+  background-color: #151f2a;
   color: inherit;
   border: none;
   border-radius: 8px;
@@ -46,7 +47,7 @@ h1{
   margin-left: 40%;
 }
 .button:hover {
-  background-color: #252525;
+  background-color: #14171a;
   border: none;
   color: inherit;
 }

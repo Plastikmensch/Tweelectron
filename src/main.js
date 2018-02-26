@@ -14,7 +14,7 @@
      [] find motivation to work on this list
      [] find a way to include Tor in linux
      [] write install script for linux
-     [] rework windows
+     [x] rework windows
      [] add more comments
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
@@ -214,6 +214,8 @@ function createWindow (Settings) {
       html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
       \
       html.dark .med-fullpanel{background-color: #14171A !important}\
+      html.dark .is-unread{background-color: #2d4a6d !important}\
+      html.dark .color-twitter-dark-black{color: #fff !important}\
       ")
       console.log("inserted code for blue theme")
     }
