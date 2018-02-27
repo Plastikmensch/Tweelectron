@@ -29,8 +29,8 @@ let Settings = [
   [false,'use-custom-proxy ='],
   ['foopy:80','customProxy =']
 ]
-
-const settingsFile = "./settings.json"
+// Get path to the executable, delete /Tweelectron or /Tweelectron.exe and append /settings.json
+const settingsFile = app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
 const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
