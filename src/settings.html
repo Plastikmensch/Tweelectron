@@ -22,7 +22,7 @@
 <script type="text/javascript">
 const fs = require('fs')
 const {ipcRenderer,app} = require('electron')
-var settingsData = fs.readFileSync(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json",'utf8')
+var settingsData = fs.readFileSync(__dirname.slice(0, __dirname.indexOf("/resources/app.asar")) + "/settings.json",'utf8')
 let Settings = [
   [undefined,'use-tor ='], //useTor
   [false,'use-round-pics ='],//roundPics
