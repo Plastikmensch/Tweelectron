@@ -212,6 +212,12 @@ function createWindow (Settings) {
       html.dark .list-account .fullname{color: #e1e8ed !important}\
       html.dark .column-background-fill{background-color: #243447 !important}\
       html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
+      .list-btn{background-color: #243447 !important;border-color: #000 !important}\
+      .list-btn:hover{background-color: #1B2836 !important}\
+      .list-explaination{background-color: #243447 !important}\
+      .page-bottom{background-color: #243447 !important;color: #7a8994 !important}\
+      html.dark .modal-content-with-border{border: 1px solid #000 !important}\
+      .list-btn:first-of-type{border: 2px solid #000 !important}\
       \
       html.dark .med-fullpanel{background-color: #14171A !important}\
       html.dark .is-unread{background-color: #2d4a6d !important}\
