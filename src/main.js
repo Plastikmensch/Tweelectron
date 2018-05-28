@@ -16,6 +16,7 @@
      [] write install script for linux
      [x] rework windows
      [] add more comments
+     [] change location of settingsFile (EACCESS ERROR)
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -419,6 +420,21 @@ app.on('browser-window-created', function (event, win) {
         label: 'Copy Image',
         click () {
           win.webContents.copyImageAt(params.x,params.y)
+        }
+      }))
+      cmenu.append(new MenuItem({
+        label: 'Save Image',
+        click () {
+          win.webContents.downloadURL(params.srcURL)
+        }
+      }))
+    }
+    else if(params.mediaType === 'video')
+    {
+      cmenu.append(new MenuItem({
+        label: 'Save Video',
+        click () {
+          win.webContents.downloadURL(params.srcURL)
         }
       }))
     }
