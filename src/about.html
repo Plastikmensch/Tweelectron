@@ -12,7 +12,13 @@
       document.write(fs.readFileSync(__dirname +'/tweelectron-version','utf8'))
     </script><br>
     Electron version: <script>document.write(process.versions.electron)</script><br>
-    Tor version: 0.3.2.10<br>
+    Tor version:
+    <script>
+    if(process.platform == "linux"){
+      document.write(fs.readFileSync("./resources/app.asar.unpacked/tor-linux/tor-version","utf8"))}
+    else if(process.platform=="win32"){
+        document.write(fs.readFileSync("./resources/app.asar.unpacked/tor-win32/tor-version","utf8"))}
+    </script><br>
     GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a>
   </p>
 </body>

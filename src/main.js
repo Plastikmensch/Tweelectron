@@ -12,11 +12,13 @@
      [x] rework old theme
      [x] add theme selection
      [] find motivation to work on this list
-     [] find a way to include Tor in linux
+     [x] find a way to include Tor in linux
      [] write install script for linux
      [x] rework windows
      [] add more comments
-     [] change location of settingsFile (EACCESS ERROR)
+     [x] change location of settingsFile (EACCESS ERROR)
+     [] Update notifier
+     [] find a way to bypass t.co links
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
 const fs = require('fs')
@@ -31,10 +33,18 @@ let Settings = [
   ['foopy:80','customProxy =']
 ]
 // Get path to the executable, delete /Tweelectron or /Tweelectron.exe and append /settings.json
-const settingsFile = app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
+const settingsFile = SettingsFile()
 const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
 
+function SettingsFile(){
+  if(process.platform=='linux'){
+    return process.env.HOME + "/.config/Tweelectron/settings.json"
+  }
+  else {
+    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
+  }
+}
 function createWindow (Settings) {
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200, webPreferences:{nodeIntegration: false}})
   console.log(Settings)
@@ -303,6 +313,10 @@ function startTor() {
   if(process.platform == 'win32')
   {
     var child = require('child_process').execFile(tor)
+    console.log("started Tor")
+  }
+  else if(process.platform == 'linux'){
+    var child = require('child_process').execFile("./resources/app.asar.unpacked/tor-linux/tor")
     console.log("started Tor")
   }
 }

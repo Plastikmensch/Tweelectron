@@ -22,7 +22,7 @@
 <script type="text/javascript">
 const fs = require('fs')
 const {ipcRenderer,app} = require('electron')
-var settingsData = fs.readFileSync(__dirname.slice(0, __dirname.indexOf("/resources/app.asar")) + "/settings.json",'utf8')
+var settingsData = fs.readFileSync(SettingsFile(),'utf8')
 let Settings = [
   [undefined,'use-tor ='], //useTor
   [false,'use-round-pics ='],//roundPics
@@ -68,6 +68,14 @@ function saveData() {
   else {
     document.getElementById("success").innerHTML = "<b>Already saved!</b>"
     timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+  }
+}
+function SettingsFile(){
+  if(process.platform=='linux'){
+    return process.env.HOME + "/.config/Tweelectron/settings.json"
+  }
+  else {
+    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
   }
 }
 </script>
