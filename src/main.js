@@ -310,14 +310,23 @@ function createWindow (Settings) {
   })
 }
 function startTor() {
+  console.log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
   if(process.platform == 'win32')
   {
     var child = require('child_process').execFile(tor)
     console.log("started Tor")
   }
   else if(process.platform == 'linux'){
-    var child = require('child_process').execFile("./resources/app.asar.unpacked/tor-linux/tor")
-    console.log("started Tor")
+    var child = require('child_process').execFile(__dirname + ".unpacked/tor-linux/tor",(err) =>{
+      if(err){
+        console.log(err)
+      }
+      else {
+        {
+          console.log("started Tor")
+        }
+      }
+    })
   }
 }
 function SaveSettings(Settings){
@@ -406,7 +415,7 @@ app.on('browser-window-created', function (event, win) {
       cmenu.append(new MenuItem({
         label: 'Copy URL',
         click () {
-          clipboard.writeText(params.linkURL)
+          clipboard.writeText(params.linkURL)//Note to self: Don't use linkText. Doesn't work. Whoops.
         }
       }))
       if(params.linkText.charAt(0) === '#')
