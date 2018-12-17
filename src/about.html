@@ -15,9 +15,11 @@
     Tor version:
     <script>
     if(process.platform == "linux"){
-      document.write(fs.readFileSync("./resources/app.asar.unpacked/tor-linux/tor-version","utf8"))}
+      document.write(fs.readFileSync(__dirname + '/tor-version-linux','utf8'))
+    }
     else if(process.platform=="win32"){
-        document.write(fs.readFileSync("./resources/app.asar.unpacked/tor-win32/tor-version","utf8"))}
+      document.write(fs.readFileSync(__dirname + '/tor-version-win', 'utf8'))
+    }
     </script><br>
     GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a>
   </p>

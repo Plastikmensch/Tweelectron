@@ -19,8 +19,10 @@
      [x] change location of settingsFile (EACCESS ERROR)
      [] Update notifier
      [] find a way to bypass t.co links
+     [] give option to open links in tor
+     [] include torbrowser
 */
-const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain} = require('electron')
+const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
 const fs = require('fs')
 
 let Settings = [
@@ -30,9 +32,10 @@ let Settings = [
   [1320,'width ='],
   [720,'height ='],
   [false,'use-custom-proxy ='],
-  ['foopy:80','customProxy =']
+  ['foopy:80','customProxy ='],
+  [true,'links-in-browser =']
 ]
-// Get path to the executable, delete /Tweelectron or /Tweelectron.exe and append /settings.json
+
 const settingsFile = SettingsFile()
 const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
 let mainWindow,settingsWin,twitterwin,aboutWin
@@ -42,6 +45,7 @@ function SettingsFile(){
     return process.env.HOME + "/.config/Tweelectron/settings.json"
   }
   else {
+    //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
     return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
   }
 }
@@ -237,12 +241,22 @@ function createWindow (Settings) {
       console.log("inserted code for blue theme")
     }
   })
+  /*Not needed anymore since what I wanted to do doesn't work.
+  //Display all changes of cookies in console
+  session.defaultSession.cookies.on('changed', (event,cookie,cause,removed) =>{
+    console.log(event,cookie,cause,removed)
+  })*/
   mainWindow.webContents.on('new-window', (event,url) => {
     if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
     {
       event.preventDefault()
-      shell.openExternal(url)
-      console.log("opened link external")
+      if(Settings[7][0]){
+        shell.openExternal(url)
+        console.log("opened link external")
+      }
+      else {
+        console.log("opened link in torbrowser")
+      }
     }
   })
   mainWindow.webContents.on('will-navigate', (event, url) => {
