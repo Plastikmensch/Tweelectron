@@ -18,9 +18,12 @@
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
      [] Update notifier
-     [] find a way to bypass t.co links
+     [] find a way to bypass t.co links (Need help) https://github.com/Spaxe/Goodbye--t.co- ?
      [] give option to open links in tor
      [] include torbrowser
+     [] include pictures in Readme
+     [] (Maybe) Get rid of old theme (Truly Dark)
+     [] add support for custom themes
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
 const fs = require('fs')
@@ -55,6 +58,7 @@ function createWindow (Settings) {
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
   var retries = 0
+  var reloadTimer
   if(Settings[0][0] && !Settings[5][0])
   {
     mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
@@ -76,13 +80,15 @@ function createWindow (Settings) {
   mainWindow.webContents.on('did-fail-load', () => {
     console.log("failed to load. Retrying...")
     mainWindow.loadURL(home)
-    if(retries==3) {
-      mainWindow.loadURL(url2)
-      console.log("failed to load")
-    }
+    reloadTimer = setTimeout(function(){
+      if(retries==3) {
+        mainWindow.loadURL(url2)
+        console.log("failed to load")
+      }},3000)
     retries++
   })
   mainWindow.webContents.on('did-finish-load', () => {
+    clearTimeout(reloadTimer)
     if(!Settings[1][0])
     {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
