@@ -77,15 +77,17 @@ function createWindow (Settings) {
     mainWindow.loadURL(home)
     console.log("Not using Tor or custom Proxy")
   }
-  mainWindow.webContents.on('did-fail-load', () => {
-    console.log("failed to load. Retrying...")
-    mainWindow.loadURL(home)
-    reloadTimer = setTimeout(function(){
-      if(retries==3) {
-        mainWindow.loadURL(url2)
-        console.log("failed to load")
-      }},3000)
-    retries++
+  mainWindow.webContents.on('did-fail-load', (event,errorCode,errorDescription,validatedURL) => {
+    console.log("failed to load. Retrying..." + "\nError: " +errorCode+" " + errorDescription + " " + validatedURL)
+    if(validatedURL==home){
+      reloadTimer = setTimeout(function(){
+        mainWindow.loadURL(home)
+        if(retries==3) {
+          mainWindow.loadURL(url2)
+          console.log("failed to load")
+        }},5000)
+      retries++
+    }
   })
   mainWindow.webContents.on('did-finish-load', () => {
     clearTimeout(reloadTimer)
