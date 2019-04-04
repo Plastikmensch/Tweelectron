@@ -7,6 +7,7 @@
   <h1 class='header'>Settings</h1>
   <div class='form'>
     <input type="checkbox" id="use-tor">Use Tor</input><br>
+    <input type="checkbox" id="openInTor">Open links in Torbrowser</input><br>
     <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
     Theme: <select id="theme">
       <option>No theme</option>
@@ -30,7 +31,8 @@ let Settings = [
   [1336,'width ='],//windowWidth
   [720,'height ='],//windowHeight
   [false,'use-custom-proxy ='],//useProxy
-  ['foopy:80','customProxy =']//customProxy
+  ['foopy:80','customProxy ='],//customProxy
+  [true,'links-in-browser']//openInTor
 ]
 for(var i=0;i<Settings.length;i++)
 {
@@ -46,6 +48,9 @@ for(var i=0;i<Settings.length;i++)
 if(Settings[0][0]){
   document.getElementById("use-tor").checked=true
 }
+if(Settings[7][0]){
+  document.getElementById("openInTor").checked=true
+}
 if(Settings[1][0]){
   document.getElementById("use-round-pics").checked=true
 }
@@ -55,11 +60,12 @@ if(Settings[5][0]){
 }
 document.getElementById("customProxy").value= Settings[6][0]
 
+
 function saveData() {
   var timer
   clearTimeout(timer)
   var newSettings = [[document.getElementById("use-tor").checked,Settings[0][1]],[document.getElementById("use-round-pics").checked,Settings[1][1]],[document.getElementById("theme").selectedIndex,Settings[2][1]],[Settings[3][0],Settings[3][1]],
-  [Settings[4][0],Settings[4][1]],[document.getElementById("use-custom-proxy").checked,Settings[5][1]],[document.getElementById("customProxy").value,Settings[6][1]]]
+  [Settings[4][0],Settings[4][1]],[document.getElementById("use-custom-proxy").checked,Settings[5][1]],[document.getElementById("customProxy").value,Settings[6][1]],[document.getElementById("openInTor").checked,Settings[7][1]]]
   if(ipcRenderer.sendSync('Settings',newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"

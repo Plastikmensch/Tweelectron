@@ -18,12 +18,17 @@
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
      [] Update notifier
-     [] find a way to bypass t.co links (Need help) https://github.com/Spaxe/Goodbye--t.co- ?
+     [] find a way to bypass t.co links (Need help)
+        - https://github.com/Spaxe/Goodbye--t.co- ?
+        - read out "data-full-url" (But how?)
      [] give option to open links in tor
+        - (optional) let users, who already have torbrowser, pick a path
      [] include torbrowser
      [] include pictures in Readme
      [] (Maybe) Get rid of old theme (Truly Dark)
      [] add support for custom themes
+     [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
+     [] push new release 1.0.10 (it's about time)
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
 const fs = require('fs')
@@ -317,11 +322,13 @@ function createWindow (Settings) {
     }
     else {
       var reload = false
+      //check if theme is changed
       if(Settings[2][0]!==newSettings[2][0])
       {
         reload = true
       }
       Settings = newSettings
+      //reload TweetDeck if theme is changed
       if(reload){
         mainWindow.reload()
       }
@@ -597,5 +604,6 @@ function createMenu() {
   ]
 
   const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu)
+  //win.setMenu(null) doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
+  mainWindow.setMenu(menu)
 }
