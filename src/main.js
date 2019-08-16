@@ -12,8 +12,10 @@
      [x] rework old theme
      [x] add theme selection
      [] find motivation to work on this list
+     [] sort this list with version numbers, so it's clear why new releases take so long
      [x] find a way to include Tor in linux
      [] write install script for linux
+        - find out why sudo doesn't work and script fails to execute (probably for security reasons)
      [x] rework windows
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
@@ -23,12 +25,17 @@
         - read out "data-full-url" (But how?)
      [] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
-     [] include torbrowser
+     [] include torbrowser (Maybe just download it for reduced filesize?)
+     [] make tor process close when Tweelectron closes
+        - avoid closing tor when not started by Tweelectron
      [] include pictures in Readme
      [] (Maybe) Get rid of old theme (Truly Dark)
+     [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
      [] add support for custom themes
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
      [] push new release 1.0.10 (it's about time)
+     [] Actually use json format for settings or just change it to .cfg
+     [x] update Readme
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
 const fs = require('fs')
@@ -189,10 +196,16 @@ function createWindow (Settings) {
       //Fifth: Profile
       //Sixth: Profile -> Tweets, Mentions, Lists etc.
       //Seventh: Tweets (Pictures, Videos)
-      mainWindow.webContents.insertCSS("\
-      html.dark .dropdown-menu{background-color: #243447 !important}\
+
+      //Twitter bg color #15202b
+      //This does nothing, because someone had the brilliant idea of doing "background-color: #fff!important"...
+      mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
+
+      //Basically not needed anymore and full of obsolete stuff
+      /*html.dark .dropdown-menu{background-color: #243447 !important}\
       html.dark .non-selectable-item{color: #e1e8ed !important}\
       html.dark .dropdown-menu .typeahead-item, html.dark .dropdown-menu [data-action]{color: #e1e8ed !important}\
+      html.dark .dropdown-menu .dropdown-menu-url-item{color: #e1e8ed !important}\
       \
       html.dark .mdl{background-color: #243447 !important}\
       html.dark .text-like-keyboard-key{color: #292f33 !important}\
@@ -250,7 +263,7 @@ function createWindow (Settings) {
       html.dark .med-fullpanel{background-color: #14171A !important}\
       html.dark .is-unread{background-color: #2d4a6d !important}\
       html.dark .color-twitter-dark-black{color: #fff !important}\
-      ")
+      ")*/
       console.log("inserted code for blue theme")
     }
   })
