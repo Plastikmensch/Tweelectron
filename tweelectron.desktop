@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Tweelectron
+Comment=TweetDeck Client for Desktop
+Exec=/usr/share/tweelectron/Tweelectron
+Terminal=false
+Icon=tweetdeck
+Type=Application
+Categories=Network
+StartupNotify=false
+StartupWMClass=tweelectron
+Name[en_US]=tweelectron

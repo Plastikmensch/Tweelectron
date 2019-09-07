@@ -14,28 +14,31 @@
      [] find motivation to work on this list
      [] sort this list with version numbers, so it's clear why new releases take so long
      [x] find a way to include Tor in linux
-     [] write install script for linux
+     [x] write install script for linux
         - find out why sudo doesn't work and script fails to execute (probably for security reasons)
+        (forgot chmod +x... btw changed it to require being run as root)
      [x] rework windows
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
-     [] Update notifier
-     [] find a way to bypass t.co links (Need help)
-        - https://github.com/Spaxe/Goodbye--t.co- ?
-        - read out "data-full-url" (But how?)
-     [] give option to open links in tor
-        - (optional) let users, who already have torbrowser, pick a path
      [] include torbrowser (Maybe just download it for reduced filesize?)
-     [] make tor process close when Tweelectron closes
+     [x] make tor process close when Tweelectron closes
         - avoid closing tor when not started by Tweelectron
      [] include pictures in Readme
      [] (Maybe) Get rid of old theme (Truly Dark)
      [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
-     [] add support for custom themes
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
      [] push new release 1.0.10 (it's about time)
      [] Actually use json format for settings or just change it to .cfg
-     [x] update Readme
+     [] update Readme (How to use scripts)
+     1.1 Release:
+     [] find a way to bypass t.co links (Need help)
+        - https://github.com/Spaxe/Goodbye--t.co- ?
+        - read out "data-full-url" (But how?)
+     [] Update notifier
+     [] give option to open links in tor
+        - (optional) let users, who already have torbrowser, pick a path
+     [] add support for custom themes
+
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
 const fs = require('fs')
@@ -50,6 +53,8 @@ let Settings = [
   ['foopy:80','customProxy ='],
   [true,'links-in-browser =']
 ]
+let child
+var childspawned=false
 
 const settingsFile = SettingsFile()
 const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
@@ -326,6 +331,12 @@ function createWindow (Settings) {
   })
   mainWindow.on('closed', function () {
     app.quit()
+    //terminate tor when app is closed
+    if(childspawned)
+    {
+      child.kill()
+      console.log("stopped tor")
+    }
   })
   ipcMain.on('Settings',(event,newSettings) => {
     console.log(newSettings)
@@ -355,16 +366,18 @@ function startTor() {
   console.log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
   if(process.platform == 'win32')
   {
-    var child = require('child_process').execFile(tor)
+    child = require('child_process').execFile(tor)
+    childspawned=true
     console.log("started Tor")
   }
   else if(process.platform == 'linux'){
-    var child = require('child_process').execFile(__dirname + ".unpacked/tor-linux/tor",(err) =>{
+    child = require('child_process').execFile(__dirname + ".unpacked/tor-linux/tor",(err) =>{
       if(err){
         console.log(err)
       }
       else {
         {
+          childspawned=true
           console.log("started Tor")
         }
       }
