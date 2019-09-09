@@ -397,15 +397,17 @@ function startTor() {
     })
 }
 function SaveSettings(Settings){
-  if(mainWindow == undefined) return console.log("mainWindow undefined")//Protection in case of fuckup
-  const size = mainWindow.getSize()
-  Settings[3][0] = size[0]//width
-  Settings[4][0] = size[1]//height
+  if(mainWindow != undefined)
+  {
+    const size = mainWindow.getSize()
+    Settings[3][0] = size[0]//width
+    Settings[4][0] = size[1]//height
+  }
+  else console.log("mainWindow undefined")
   var saveSettings = "{" + '\n'
   for(var i=0;i<Settings.length;i++)
   {
-    //Needs further testing. fails
-    if(isNaN(Settings[i][0]))
+    if(isNaN(Settings[i][0]) || Settings[i][0]=== null)
     {
       console.log(Settings[i][0] + " is not a number or boolean")
       saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"' + "," + '\n')
@@ -418,6 +420,7 @@ function SaveSettings(Settings){
   saveSettings += "}"
   fs.writeFileSync(settingsFile,saveSettings, (err) =>{
     if(err) return console.log(err)
+    else return console.log("Settings saved")
   })
 }
 
@@ -438,16 +441,6 @@ app.on('ready', () => {
         console.log("clicked NO")
       }
       SaveSettings(Settings)
-      /*var saveSettings = "{" + '\n'
-      for(var i=0;i<Settings.length;i++)
-      {
-        saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
-      }
-      saveSettings += "}"
-      fs.writeFileSync(settingsFile,saveSettings, (err) =>{
-        if(err) return console.log(err)
-        else return console.log("wrote file")
-      })*/
       createWindow(Settings)
     })
   }
