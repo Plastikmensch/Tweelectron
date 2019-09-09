@@ -16,6 +16,7 @@
     </select><br>
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
+    Select Tor Browser: <input type="file" id="torExe" onchange="fileChanged()"></input><br>
     <button type='button' class='button' onclick="saveData()">Save</button>
   </div>
 <p id="success"></p>
@@ -24,6 +25,7 @@
 const fs = require('fs')
 const {ipcRenderer,app} = require('electron')
 var settingsData = fs.readFileSync(SettingsFile(),'utf8')
+var changed=false;
 let Settings = [
   [undefined,'use-tor ='], //useTor
   [false,'use-round-pics ='],//roundPics
@@ -32,7 +34,8 @@ let Settings = [
   [720,'height ='],//windowHeight
   [false,'use-custom-proxy ='],//useProxy
   ['foopy:80','customProxy ='],//customProxy
-  [true,'links-in-browser']//openInTor
+  [true,'links-in-torbrowser ='],//openInTor
+  [undefined,'tor-browser-exe =']//torExe
 ]
 for(var i=0;i<Settings.length;i++)
 {
@@ -60,12 +63,28 @@ if(Settings[5][0]){
 }
 document.getElementById("customProxy").value= Settings[6][0]
 
-
+function fileChanged() {
+  changed=true;
+}
 function saveData() {
   var timer
   clearTimeout(timer)
-  var newSettings = [[document.getElementById("use-tor").checked,Settings[0][1]],[document.getElementById("use-round-pics").checked,Settings[1][1]],[document.getElementById("theme").selectedIndex,Settings[2][1]],[Settings[3][0],Settings[3][1]],
-  [Settings[4][0],Settings[4][1]],[document.getElementById("use-custom-proxy").checked,Settings[5][1]],[document.getElementById("customProxy").value,Settings[6][1]],[document.getElementById("openInTor").checked,Settings[7][1]]]
+  var path = Settings[8][0]
+  if(changed)
+  {
+    path= document.getElementById("torExe").files[0].path
+  }
+  var newSettings = [
+    [document.getElementById("use-tor").checked,Settings[0][1]],
+    [document.getElementById("use-round-pics").checked,Settings[1][1]],
+    [document.getElementById("theme").selectedIndex,Settings[2][1]],
+    [Settings[3][0],Settings[3][1]],
+    [Settings[4][0],Settings[4][1]],
+    [document.getElementById("use-custom-proxy").checked,Settings[5][1]],
+    [document.getElementById("customProxy").value,Settings[6][1]],
+    [document.getElementById("openInTor").checked,Settings[7][1]],
+    [path,Settings[8][1]]
+  ]
   if(ipcRenderer.sendSync('Settings',newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"

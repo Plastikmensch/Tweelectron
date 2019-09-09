@@ -16,7 +16,7 @@
      [x] find a way to include Tor in linux
      [x] write install script for linux
         - find out why sudo doesn't work and script fails to execute (probably for security reasons)
-        (forgot chmod +x... btw changed it to require being run as root)
+        (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
      [x] rework windows
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
@@ -29,13 +29,13 @@
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
      [] push new release 1.0.10 (it's about time)
      [] Actually use json format for settings or just change it to .cfg
-     [] update Readme (How to use scripts)
+     [] update Readme (How to use scripts, requirements etc.)
      1.1 Release:
      [] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
         - read out "data-full-url" (But how?)
      [] Update notifier
-     [] give option to open links in tor
+     [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
      [] add support for custom themes
 
@@ -51,15 +51,24 @@ let Settings = [
   [720,'height ='],
   [false,'use-custom-proxy ='],
   ['foopy:80','customProxy ='],
-  [true,'links-in-browser =']
+  [false,'links-in-torbrowser ='],
+  [undefined,'tor-browser-exe =']
 ]
 let child
-var childspawned=false
 
 const settingsFile = SettingsFile()
-const tor = "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
+const tor = TorFile()
 let mainWindow,settingsWin,twitterwin,aboutWin
 
+function TorFile() {
+  if(process.platform=='linux')
+  {
+    return __dirname + ".unpacked/tor-linux/tor"
+  }
+  else {
+    return "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
+  }
+}
 function SettingsFile(){
   if(process.platform=='linux'){
     return process.env.HOME + "/.config/Tweelectron/settings.json"
@@ -70,7 +79,8 @@ function SettingsFile(){
   }
 }
 function createWindow (Settings) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200, webPreferences:{nodeIntegration: false}})
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200/*, webPreferences:{nodeIntegration: false}*/})
+  createMenu()
   console.log(Settings)
   const url2 = 'file://' + app.getAppPath() +'/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
@@ -281,11 +291,14 @@ function createWindow (Settings) {
     if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
     {
       event.preventDefault()
-      if(Settings[7][0]){
-        shell.openExternal(url)
+      if(!Settings[7][0]){
+        shell.openExternal(url)//opens link in default browser
         console.log("opened link external")
       }
       else {
+        //Settings[8][0] browser exec
+        //Settings[8][0] + url
+        require('child_process').spawn(Settings[8][0],[url])
         console.log("opened link in torbrowser")
       }
     }
@@ -296,7 +309,7 @@ function createWindow (Settings) {
     {
       event.preventDefault()
       twitterwin = new BrowserWindow({parent: mainWindow})
-      twitterwin.setMenu(null)
+      twitterwin.removeMenu()
       if(Settings[0][0] && !Settings[5][0])
       {
         twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
@@ -331,12 +344,6 @@ function createWindow (Settings) {
   })
   mainWindow.on('closed', function () {
     app.quit()
-    //terminate tor when app is closed
-    if(childspawned)
-    {
-      child.kill()
-      console.log("stopped tor")
-    }
   })
   ipcMain.on('Settings',(event,newSettings) => {
     console.log(newSettings)
@@ -364,27 +371,23 @@ function createWindow (Settings) {
 }
 function startTor() {
   console.log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
-  if(process.platform == 'win32')
-  {
-    child = require('child_process').execFile(tor)
-    childspawned=true
-    console.log("started Tor")
-  }
-  else if(process.platform == 'linux'){
-    child = require('child_process').execFile(__dirname + ".unpacked/tor-linux/tor",(err) =>{
-      if(err){
+    child = require('child_process').execFile(tor, (err) => {
+      if(err)
+      {
+        console.log("couldn't start tor. (already running?)")
         console.log(err)
       }
-      else {
-        {
-          childspawned=true
-          console.log("started Tor")
-        }
-      }
+      else console.log("started tor")
     })
-  }
+    console.log("pid: " + child.pid)
+    child.on('exit', (code,signal) => {
+      console.log("tor stopped:")
+      console.log("code: " + code + " signal: " + signal)
+      child = undefined
+    })
 }
 function SaveSettings(Settings){
+  if(mainWindow == undefined) return //Protection in case of fuckup
   const size = mainWindow.getSize()
   Settings[3][0] = size[0]//width
   Settings[4][0] = size[1]//height
@@ -399,7 +402,9 @@ function SaveSettings(Settings){
 }
 
 app.on('ready', () => {
-app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
+  app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
+  Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
+  //app.setAppLogsPath()//Sets logpath to userData (appData in Windows and .config in linux). No logs created though.
   if(!fs.existsSync(settingsFile))
   {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'Do you want to use Tor?'}, (response)=>{
@@ -459,10 +464,8 @@ app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug.
   else { //unreachable code, but... you know
     console.log("Something went terribly wrong")
   }
-  createMenu()
 })
 app.on('browser-window-created', function (event, win) {
-
   win.webContents.on('context-menu', function (e, params) {
     const cmenu = new Menu()
     if(params.linkURL && params.mediaType === 'none')
@@ -532,8 +535,24 @@ app.on('browser-window-created', function (event, win) {
 app.on('window-all-closed', function () {
     app.quit()
 })
+app.on('quit', function () {
+  //terminate tor when app is closed
+  //(Could probably just check if child is undefined)
+  if(child != undefined)
+  {
+    child.kill()
+    console.log("stopped tor")
+  }
+  else console.log("tor wasn't running")
+})
 function createMenu() {
-  if (Menu.getApplicationMenu()) return
+  /*
+  //No need to check if menu already exists here
+  if (Menu.getApplicationMenu())
+  {
+    console.log("Menu exists already")
+    return
+  }*/
 
   const template = [
     {
@@ -547,8 +566,8 @@ function createMenu() {
           click () {
             if(settingsWin != undefined) settingsWin.focus()
             else {
-              settingsWin = new BrowserWindow({width: 450,height: 260,parent: mainWindow})
-              settingsWin.setMenu(null)
+              settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow, webPreferences:{nodeIntegration: true}})
+              settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
             }
             settingsWin.on('closed', () => {
@@ -591,6 +610,12 @@ function createMenu() {
             if(focusedWindow) focusedWindow.loadURL("https://twitter.com/")}
         },
         {
+          label: 'Check Tor',
+          click (item, focusedWindow) {
+            if(focusedWindow) focusedWindow.loadURL("https://check.torproject.org/")
+          }
+        },
+        {
           label: 'Reload',
           accelerator: 'F5',
           click (item, focusedWindow) {
@@ -614,8 +639,8 @@ function createMenu() {
       click(){
         if(aboutWin != undefined) aboutWin.focus()
         else {
-          aboutWin = new BrowserWindow({width: 500,height: 300,parent: mainWindow})
-          aboutWin.setMenu(null)
+          aboutWin = new BrowserWindow({width: 500,height: 300,parent: mainWindow, webPreferences:{nodeIntegration: true}})
+          aboutWin.removeMenu()
           aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
         }
         aboutWin.on('closed', ()=> {
@@ -630,6 +655,6 @@ function createMenu() {
   ]
 
   const menu = Menu.buildFromTemplate(template)
-  //win.setMenu(null) doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
+  //win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
 }
