@@ -1,5 +1,5 @@
 /*
-    TO-DO:
+    TO-DO: [x] = done, [\] = won't do
      [x] use an array or object to store settings variables
      [x] save settings when app quits
      [x] add custom proxy support
@@ -20,16 +20,16 @@
      [x] rework windows
      [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
-     [] include torbrowser (Maybe just download it for reduced filesize?)
+     [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
      [x] make tor process close when Tweelectron closes
         - avoid closing tor when not started by Tweelectron
      [] include pictures in Readme
      [] (Maybe) Get rid of old theme (Truly Dark)
      [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
-     [] push new release 1.0.10 (it's about time)
-     [] Actually use json format for settings or just change it to .cfg
-     [] update Readme (How to use scripts, requirements etc.)
+     [x] push new release 1.0.10 (it's about time)
+     [x] Actually use json format for settings or just change it to .cfg
+     [] update Readme (How to use scripts, requirements etc., settings)
      1.1 Release:
      [] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -44,15 +44,15 @@ const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ip
 const fs = require('fs')
 
 let Settings = [
-  [undefined,'use-tor ='],
-  [false,'use-round-pics ='],
-  [0,'theme ='],//0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
-  [1320,'width ='],
-  [720,'height ='],
-  [false,'use-custom-proxy ='],
-  ['foopy:80','customProxy ='],
-  [false,'links-in-torbrowser ='],
-  [undefined,'tor-browser-exe =']
+  [undefined,'"use-tor" :'],
+  [false,'"use-round-pics" :'],
+  [0,'"theme" :'],//0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
+  [1320,'"width" :'],
+  [720,'"height" :'],
+  [false,'"use-custom-proxy" :'],
+  ['foopy:80','"customProxy" :'],
+  [false,'"links-in-torbrowser" :'],
+  [null,'"tor-browser-exe" :']
 ]
 let child
 
@@ -298,8 +298,18 @@ function createWindow (Settings) {
       else {
         //Settings[8][0] browser exec
         //Settings[8][0] + url
-        require('child_process').spawn(Settings[8][0],[url])
+        if(Settings[8][0]!== "null")
+        {
+        const linkChild = require('child_process').spawn(Settings[8][0],[url])
+        linkChild.on('error', (err) => {
+          console.log(err)
+        })
         console.log("opened link in torbrowser")
+      }
+      else {
+        dialog.showMessageBox({type: 'error', buttons: ['OK'],title: 'Error occured', message:'No file specified to open link'})
+        console.log("failed to open in tor")
+      }
       }
     }
   })
@@ -387,15 +397,25 @@ function startTor() {
     })
 }
 function SaveSettings(Settings){
-  if(mainWindow == undefined) return //Protection in case of fuckup
+  if(mainWindow == undefined) return console.log("mainWindow undefined")//Protection in case of fuckup
   const size = mainWindow.getSize()
   Settings[3][0] = size[0]//width
   Settings[4][0] = size[1]//height
-  var saveSettings = ""
+  var saveSettings = "{" + '\n'
   for(var i=0;i<Settings.length;i++)
   {
-    saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
+    //Needs further testing. fails
+    if(isNaN(Settings[i][0]))
+    {
+      console.log(Settings[i][0] + " is not a number or boolean")
+      saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"' + "," + '\n')
+    }
+    else {
+      console.log(Settings[i][0] + " is a number or boolean")
+      saveSettings += (Settings[i][1] + Settings[i][0] + "," +'\n')
+    }
   }
+  saveSettings += "}"
   fs.writeFileSync(settingsFile,saveSettings, (err) =>{
     if(err) return console.log(err)
   })
@@ -410,33 +430,25 @@ app.on('ready', () => {
     dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'Do you want to use Tor?'}, (response)=>{
       if(response){
         Settings[0][0] = true
-        var saveSettings = ""
-        for(var i=0;i<Settings.length;i++)
-        {
-          saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
-        }
-        fs.writeFileSync(settingsFile,saveSettings, (err) =>{
-          if(err) return console.log(err)
-          else return console.log("wrote file")
-        })
         console.log("clicked YES")
         startTor()
-        createWindow(Settings)
         }
       else {
         Settings[0][0] = false
-        var saveSettings = ""
-        for(var i=0;i<Settings.length;i++)
-        {
-          saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
-        }
-        fs.writeFileSync(settingsFile,saveSettings, (err) =>{
-          if(err) return console.log(err)
-          else return console.log("wrote file")
-        })
         console.log("clicked NO")
-        createWindow(Settings)
       }
+      SaveSettings(Settings)
+      /*var saveSettings = "{" + '\n'
+      for(var i=0;i<Settings.length;i++)
+      {
+        saveSettings += (Settings[i][1] + Settings[i][0] + '\n')
+      }
+      saveSettings += "}"
+      fs.writeFileSync(settingsFile,saveSettings, (err) =>{
+        if(err) return console.log(err)
+        else return console.log("wrote file")
+      })*/
+      createWindow(Settings)
     })
   }
   else if(fs.existsSync(settingsFile)) {
@@ -446,12 +458,23 @@ app.on('ready', () => {
     for(var i=0;i<Settings.length;i++)
     {
       Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+      //remove ","
+      if(Settings[i][0].search(",") !=-1)
+      {
+        Settings[i][0] = Settings[i][0].slice(0,-1)
+      }
+      //if setting is "true" or "false", convert to boolean
       if(Settings[i][0] == 'true'||Settings[i][0] == 'false')
       {
         Settings[i][0] = (Settings[i][0] == 'true')
       }
+      //if setting is a number, convert to integer
       else if(!isNaN(Number(Settings[i][0]))){
         Settings[i][0] = Number(Settings[i][0])
+      }
+      //else remove ""
+      else if(Settings[i][0].search("\"")!=-1){
+        Settings[i][0]=Settings[i][0].slice(1,Settings[i][0].lastIndexOf("\""))
       }
     }
     console.log(Settings)

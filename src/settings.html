@@ -27,25 +27,36 @@ const {ipcRenderer,app} = require('electron')
 var settingsData = fs.readFileSync(SettingsFile(),'utf8')
 var changed=false;
 let Settings = [
-  [undefined,'use-tor ='], //useTor
-  [false,'use-round-pics ='],//roundPics
-  [0,'theme ='],//theme
-  [1336,'width ='],//windowWidth
-  [720,'height ='],//windowHeight
-  [false,'use-custom-proxy ='],//useProxy
-  ['foopy:80','customProxy ='],//customProxy
-  [true,'links-in-torbrowser ='],//openInTor
-  [undefined,'tor-browser-exe =']//torExe
+  [undefined,'"use-tor" :'], //useTor
+  [false,'"use-round-pics" :'],//roundPics
+  [0,'"theme" :'],//theme
+  [1336,'"width" :'],//windowWidth
+  [720,'"height" :'],//windowHeight
+  [false,'"use-custom-proxy" :'],//useProxy
+  ['foopy:80','"customProxy" :'],//customProxy
+  [true,'"links-in-torbrowser" :'],//openInTor
+  [null,'"tor-browser-exe" :']//torExe
 ]
 for(var i=0;i<Settings.length;i++)
 {
   Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+  //remove ","
+  if(Settings[i][0].search(",") !=-1)
+  {
+    Settings[i][0] = Settings[i][0].slice(0,-1)
+  }
+  //if setting is "true" or "false", convert to boolean
   if(Settings[i][0] == 'true'||Settings[i][0] == 'false')
   {
     Settings[i][0] = (Settings[i][0] == 'true')
   }
+  //if setting is a number, convert to integer
   else if(!isNaN(Number(Settings[i][0]))){
     Settings[i][0] = Number(Settings[i][0])
+  }
+  //else remove ""
+  else if(Settings[i][0].search("\"")!=-1){
+    Settings[i][0]=Settings[i][0].slice(1,Settings[i][0].lastIndexOf("\""))
   }
 }
 if(Settings[0][0]){
