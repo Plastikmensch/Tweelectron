@@ -34,7 +34,7 @@
      [] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
         - read out "data-full-url" (But how?)
-     [] Update notifier
+     [x] Update notifier
      [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
      [] add support for custom themes
@@ -378,6 +378,7 @@ function createWindow (Settings) {
     }
     console.log(Settings)
   })
+  CheckForUpdates()
 }
 function startTor() {
   console.log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
@@ -423,7 +424,52 @@ function SaveSettings(Settings){
     else return console.log("Settings saved")
   })
 }
+function CheckForUpdates(){
+  require('https').get("https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest",{headers: {'User-Agent': 'Tweelectron'}}, (response) =>{
+    if(response.statusCode != 200) console.log("Request failed. Response code: " + response.statusCode)
+    //console.log(JSON.stringify(response.headers))
+    response.setEncoding('utf8')//makes d readable
+    var data = ""
+    //Warning: gets called multiple times
+    response.on('data', (d)=> {
+      //console.log(d)
+      data += d
+    })
+    response.on('end', ()=> {
+      //console.log(data)
+      //console.log("end of response")
+      if(data.search("tag_name")!= -1)
+      {
+        //get tag_name by slicing d from ":" after "tag_name" to "," after "tag_name", Well also removes ""
+        const latest = data.slice(data.indexOf(":",data.search("tag_name"))+2,data.indexOf(",",data.search("tag_name"))-1)
+        //console.log("latest: " + latest)
 
+        //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
+        const current = "v" + fs.readFileSync(__dirname + "/tweelectron-version",'utf8').trim()
+        //console.log("current: " + current)
+        //For testing. Might be useful for later for better comparison (Probably better to get index of . and compare numbers)
+        /*
+        for(var i= 0;i<current.length;i++)
+        {
+          if(current[i] != latest[i])
+          {
+            console.log("current " + current[i] + " doesn't match latest " + latest[i])
+          }
+          else console.log("current " + current[i] + " does match latest " + latest[i])
+        }
+        */
+        if(current != latest)
+        {
+          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available\nCurrent version: '+ current + '\nlatest version: ' + latest})
+          console.log("Update available")
+        }
+        else console.log("No update available")
+      }
+    })
+  }).on('error', (err)=>{
+    console.log("Error" + '\n' + err.message)
+  })
+}
 app.on('ready', () => {
   app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
   Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
@@ -440,7 +486,7 @@ app.on('ready', () => {
         Settings[0][0] = false
         console.log("clicked NO")
       }
-      SaveSettings(Settings)
+      SaveSettings(Settings)//Could move to mainWindow creation, but unnecessary file operations
       createWindow(Settings)
     })
   }
