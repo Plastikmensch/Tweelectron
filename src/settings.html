@@ -23,7 +23,9 @@
 
 <script type="text/javascript">
 const fs = require('fs')
-const {ipcRenderer,app} = require('electron')
+const {ipcRenderer} = require('electron')
+const {app} = require('electron').remote
+const themeDir = app.getPath('userData') + '/themes'
 var settingsData = fs.readFileSync(SettingsFile(),'utf8')
 var changed=false;
 let Settings = [
@@ -59,6 +61,15 @@ for(var i=0;i<Settings.length;i++)
     Settings[i][0]=Settings[i][0].slice(1,Settings[i][0].lastIndexOf("\""))
   }
 }
+if(fs.existsSync(themeDir))
+{
+  const themeFiles = fs.readdirSync(themeDir)
+  for(var i=0;i<themeFiles.length;i++) {
+    var option = document.createElement("option")
+    option.text=themeFiles[i]
+    document.getElementById("theme").add(option)
+  }
+}
 if(Settings[0][0]){
   document.getElementById("use-tor").checked=true
 }
@@ -68,7 +79,13 @@ if(Settings[7][0]){
 if(Settings[1][0]){
   document.getElementById("use-round-pics").checked=true
 }
-document.getElementById("theme").selectedIndex= Settings[2][0]
+//check if index exists
+if(Settings[2][0] > document.getElementById("theme").length-1) {
+  document.getElementById("theme").selectedIndex= 0
+}
+else {
+  document.getElementById("theme").selectedIndex= Settings[2][0]
+}
 if(Settings[5][0]){
   document.getElementById("use-custom-proxy").checked=true
 }

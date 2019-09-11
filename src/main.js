@@ -30,6 +30,7 @@
      [x] push new release 1.0.10 (it's about time)
      [x] Actually use json format for settings or just change it to .cfg
      [] update Readme (How to use scripts, requirements etc., settings)
+     [] change file structure to be more compliant
      1.1 Release:
      [] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -37,7 +38,7 @@
      [x] Update notifier
      [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
-     [] add support for custom themes
+     [x] add support for custom themes
 
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
@@ -46,7 +47,7 @@ const fs = require('fs')
 let Settings = [
   [undefined,'"use-tor" :'],
   [false,'"use-round-pics" :'],
-  [0,'"theme" :'],//0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
+  [0,'"theme" :'], // 0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
   [1320,'"width" :'],
   [720,'"height" :'],
   [false,'"use-custom-proxy" :'],
@@ -58,6 +59,8 @@ let child
 
 const settingsFile = SettingsFile()
 const tor = TorFile()
+const themeDir = app.getPath('userData') + '/themes'
+let themeFiles
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function TorFile() {
@@ -82,7 +85,8 @@ function createWindow (Settings) {
   mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200/*, webPreferences:{nodeIntegration: false}*/})
   createMenu()
   console.log(Settings)
-  const url2 = 'file://' + app.getAppPath() +'/fail.html'
+  console.log(themeDir)
+  const url2 = 'file://' + app.getAppPath() + '/fail.html'
   const home = 'https://tweetdeck.twitter.com/'
   var retries = 0
   var reloadTimer
@@ -132,74 +136,73 @@ function createWindow (Settings) {
       //Fifth: Keyboard shortcuts
       //Sixth: Settings
       //Seventh: Profile
-      mainWindow.webContents.insertCSS("\
-      html.dark .stream-item{background-color: #222426 !important}\
-      html.dark .column-nav-item{background-color: #292f33 !important}\
-      html.dark .app-header{background-color: #292f33 !important}\
-      html.dark .app-navigator{background-color: #292f33 !important}\
-      html.dark .app-title{background-color: #292f33 !important}\
-      html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\
-      html.dark .column-message{background-color: #292f33 !important}\
-      html.dark .app-content{background-color: #222426 !important}\
-      html.dark .column{background-color: #222426 !important}\
-      html.dark .app-columns-container{background-color: #14171a !important}\
-      html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\
-      html.dark .is-inverted-dark{color: #fff !important}\
-      html.dark .scroll-conversation{background: #222426 !important}\
-      html.dark .detail-view-inline{background-color: #222426 !important}\
-      html.dark .detail-view-inline-text{background-color: #292f33 !important}\
-      html.dark .app-search-input{background-color: #222426 !important}\
-      \
-      html.dark .column-options{background-color: #2a2c2d !important}\
-      html.dark .column-options .button-tray{background-color: #2a2c2d !important}\
-      html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\
-      html.dark .facet-type.is-active{background-color: #2a2c2d !important}\
-      \
-      .caret-inner{border-bottom: 6px solid #222426 !important}\
-      .dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\
-      html.dark .non-selectable-item{color: #fff !important}\
-      \
-      html.dark .bg-color-twitter-white{background-color: #222426 !important}\
-      html.dark .color-twitter-dark-gray{color: #fff !important}\
-      html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\
-      html.dark .Button{background-color: #111 !important}\
-      html.dark .Button:hover{background-color: #111 !important}\
-      html.dark .mdl-dismiss{color: #fff !important}\
-      \
-      html.dark .color-twitter-dark-black{color: #fff !important}\
-      .text-like-keyboard-key{color: #000 !important}\
-      \
-      .list-link:hover{background-color: #0e0e0e !important}\
-      html.dark .mdl{background-color: #222426 !important}\
-      html.dark .mdl-col-settings{background-color: #222426 !important}\
-      html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\
-      html.dark .frm{color: #fff !important}\
-      html.dark .is-inverted-dark .list-link{color: #fff !important}\
-      html.dark .list-link:hover:hover{color: #fff !important}\
-      html.dark .list-filter{color: #fff !important}\
-      html.dark .mdl-header{color: #fff !important}\
-      html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\
-      \
-      html.dark .social-proof-container{background-color: #292f33 !important}\
-      .prf-stats a strong{color: #8899a6 !important}\
-      html.dark .prf-meta{background-color: #222426 !important}\
-      html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\
-      html.dark .mdl-column-med{background: #222426 !important}\
-      html.dark .list-account .fullname{color: #fff !important}\
-      html.dark .list-account:hover:hover{background: #111 !important}\
-      html.dark .is-inverted-dark .account-link{color: #fff !important}\
-      html.dark .column-header-temp{background-color: #222426 !important}\
-      html.dark .column-background-fill{background-color: #222426 !important}\
-      html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\
-      html.dark .Button{background-color: #222426 !important}\
-      html.dark .btn-round{background-color: #222426 !important}\
-      html.dark .Button:hover{background-color: #292f33 !important}\
-      html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
-      html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\
-      html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\
-      html.dark .s-not-following .follow-text{background-color: #222426 !important}\
-      \
-      ")
+      mainWindow.webContents.insertCSS(
+      "html.dark .stream-item{background-color: #222426 !important}" +
+      "html.dark .column-nav-item{background-color: #292f33 !important}" +
+      "html.dark .app-header{background-color: #292f33 !important}" +
+      "html.dark .app-navigator{background-color: #292f33 !important}" +
+      "html.dark .app-title{background-color: #292f33 !important}" +
+      "html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}" +
+      "html.dark .column-message{background-color: #292f33 !important}" +
+      "html.dark .app-content{background-color: #222426 !important}" +
+      "html.dark .column{background-color: #222426 !important}" +
+      "html.dark .app-columns-container{background-color: #14171a !important}" +
+      "html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}" +
+      "html.dark .is-inverted-dark{color: #fff !important}" +
+      "html.dark .scroll-conversation{background: #222426 !important}" +
+      "html.dark .detail-view-inline{background-color: #222426 !important}" +
+      "html.dark .detail-view-inline-text{background-color: #292f33 !important}" +
+      "html.dark .app-search-input{background-color: #222426 !important}" +
+
+      "html.dark .column-options{background-color: #2a2c2d !important}" +
+      "html.dark .column-options .button-tray{background-color: #2a2c2d !important}" +
+      "html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}" +
+      "html.dark .facet-type.is-active{background-color: #2a2c2d !important}" +
+
+      ".caret-inner{border-bottom: 6px solid #222426 !important}" +
+      ".dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}" +
+      "html.dark .non-selectable-item{color: #fff !important}" +
+
+      "html.dark .bg-color-twitter-white{background-color: #222426 !important}" +
+      "html.dark .color-twitter-dark-gray{color: #fff !important}" +
+      "html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}" +
+      "html.dark .Button{background-color: #111 !important}" +
+      "html.dark .Button:hover{background-color: #111 !important}" +
+      "html.dark .mdl-dismiss{color: #fff !important}" +
+
+      "html.dark .color-twitter-dark-black{color: #fff !important}" +
+      ".text-like-keyboard-key{color: #000 !important}" +
+
+      ".list-link:hover{background-color: #0e0e0e !important}" +
+      "html.dark .mdl{background-color: #222426 !important}" +
+      "html.dark .mdl-col-settings{background-color: #222426 !important}" +
+      "html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}" +
+      "html.dark .frm{color: #fff !important}" +
+      "html.dark .is-inverted-dark .list-link{color: #fff !important}" +
+      "html.dark .list-link:hover:hover{color: #fff !important}" +
+      "html.dark .list-filter{color: #fff !important}" +
+      "html.dark .mdl-header{color: #fff !important}" +
+      "html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}" +
+
+      "html.dark .social-proof-container{background-color: #292f33 !important}" +
+      ".prf-stats a strong{color: #8899a6 !important}" +
+      "html.dark .prf-meta{background-color: #222426 !important}" +
+      "html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}" +
+      "html.dark .mdl-column-med{background: #222426 !important}" +
+      "html.dark .list-account .fullname{color: #fff !important}" +
+      "html.dark .list-account:hover:hover{background: #111 !important}" +
+      "html.dark .is-inverted-dark .account-link{color: #fff !important}" +
+      "html.dark .column-header-temp{background-color: #222426 !important}" +
+      "html.dark .column-background-fill{background-color: #222426 !important}" +
+      "html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}" +
+      "html.dark .Button{background-color: #222426 !important}" +
+      "html.dark .btn-round{background-color: #222426 !important}" +
+      "html.dark .Button:hover{background-color: #292f33 !important}" +
+      "html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}" +
+      "html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}" +
+      "html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}" +
+      "html.dark .s-not-following .follow-text{background-color: #222426 !important}"
+      )
       console.log("inserted code for dark theme")
     }
     if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
@@ -217,6 +220,7 @@ function createWindow (Settings) {
       mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
 
       //Basically not needed anymore and full of obsolete stuff
+
       /*html.dark .dropdown-menu{background-color: #243447 !important}\
       html.dark .non-selectable-item{color: #e1e8ed !important}\
       html.dark .dropdown-menu .typeahead-item, html.dark .dropdown-menu [data-action]{color: #e1e8ed !important}\
@@ -280,6 +284,17 @@ function createWindow (Settings) {
       html.dark .color-twitter-dark-black{color: #fff !important}\
       ")*/
       console.log("inserted code for blue theme")
+    }
+    if(Settings[2][0]>2)
+    {
+      if(fs.existsSync(themeDir + "/" + themeFiles[Settings[2][0]-3])) {
+        const fileContent = fs.readFileSync(themeDir + "/" + themeFiles[Settings[2][0]-3],'utf8').trim()
+        console.log(themeDir + "/" + themeFiles[Settings[2][0]-3])
+        console.log(fileContent)
+        mainWindow.webContents.insertCSS(fileContent)
+        console.log("inserted custom theme")
+      }
+      else console.log("failed to insert custom theme. File doesn't exist")
     }
   })
   /*Not needed anymore since what I wanted to do doesn't work.
@@ -410,13 +425,15 @@ function SaveSettings(Settings){
   {
     if(isNaN(Settings[i][0]) || Settings[i][0]=== null)
     {
-      console.log(Settings[i][0] + " is not a number or boolean")
-      saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"' + "," + '\n')
+      //console.log(Settings[i][0] + " is not a number or boolean")
+      saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
     }
     else {
-      console.log(Settings[i][0] + " is a number or boolean")
-      saveSettings += (Settings[i][1] + Settings[i][0] + "," +'\n')
+      //console.log(Settings[i][0] + " is a number or boolean")
+      saveSettings += (Settings[i][1] + Settings[i][0])
     }
+    if(i==Settings.length-1) saveSettings += '\n'
+    else saveSettings+= "," + '\n'
   }
   saveSettings += "}"
   fs.writeFileSync(settingsFile,saveSettings, (err) =>{
@@ -526,6 +543,15 @@ app.on('ready', () => {
   else { //unreachable code, but... you know
     console.log("Something went terribly wrong")
   }
+  if(!fs.existsSync(themeDir)) fs.mkdirSync(themeDir)
+  else if(fs.existsSync(themeDir))
+  {
+    themeFiles = fs.readdirSync(themeDir)
+    console.log(themeFiles)
+    console.log(themeFiles[0])
+    console.log(typeof(themeFiles[0]))
+    console.log("found " + themeFiles.length + " themes")
+  }
 })
 app.on('browser-window-created', function (event, win) {
   win.webContents.on('context-menu', function (e, params) {
@@ -631,6 +657,7 @@ function createMenu() {
               settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow, webPreferences:{nodeIntegration: true}})
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+              //settingsWin.webContents.toggleDevTools()
             }
             settingsWin.on('closed', () => {
               settingsWin = undefined
