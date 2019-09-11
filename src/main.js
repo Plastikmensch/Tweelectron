@@ -32,7 +32,7 @@
      [] update Readme (How to use scripts, requirements etc., settings)
      [] change file structure to be more compliant
      1.1 Release:
-     [] find a way to bypass t.co links (Need help)
+     [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
         - read out "data-full-url" (But how?)
      [x] Update notifier
@@ -60,7 +60,7 @@ let child
 const settingsFile = SettingsFile()
 const tor = TorFile()
 const themeDir = app.getPath('userData') + '/themes'
-let themeFiles
+let themeFiles,urlList
 let mainWindow,settingsWin,twitterwin,aboutWin
 
 function TorFile() {
@@ -297,6 +297,16 @@ function createWindow (Settings) {
       else console.log("failed to insert custom theme. File doesn't exist")
     }
   })
+  mainWindow.webContents.on('update-target-url', (event,url) => {
+    mainWindow.webContents.executeJavaScript(`function getURL() {var x = document.querySelectorAll('.url-ext');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode('href').value,x[i].getAttributeNode('data-full-url').value])} return urls}; getURL()`).then((result) => {//`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
+      //console.log("result: " + result)
+      urlList=result
+    })
+    /*
+    mainWindow.webContents.executeJavaScript(`document.querySelectorAll('.url-ext').length`, (result) => {
+      console.log("length: " + result)
+    })*/
+  })
   /*Not needed anymore since what I wanted to do doesn't work.
   //Display all changes of cookies in console
   session.defaultSession.cookies.on('changed', (event,cookie,cause,removed) =>{
@@ -306,6 +316,10 @@ function createWindow (Settings) {
     if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
     {
       event.preventDefault()
+      for(var i=0;i<urlList.length;i++)
+      {
+        if(url == urlList[i][0]) url = urlList[i][1]
+      }
       if(!Settings[7][0]){
         shell.openExternal(url)//opens link in default browser
         console.log("opened link external")
