@@ -474,7 +474,12 @@ function CheckForUpdates(){
         //get tag_name by slicing d from ":" after "tag_name" to "," after "tag_name", Well also removes ""
         const latest = data.slice(data.indexOf(":",data.search("tag_name"))+2,data.indexOf(",",data.search("tag_name"))-1)
         //console.log("latest: " + latest)
-
+        const body = data.slice(data.indexOf(":",data.search("body"))+2,-1)
+        var splitBody = body.split('\*')
+        var slicedBody = ""
+        for(var i=1;i<splitBody.length;i++) {
+          slicedBody += '\* ' + splitBody[i].slice(0,splitBody[i].indexOf('\\r\\n')) + '\n'
+        }
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
         const current = "v" + fs.readFileSync(__dirname + "/tweelectron-version",'utf8').trim()
         //console.log("current: " + current)
@@ -491,7 +496,7 @@ function CheckForUpdates(){
         */
         if(current != latest)
         {
-          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available\nCurrent version: '+ current + '\nlatest version: ' + latest})
+          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: '+ current + '\nlatest version: ' + latest + '\n\nChanges:\n' + slicedBody.toString()})
           console.log("Update available")
         }
         else console.log("No update available")
