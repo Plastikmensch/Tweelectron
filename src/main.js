@@ -496,7 +496,11 @@ function CheckForUpdates(){
         */
         if(current != latest)
         {
+<<<<<<< HEAD
           dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: '+ current + '\nlatest version: ' + latest + '\n\nChanges:\n' + slicedBody})
+=======
+          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: '+ current + '\nlatest version: ' + latest + '\n\nChanges:\n' + slicedBody.toString()})
+>>>>>>> cb38c7677c1808c4c67b556a29a0b58bcf6a6a05
           console.log("Update available")
         }
         else console.log("No update available")
