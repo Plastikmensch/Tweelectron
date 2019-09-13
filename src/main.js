@@ -39,6 +39,7 @@
      [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
      [x] add support for custom themes
+     [] fix Truly Dark theme
 
 */
 const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
@@ -153,6 +154,18 @@ function createWindow (Settings) {
       "html.dark .detail-view-inline{background-color: #222426 !important}" +
       "html.dark .detail-view-inline-text{background-color: #292f33 !important}" +
       "html.dark .app-search-input{background-color: #222426 !important}" +
+      "html.dark .column-scroller{background-color: #222426 !important}" +
+      "html.dark .compose{background-color: #495966 !important}" +
+      "html.dark .old-composer-footer{background-color: #495966 !important}" +
+      "html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}" +
+      "html.dark .column-panel{background-color: #495966 !important}" +
+      "html.dark .accounts-drawer{background-color: #495966 !important}" + //TweetDeck, please stop using !important in your stylesheet
+      "html.dark .popover{background-color: #222426 !important}" +
+      "html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}" +
+      "html.dark .account-settings-row{background-color: #292f33 !important}" +
+      "html.dark .join-team{background-color: #292f33 !important}" +
+      "html.dark .app-nav-tab.is-selected{background-color: #111 !important}" +
+      "html.dark input.light-on-dark{color: #fff !important}" +
 
       "html.dark .column-options{background-color: #2a2c2d !important}" +
       "html.dark .column-options .button-tray{background-color: #2a2c2d !important}" +
@@ -329,16 +342,16 @@ function createWindow (Settings) {
         //Settings[8][0] + url
         if(Settings[8][0]!== "null")
         {
-        const linkChild = require('child_process').spawn(Settings[8][0],[url])
-        linkChild.on('error', (err) => {
-          console.log(err)
-        })
-        console.log("opened link in torbrowser")
-      }
-      else {
-        dialog.showMessageBox({type: 'error', buttons: ['OK'],title: 'Error occured', message:'No file specified to open link'})
-        console.log("failed to open in tor")
-      }
+          const linkChild = require('child_process').spawn(Settings[8][0],[url])
+          linkChild.on('error', (err) => {
+            console.log(err)
+          })
+          console.log("opened link in torbrowser")
+        }
+        else {
+          dialog.showMessageBox({type: 'error', buttons: ['OK'],title: 'Error occured', message:'No file specified to open link'})
+          console.log("failed to open in tor")
+        }
       }
     }
   })
