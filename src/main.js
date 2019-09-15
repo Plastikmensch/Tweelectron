@@ -1,5 +1,18 @@
 /*
     TO-DO: [x] = done, [\] = won't do
+
+     Internal:
+     [] find motivation to work on this list
+     [x] push new release 1.0.10 (it's about time)
+     [x] write install script for linux
+        - find out why sudo doesn't work and script fails to execute (probably for security reasons)
+        (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
+     [] add more comments
+     [] change file structure to be more compliant
+     [] update Readme (How to use scripts, requirements etc., settings)
+     [] sort this list with version numbers, so it's clear why new releases take so long
+     [] include pictures in Readme
+     Misc:
      [x] use an array or object to store settings variables
      [x] save settings when app quits
      [x] add custom proxy support
@@ -11,26 +24,18 @@
      [x] adjust theme for TweetDecks awful color choice.
      [x] rework old theme
      [x] add theme selection
-     [] find motivation to work on this list
-     [] sort this list with version numbers, so it's clear why new releases take so long
      [x] find a way to include Tor in linux
-     [x] write install script for linux
-        - find out why sudo doesn't work and script fails to execute (probably for security reasons)
-        (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
      [x] rework windows
-     [] add more comments
      [x] change location of settingsFile (EACCESS ERROR)
-     [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
      [x] make tor process close when Tweelectron closes
         - avoid closing tor when not started by Tweelectron
-     [] include pictures in Readme
-     [] (Maybe) Get rid of old theme (Truly Dark)
+     [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
+     [\] (Maybe) Get rid of old theme (Truly Dark)
      [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
-     [x] push new release 1.0.10 (it's about time)
      [x] Actually use json format for settings or just change it to .cfg
-     [] update Readme (How to use scripts, requirements etc., settings)
-     [] change file structure to be more compliant
+     [] move theme code to files in theme folder
+        - create files on first start
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -166,6 +171,7 @@ function createWindow (Settings) {
       "html.dark .join-team{background-color: #292f33 !important}" +
       "html.dark .app-nav-tab.is-selected{background-color: #111 !important}" +
       "html.dark input.light-on-dark{color: #fff !important}" +
+      "html.dark #caltoday{color: #444 !important}" +
 
       "html.dark .column-options{background-color: #2a2c2d !important}" +
       "html.dark .column-options .button-tray{background-color: #2a2c2d !important}" +
@@ -581,7 +587,6 @@ app.on('ready', () => {
     themeFiles = fs.readdirSync(themeDir)
     console.log(themeFiles)
     console.log(themeFiles[0])
-    console.log(typeof(themeFiles[0]))
     console.log("found " + themeFiles.length + " themes")
   }
 })
