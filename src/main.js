@@ -47,7 +47,7 @@
      [] fix Truly Dark theme
 
 */
-const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session} = require('electron')
+const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session,nativeImage} = require('electron')
 const fs = require('fs')
 
 let Settings = [
@@ -427,6 +427,11 @@ function createWindow (Settings) {
     console.log(Settings)
   })
   CheckForUpdates()
+  //Set icon on Linux
+  if(process.platform === 'linux') {
+    let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+    mainWindow.setIcon(image)
+  }
 }
 function startTor() {
   console.log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
@@ -490,8 +495,8 @@ function CheckForUpdates(){
       //console.log("end of response")
       if(data.search("tag_name")!= -1)
       {
-        //get tag_name by slicing d from ":" after "tag_name" to "," after "tag_name", Well also removes ""
-        const latest = data.slice(data.indexOf(":",data.search("tag_name"))+2,data.indexOf(",",data.search("tag_name"))-1)
+        //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
+        const latest = data.slice(data.indexOf(":",data.search("tag_name"))+3,data.indexOf(",",data.search("tag_name"))-1)
         //console.log("latest: " + latest)
         const body = data.slice(data.indexOf(":",data.search("body"))+2,-1)
         var splitBody = body.split('\*')
@@ -500,7 +505,7 @@ function CheckForUpdates(){
           slicedBody += '\* ' + splitBody[i].slice(0,splitBody[i].indexOf('\\r\\n')) + '\n'
         }
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
-        const current = "v" + fs.readFileSync(__dirname + "/tweelectron-version",'utf8').trim()
+        const current = fs.readFileSync(__dirname + "/tweelectron-version",'utf8').trim()
         //console.log("current: " + current)
         //For testing. Might be useful for later for better comparison (Probably better to get index of . and compare numbers)
         /*
@@ -515,7 +520,7 @@ function CheckForUpdates(){
         */
         if(current != latest)
         {
-          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: '+ current + '\nlatest version: ' + latest + '\n\nChanges:\n' + slicedBody})
+          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: v'+ current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody})
           console.log("Update available")
         }
         else console.log("No update available")
