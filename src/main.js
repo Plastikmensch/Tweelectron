@@ -59,7 +59,7 @@ let Settings = [
   [false,'"use-custom-proxy" :'],
   ['foopy:80','"customProxy" :'],
   [false,'"links-in-torbrowser" :'],
-  [null,'"tor-browser-exe" :']
+  ['null','"tor-browser-exe" :']
 ]
 let child
 
@@ -551,7 +551,17 @@ app.on('ready', () => {
 
     for(var i=0;i<Settings.length;i++)
     {
-      Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+      if(settingsData.search("=") == -1)
+      {
+        Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+      }
+      else {
+        console.log("Settings file has wrong format")
+        let temp = settingsData.split('\n')
+        if(i < temp.length-1) {
+          Settings[i][0] = temp[i].slice(temp[i].search('=')+1)
+        }
+      }
       //remove ","
       if(Settings[i][0].search(",") !=-1)
       {
