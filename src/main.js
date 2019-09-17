@@ -72,10 +72,10 @@ let mainWindow,settingsWin,twitterwin,aboutWin
 function TorFile() {
   if(process.platform=='linux')
   {
-    return __dirname + ".unpacked/tor-linux/tor"
+    return process.resourcesPath + "/tor-linux/tor"
   }
   else {
-    return "./resources/app.asar.unpacked/tor-win32/Tor/tor.exe"
+    return process.resourcesPath + "/tor-win32/Tor/tor.exe"
   }
 }
 function SettingsFile(){
@@ -88,7 +88,8 @@ function SettingsFile(){
   }
 }
 function createWindow (Settings) {
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200/*, webPreferences:{nodeIntegration: false}*/})
+  //Disable nodeIntegration before release!
+  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200/*, webPreferences:{nodeIntegration: true}*/})
   createMenu()
   console.log(Settings)
   console.log(themeDir)
@@ -709,6 +710,10 @@ function createMenu() {
               settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow, webPreferences:{nodeIntegration: true}})
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+              if(process.platform === 'linux') {
+                let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+                settingsWin.setIcon(image)
+              }
               //settingsWin.webContents.toggleDevTools()
             }
             settingsWin.on('closed', () => {
@@ -783,6 +788,10 @@ function createMenu() {
           aboutWin = new BrowserWindow({width: 500,height: 300,parent: mainWindow, webPreferences:{nodeIntegration: true}})
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
+          if(process.platform === 'linux') {
+            let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+            aboutWin.setIcon(image)
+          }
         }
         aboutWin.on('closed', ()=> {
           aboutWin = undefined
