@@ -430,7 +430,7 @@ function createWindow (Settings) {
   CheckForUpdates()
   //Set icon on Linux
   if(process.platform === 'linux') {
-    let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+    let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
     mainWindow.setIcon(image)
   }
 }
@@ -711,7 +711,7 @@ function createMenu() {
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
               if(process.platform === 'linux') {
-                let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+                let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
                 settingsWin.setIcon(image)
               }
               //settingsWin.webContents.toggleDevTools()
@@ -789,7 +789,7 @@ function createMenu() {
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
           if(process.platform === 'linux') {
-            let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweetdeck.png')
+            let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
             aboutWin.setIcon(image)
           }
         }
