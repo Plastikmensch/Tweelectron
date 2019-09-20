@@ -11,8 +11,6 @@
     <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
     Theme: <select id="theme">
       <option>TweetDeck</option>
-      <option>Truly Dark</option>
-      <option>Dreamy Blue</option>
     </select><br>
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
@@ -75,7 +73,7 @@ if(fs.existsSync(themeDir))
   const themeFiles = fs.readdirSync(themeDir)
   for(var i=0;i<themeFiles.length;i++) {
     var option = document.createElement("option")
-    option.text=themeFiles[i]
+    option.text=themeFiles[i].slice(0,themeFiles[i].lastIndexOf('.'))
     document.getElementById("theme").add(option)
   }
 }

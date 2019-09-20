@@ -8,10 +8,11 @@
         - find out why sudo doesn't work and script fails to execute (probably for security reasons)
         (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
      [] add more comments
-     [] change file structure to be more compliant
+     [x] change file structure to be more compliant
      [] update Readme (How to use scripts, requirements etc., settings)
      [] sort this list with version numbers, so it's clear why new releases take so long
      [] include pictures in Readme
+     [] (Maybe) move to-do list to issues as task list
      Misc:
      [x] use an array or object to store settings variables
      [x] save settings when app quits
@@ -34,8 +35,10 @@
      [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
      [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
      [x] Actually use json format for settings or just change it to .cfg
-     [] move theme code to files in theme folder
+     [x] move theme code to files in theme folder
         - create files on first start
+     [] rewrite code (avoid repetition and optimize)
+     [] please linter
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -66,6 +69,7 @@ let child
 const settingsFile = SettingsFile()
 const tor = TorFile()
 const themeDir = app.getPath('userData') + '/themes'
+const icon = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
 let themeFiles,urlList
 let mainWindow,settingsWin,twitterwin,aboutWin
 
@@ -134,16 +138,11 @@ function createWindow (Settings) {
       mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
       console.log("inserted code for angular profile pics")
     }
+    /*
     if(Settings[2][0]==1 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
-      //First: Overall appearance (Tweets, sidebar etc.)
-      //Second: Column options
-      //Third: Dropdown
-      //Fourth: Search Tips
-      //Fifth: Keyboard shortcuts
-      //Sixth: Settings
-      //Seventh: Profile
       mainWindow.webContents.insertCSS(
+      //Overall appearance (Tweets, sidebar etc.)
       "html.dark .stream-item{background-color: #222426 !important}" +
       "html.dark .column-nav-item{background-color: #292f33 !important}" +
       "html.dark .app-header{background-color: #292f33 !important}" +
@@ -173,26 +172,26 @@ function createWindow (Settings) {
       "html.dark .app-nav-tab.is-selected{background-color: #111 !important}" +
       "html.dark input.light-on-dark{color: #fff !important}" +
       "html.dark #caltoday{color: #444 !important}" +
-
+      //Column options
       "html.dark .column-options{background-color: #2a2c2d !important}" +
       "html.dark .column-options .button-tray{background-color: #2a2c2d !important}" +
       "html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}" +
       "html.dark .facet-type.is-active{background-color: #2a2c2d !important}" +
-
+      //Dropdown
       ".caret-inner{border-bottom: 6px solid #222426 !important}" +
       ".dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}" +
       "html.dark .non-selectable-item{color: #fff !important}" +
-
+      //Search Tips
       "html.dark .bg-color-twitter-white{background-color: #222426 !important}" +
       "html.dark .color-twitter-dark-gray{color: #fff !important}" +
       "html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}" +
       "html.dark .Button{background-color: #111 !important}" +
       "html.dark .Button:hover{background-color: #111 !important}" +
       "html.dark .mdl-dismiss{color: #fff !important}" +
-
+      //Keyboard shortcuts
       "html.dark .color-twitter-dark-black{color: #fff !important}" +
       ".text-like-keyboard-key{color: #000 !important}" +
-
+      //Settings
       ".list-link:hover{background-color: #0e0e0e !important}" +
       "html.dark .mdl{background-color: #222426 !important}" +
       "html.dark .mdl-col-settings{background-color: #222426 !important}" +
@@ -203,7 +202,7 @@ function createWindow (Settings) {
       "html.dark .list-filter{color: #fff !important}" +
       "html.dark .mdl-header{color: #fff !important}" +
       "html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}" +
-
+      //Profile
       "html.dark .social-proof-container{background-color: #292f33 !important}" +
       ".prf-stats a strong{color: #8899a6 !important}" +
       "html.dark .prf-meta{background-color: #222426 !important}" +
@@ -236,8 +235,8 @@ function createWindow (Settings) {
       //Seventh: Tweets (Pictures, Videos)
 
       //Twitter bg color #15202b
-      //This does nothing, because someone had the brilliant idea of doing "background-color: #fff!important"...
-      mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
+      //Not needed anymore
+      //mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
 
       //Basically not needed anymore and full of obsolete stuff
 
@@ -302,14 +301,15 @@ function createWindow (Settings) {
       html.dark .med-fullpanel{background-color: #14171A !important}\
       html.dark .is-unread{background-color: #2d4a6d !important}\
       html.dark .color-twitter-dark-black{color: #fff !important}\
-      ")*/
+      ")
       console.log("inserted code for blue theme")
     }
-    if(Settings[2][0]>2)
+    */
+    if(Settings[2][0]>0 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
-      if(fs.existsSync(themeDir + "/" + themeFiles[Settings[2][0]-3])) {
-        const fileContent = fs.readFileSync(themeDir + "/" + themeFiles[Settings[2][0]-3],'utf8').trim()
-        console.log(themeDir + "/" + themeFiles[Settings[2][0]-3])
+      if(fs.existsSync(themeDir + "/" + themeFiles[Settings[2][0]-1])) {
+        const fileContent = fs.readFileSync(themeDir + "/" + themeFiles[Settings[2][0]-1],'utf8').trim()
+        console.log(themeDir + "/" + themeFiles[Settings[2][0]-1])
         console.log(fileContent)
         mainWindow.webContents.insertCSS(fileContent)
         console.log("inserted custom theme")
@@ -430,8 +430,7 @@ function createWindow (Settings) {
   CheckForUpdates()
   //Set icon on Linux
   if(process.platform === 'linux') {
-    let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
-    mainWindow.setIcon(image)
+    mainWindow.setIcon(icon)
   }
 }
 function startTor() {
@@ -597,12 +596,104 @@ app.on('ready', () => {
   else { //unreachable code, but... you know
     console.log("Something went terribly wrong")
   }
-  if(!fs.existsSync(themeDir)) fs.mkdirSync(themeDir)
-  else if(fs.existsSync(themeDir))
+  const themeTrulyDark =
+  //Overall appearance (Tweets, sidebar etc.)
+  'html.dark .stream-item{background-color: #222426 !important}\n' +
+  'html.dark .column-nav-item{background-color: #292f33 !important}\n' +
+  'html.dark .app-header{background-color: #292f33 !important}\n' +
+  'html.dark .app-navigator{background-color: #292f33 !important}\n' +
+  'html.dark .app-title{background-color: #292f33 !important}\n' +
+  'html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\n' +
+  'html.dark .column-message{background-color: #292f33 !important}\n' +
+  'html.dark .app-content{background-color: #222426 !important}\n' +
+  'html.dark .column{background-color: #222426 !important}\n' +
+  'html.dark .app-columns-container{background-color: #14171a !important}\n' +
+  'html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\n' +
+  'html.dark .is-inverted-dark{color: #fff !important}\n' +
+  'html.dark .scroll-conversation{background: #222426 !important}\n' +
+  'html.dark .detail-view-inline{background-color: #222426 !important}\n' +
+  'html.dark .detail-view-inline-text{background-color: #292f33 !important}\n' +
+  'html.dark .app-search-input{background-color: #222426 !important}\n' +
+  'html.dark .column-scroller{background-color: #222426 !important}\n' +
+  'html.dark .compose{background-color: #495966 !important}\n' +
+  'html.dark .old-composer-footer{background-color: #495966 !important}\n' +
+  'html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}\n' +
+  'html.dark .column-panel{background-color: #495966 !important}\n' +
+  'html.dark .accounts-drawer{background-color: #495966 !important}\n' + //TweetDeck, please stop using !important in your stylesheet
+  'html.dark .popover{background-color: #222426 !important}\n' +
+  'html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}\n' +
+  'html.dark .account-settings-row{background-color: #292f33 !important}\n' +
+  'html.dark .join-team{background-color: #292f33 !important}\n' +
+  'html.dark .app-nav-tab.is-selected{background-color: #111 !important}\n' +
+  'html.dark input.light-on-dark{color: #fff !important}\n' +
+  'html.dark #caltoday{color: #444 !important}\n' +
+  //Column options
+  'html.dark .column-options{background-color: #2a2c2d !important}\n' +
+  'html.dark .column-options .button-tray{background-color: #2a2c2d !important}\n' +
+  'html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\n' +
+  'html.dark .facet-type.is-active{background-color: #2a2c2d !important}\n' +
+  //Dropdown
+  '.caret-inner{border-bottom: 6px solid #222426 !important}\n' +
+  '.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\n' +
+  'html.dark .non-selectable-item{color: #fff !important}\n' +
+  //Search Tips
+  'html.dark .bg-color-twitter-white{background-color: #222426 !important}\n' +
+  'html.dark .color-twitter-dark-gray{color: #fff !important}\n' +
+  'html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\n' +
+  'html.dark .Button{background-color: #111 !important}\n' +
+  'html.dark .Button:hover{background-color: #111 !important}\n' +
+  'html.dark .mdl-dismiss{color: #fff !important}\n' +
+  //Keyboard shortcuts
+  'html.dark .color-twitter-dark-black{color: #fff !important}\n' +
+  '.text-like-keyboard-key{color: #000 !important}\n' +
+  //Settings
+  '.list-link:hover{background-color: #0e0e0e !important}\n' +
+  'html.dark .mdl{background-color: #222426 !important}\n' +
+  'html.dark .mdl-col-settings{background-color: #222426 !important}\n' +
+  'html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\n' +
+  'html.dark .frm{color: #fff !important}\n' +
+  'html.dark .is-inverted-dark .list-link{color: #fff !important}\n' +
+  'html.dark .list-link:hover:hover{color: #fff !important}\n' +
+  'html.dark .list-filter{color: #fff !important}\n' +
+  'html.dark .mdl-header{color: #fff !important}\n' +
+  'html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\n' +
+  //Profile
+  'html.dark .social-proof-container{background-color: #292f33 !important}\n' +
+  '.prf-stats a strong{color: #8899a6 !important}\n' +
+  'html.dark .prf-meta{background-color: #222426 !important}\n' +
+  'html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\n' +
+  'html.dark .mdl-column-med{background: #222426 !important}\n' +
+  'html.dark .list-account .fullname{color: #fff !important}\n' +
+  'html.dark .list-account:hover:hover{background: #111 !important}\n' +
+  'html.dark .is-inverted-dark .account-link{color: #fff !important}\n' +
+  'html.dark .column-header-temp{background-color: #222426 !important}\n' +
+  'html.dark .column-background-fill{background-color: #222426 !important}\n' +
+  'html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\n' +
+  'html.dark .Button{background-color: #222426 !important}\n' +
+  'html.dark .btn-round{background-color: #222426 !important}\n' +
+  'html.dark .Button:hover{background-color: #292f33 !important}\n' +
+  'html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\n' +
+  'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
+  'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
+  'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
+  if(!fs.existsSync(themeDir)) {
+    fs.mkdirSync(themeDir)
+    fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark, (err) => {
+      if(err) console.log(err)
+      else console.log('created Truly Dark.css')
+    })
+  }
+  if(fs.existsSync(themeDir))
   {
     themeFiles = fs.readdirSync(themeDir)
+    if(fs.existsSync(themeDir + '/Truly Dark.css')) {
+      const themeTemp = fs.readFileSync(themeDir + '/Truly Dark.css','utf8').trim()
+      if(themeTemp !== themeTrulyDark.trim()) {
+        fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark)
+        console.log('updated Truly Dark')
+      }
+    }
     console.log(themeFiles)
-    console.log(themeFiles[0])
     console.log("found " + themeFiles.length + " themes")
   }
 })
@@ -711,8 +802,7 @@ function createMenu() {
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
               if(process.platform === 'linux') {
-                let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
-                settingsWin.setIcon(image)
+                settingsWin.setIcon(icon)
               }
               //settingsWin.webContents.toggleDevTools()
             }
@@ -789,8 +879,7 @@ function createMenu() {
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
           if(process.platform === 'linux') {
-            let image = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
-            aboutWin.setIcon(image)
+            aboutWin.setIcon(icon)
           }
         }
         aboutWin.on('closed', ()=> {
