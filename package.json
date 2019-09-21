@@ -16,7 +16,8 @@
   },
   "eslintConfig": {
     "rules": {
-      "spaced-comment": 0
+      "spaced-comment": 0,
+      "no-path-concat": 0
     }
   },
   "devDependencies": {
