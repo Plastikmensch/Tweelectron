@@ -11,8 +11,17 @@
     "type": "git",
     "url": "https://github.com/Plastikmensch/Tweelectron.git"
   },
+  "standard": {
+    "linter": "standardx"
+  },
+  "eslintConfig": {
+    "rules": {
+      "spaced-comment": 0
+    }
+  },
   "devDependencies": {
-    "electron": "^6.0.10"
+    "electron": "^6.0.10",
+    "standardx": "^5.0.0"
   },
   "dependencies": {}
 }
