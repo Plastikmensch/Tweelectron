@@ -38,7 +38,7 @@
      [x] move theme code to files in theme folder
         - create files on first start
      [] rewrite code (avoid repetition and optimize)
-     [] please linter
+     [x] please linter (what a pain in the ass...)
      [x] create logfile
         - backup last logfile
      1.1 Release:
@@ -52,51 +52,50 @@
      [] fix Truly Dark theme
 
 */
-const {remote,BrowserWindow,app,electron,shell,Menu,MenuItem,clipboard,dialog,ipcMain,session,nativeImage} = require('electron')
+const { remote, BrowserWindow, app, electron, shell, Menu, MenuItem, clipboard, dialog, ipcMain, session, nativeImage } = require('electron')
 const fs = require('fs')
 
-let Settings = [
-  [undefined,'"use-tor" :'],
-  [false,'"use-round-pics" :'],
-  [0,'"theme" :'], // 0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
-  [1320,'"width" :'],
-  [720,'"height" :'],
-  [false,'"use-custom-proxy" :'],
-  ['foopy:80','"customProxy" :'],
-  [false,'"links-in-torbrowser" :'],
-  ['null','"tor-browser-exe" :']
+const Settings = [
+  [undefined, '"use-tor" :'],
+  [false, '"use-round-pics" :'],
+  [0, '"theme" :'], // 0 = no theme, 1 = Truly Dark, 2 = Dreamy Blue
+  [1320, '"width" :'],
+  [720, '"height" :'],
+  [false, '"use-custom-proxy" :'],
+  ['foopy:80', '"customProxy" :'],
+  [false, '"links-in-torbrowser" :'],
+  ['null', '"tor-browser-exe" :']
 ]
 let child
 
 const settingsFile = SettingsFile()
 const tor = TorFile()
 const themeDir = app.getPath('userData') + '/themes'
-const icon = nativeImage.createFromPath(app.getPath('exe').slice(0,app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
+const icon = nativeImage.createFromPath(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
 const logFile = app.getPath('userData') + '/tweelectron.log'
-let themeFiles,urlList
-let mainWindow,settingsWin,twitterwin,aboutWin
+let themeFiles, urlList
+let mainWindow, settingsWin, twitterwin, aboutWin
 
-function TorFile() {
-  if(process.platform === 'linux')
-  {
-    return process.resourcesPath + "/tor-linux/tor"
+function TorFile () {
+  if (process.platform === 'linux') {
+    return process.resourcesPath + '/tor-linux/tor'
   }
   else {
-    return process.resourcesPath + "/tor-win32/Tor/tor.exe"
+    return process.resourcesPath + '/tor-win32/Tor/tor.exe'
   }
 }
-function SettingsFile(){
-  if(process.platform=='linux'){
-    return process.env.HOME + "/.config/Tweelectron/settings.json"
+function SettingsFile () {
+  if (process.platform === 'linux') {
+    return process.env.HOME + '/.config/Tweelectron/settings.json'
   }
   else {
     //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
+    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf('/')) + '/settings.json'
   }
 }
 function createWindow (Settings) {
   //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({autoHideMenuBar: true,width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight:200/*, webPreferences:{nodeIntegration: true}*/})
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
   Log(Settings)
   Log(themeDir)
@@ -104,42 +103,40 @@ function createWindow (Settings) {
   const home = 'https://tweetdeck.twitter.com/'
   var retries = 0
   var reloadTimer
-  if(Settings[0][0] && !Settings[5][0])
-  {
-    mainWindow.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
+  if (Settings[0][0] && !Settings[5][0]) {
+    mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' }, () => {
       mainWindow.loadURL(home)
-      Log("using Tor")
+      Log('using Tor')
     })
   }
-  else if(Settings[5][0])
-  {
-    mainWindow.webContents.session.setProxy({proxyRules: Settings[6][0]}, () => {
+  else if (Settings[5][0]) {
+    mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] }, () => {
       mainWindow.loadURL(home)
-      Log("using custom Proxy")
+      Log('using custom Proxy')
     })
   }
   else {
     mainWindow.loadURL(home)
-    Log("Not using Tor or custom Proxy")
+    Log('Not using Tor or custom Proxy')
   }
-  mainWindow.webContents.on('did-fail-load', (event,errorCode,errorDescription,validatedURL) => {
-    Log("failed to load. Retrying..." + "\nError: " +errorCode+" " + errorDescription + " " + validatedURL)
-    if(validatedURL==home){
-      reloadTimer = setTimeout(function(){
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    Log('failed to load. Retrying...' + '\nError: ' + errorCode + ' ' + errorDescription + ' ' + validatedURL)
+    if (validatedURL === home) {
+      reloadTimer = setTimeout(function () {
         mainWindow.loadURL(home)
-        if(retries==3) {
+        if (retries === 3) {
           mainWindow.loadURL(url2)
-          Log("failed to load")
-        }},5000)
+          Log('failed to load')
+        }
+      }, 5000)
       retries++
     }
   })
   mainWindow.webContents.on('did-finish-load', () => {
     clearTimeout(reloadTimer)
-    if(!Settings[1][0])
-    {
-      mainWindow.webContents.insertCSS(".avatar{border-radius:0 !important}")// makes profile pics angular shaped again Woohoo!
-      Log("inserted code for angular profile pics")
+    if (!Settings[1][0]) {
+      mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
+      Log('inserted code for angular profile pics')
     }
     /*
     if(Settings[2][0]==1 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
@@ -308,22 +305,21 @@ function createWindow (Settings) {
       console.log("inserted code for blue theme")
     }
     */
-    if(Settings[2][0]>0 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
-    {
-      if(fs.existsSync(themeDir + "/" + themeFiles[Settings[2][0]-1])) {
-        const fileContent = fs.readFileSync(themeDir + "/" + themeFiles[Settings[2][0]-1],'utf8').trim()
-        Log(themeDir + "/" + themeFiles[Settings[2][0]-1])
-        Log(fileContent)
+    if (Settings[2][0] > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
+      if (fs.existsSync(themeDir + '/' + themeFiles[Settings[2][0] - 1])) {
+        const fileContent = fs.readFileSync(themeDir + '/' + themeFiles[Settings[2][0] - 1], 'utf8').trim()
+        Log(themeDir + '/' + themeFiles[Settings[2][0] - 1])
+        //Log(fileContent)
         mainWindow.webContents.insertCSS(fileContent)
-        Log("inserted custom theme")
+        Log('inserted custom theme')
       }
-      else Log("failed to insert custom theme. File doesn't exist")
+      else Log('failed to insert custom theme. File doesn\'t exist')
     }
   })
-  mainWindow.webContents.on('update-target-url', (event,url) => {
-    mainWindow.webContents.executeJavaScript(`function getURL() {var x = document.querySelectorAll('.url-ext');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode('href').value,x[i].getAttributeNode('data-full-url').value])} return urls}; getURL()`).then((result) => {//`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
+  mainWindow.webContents.on('update-target-url', (event, url) => {
+    mainWindow.webContents.executeJavaScript(`function getURL() {var x = document.querySelectorAll('.url-ext');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode('href').value,x[i].getAttributeNode('data-full-url').value])} return urls}; getURL()`).then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       //console.log("result: " + result)
-      urlList=result
+      urlList = result
     })
     /*
     mainWindow.webContents.executeJavaScript(`document.querySelectorAll('.url-ext').length`, (result) => {
@@ -335,68 +331,61 @@ function createWindow (Settings) {
   session.defaultSession.cookies.on('changed', (event,cookie,cause,removed) =>{
     console.log(event,cookie,cause,removed)
   })*/
-  mainWindow.webContents.on('new-window', (event,url) => {
-    if(url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0)
-    {
+  mainWindow.webContents.on('new-window', (event, url) => {
+    if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
-      for(var i=0;i<urlList.length;i++)
-      {
-        if(url == urlList[i][0]) url = urlList[i][1]
+      for (var i = 0; i < urlList.length; i++) {
+        if (url === urlList[i][0]) url = urlList[i][1]
       }
-      if(!Settings[7][0]){
+      if (!Settings[7][0]) {
         shell.openExternal(url)//opens link in default browser
-        Log("opened link external")
+        Log('opened link external')
       }
       else {
         //Settings[8][0] browser exec
         //Settings[8][0] + url
-        if(Settings[8][0]!== "null")
-        {
+        if (Settings[8][0] !== 'null') {
           //allow remote and new tab might break opening links with other browsers
-          const linkChild = require('child_process').spawn(Settings[8][0],['--allow-remote','--new-tab',url])
+          const linkChild = require('child_process').spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
           linkChild.on('error', (err) => {
             Log(err)
           })
-          Log("opened link in torbrowser")
+          Log('opened link in torbrowser')
         }
         else {
-          dialog.showMessageBox({type: 'error', buttons: ['OK'],title: 'Error occured', message:'No file specified to open link'})
-          Log("failed to open in tor")
+          dialog.showMessageBox({type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+          Log('failed to open in tor')
         }
       }
     }
   })
   mainWindow.webContents.on('will-navigate', (event, url) => {
-
-    if(url.search('https://twitter.com/login') == 0)
-    {
+    if (url.search('https://twitter.com/login') === 0) {
       event.preventDefault()
-      twitterwin = new BrowserWindow({parent: mainWindow})
+      twitterwin = new BrowserWindow({ parent: mainWindow })
       twitterwin.removeMenu()
-      if(Settings[0][0] && !Settings[5][0])
-      {
-        twitterwin.webContents.session.setProxy({proxyRules:"socks5://127.0.0.1:9050"}, () => {
+      if (Settings[0][0] && !Settings[5][0]) {
+        twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' }, () => {
           twitterwin.loadURL(url)
-          Log("using Tor")
+          Log('using Tor')
         })
       }
-      else if(Settings[5][0])
-      {
-        twitterwin.webContents.session.setProxy({proxyRules: Settings[6][0]}, () => {
+      else if (Settings[5][0]) {
+        twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] }, () => {
           twitterwin.loadURL(url)
-          Log("using custom Proxy")
+          Log('using custom Proxy')
         })
       }
       else {
         twitterwin.loadURL(url)
-        Log("Not using Tor or custom Proxy")
+        Log('Not using Tor or custom Proxy')
       }
-      twitterwin.webContents.on('did-fail-load',() => {
+      twitterwin.webContents.on('did-fail-load', () => {
         twitterwin.loadURL(url2)
-        Log("failed to load")
+        Log('failed to load')
       })
       event.newGuest = twitterwin
-      twitterwin.webContents.on('will-navigate', (event,url) => {
+      twitterwin.webContents.on('will-navigate', (event, url) => {
         mainWindow.loadURL(url)
         twitterwin.close()
       })
@@ -408,22 +397,20 @@ function createWindow (Settings) {
   mainWindow.on('closed', function () {
     app.quit()
   })
-  ipcMain.on('Settings',(event,newSettings) => {
+  ipcMain.on('Settings', (event, newSettings) => {
     Log(newSettings)
-    if(newSettings.toString() == Settings.toString())
-    {
+    if (newSettings.toString() === Settings.toString()) {
       event.returnValue = false
     }
     else {
       var reload = false
       //check if theme is changed
-      if(Settings[2][0]!==newSettings[2][0])
-      {
+      if (Settings[2][0] !== newSettings[2][0]) {
         reload = true
       }
       Settings = newSettings
       //reload TweetDeck if theme is changed
-      if(reload){
+      if (reload) {
         mainWindow.reload()
       }
       SaveSettings(Settings)
@@ -433,40 +420,36 @@ function createWindow (Settings) {
   })
   CheckForUpdates()
   //Set icon on Linux
-  if(process.platform === 'linux') {
+  if (process.platform === 'linux') {
     mainWindow.setIcon(icon)
   }
 }
-function startTor() {
-  Log("Directory: " + __dirname + "\nPath: " + app.getPath('exe'))
-    child = require('child_process').execFile(tor, (err) => {
-      if(err)
-      {
-        Log("couldn't start tor. (already running?)")
-        Log(err)
-      }
-      else Log("started tor")
-    })
-    Log("pid: " + child.pid)
-    child.on('exit', (code,signal) => {
-      Log("tor stopped:")
-      Log("code: " + code + " signal: " + signal)
-      child = undefined
-    })
+function startTor () {
+  Log('Directory: ' + __dirname + '\nPath: ' + app.getPath('exe'))
+  child = require('child_process').execFile(tor, (err) => {
+    if (err) {
+      Log('couldn\'t start tor. (already running?)')
+      Log(err)
+    }
+    else Log('started tor')
+  })
+  Log('pid: ' + child.pid)
+  child.on('exit', (code, signal) => {
+    Log('tor stopped:')
+    Log('code: ' + code + ' signal: ' + signal)
+    child = undefined
+  })
 }
-function SaveSettings(Settings){
-  if(mainWindow != undefined)
-  {
+function SaveSettings (Settings) {
+  if (mainWindow !== undefined) {
     const size = mainWindow.getSize()
     Settings[3][0] = size[0]//width
     Settings[4][0] = size[1]//height
   }
-  else Log("mainWindow undefined")
-  var saveSettings = "{" + '\n'
-  for(var i=0;i<Settings.length;i++)
-  {
-    if(isNaN(Settings[i][0]) || Settings[i][0]=== null)
-    {
+  else Log('mainWindow undefined')
+  var saveSettings = '{' + '\n'
+  for (var i = 0; i < Settings.length; i++) {
+    if (isNaN(Settings[i][0]) || Settings[i][0] === null) {
       //console.log(Settings[i][0] + " is not a number or boolean")
       saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
     }
@@ -474,40 +457,39 @@ function SaveSettings(Settings){
       //console.log(Settings[i][0] + " is a number or boolean")
       saveSettings += (Settings[i][1] + Settings[i][0])
     }
-    if(i==Settings.length-1) saveSettings += '\n'
-    else saveSettings+= "," + '\n'
+    if (i === Settings.length - 1) saveSettings += '\n'
+    else saveSettings += ',' + '\n'
   }
-  saveSettings += "}"
-  fs.writeFileSync(settingsFile,saveSettings)
+  saveSettings += '}'
+  fs.writeFileSync(settingsFile, saveSettings)
   Log('Settings saved')
 }
-function CheckForUpdates(){
-  require('https').get("https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest",{headers: {'User-Agent': 'Tweelectron'}}, (response) =>{
-    if(response.statusCode != 200) Log("Request failed. Response code: " + response.statusCode)
+function CheckForUpdates () {
+  require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
+    if (response.statusCode !== 200) Log('Request failed. Response code: ' + response.statusCode)
     //console.log(JSON.stringify(response.headers))
     response.setEncoding('utf8')//makes d readable
-    var data = ""
+    var data = ''
     //Warning: gets called multiple times
-    response.on('data', (d)=> {
+    response.on('data', (d) => {
       //console.log(d)
       data += d
     })
-    response.on('end', ()=> {
+    response.on('end', () => {
       //console.log(data)
       //console.log("end of response")
-      if(data.search("tag_name")!= -1)
-      {
+      if (data.search('tag_name') !== -1) {
         //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
-        const latest = data.slice(data.indexOf(":",data.search("tag_name"))+3,data.indexOf(",",data.search("tag_name"))-1)
+        const latest = data.slice(data.indexOf(':', data.search('tag_name')) + 3, data.indexOf(',', data.search('tag_name')) - 1)
         //console.log("latest: " + latest)
-        const body = data.slice(data.indexOf(":",data.search("body"))+2,-1)
-        var splitBody = body.split('\*')
-        var slicedBody = ""
-        for(var i=1;i<splitBody.length;i++) {
-          slicedBody += '\* ' + splitBody[i].slice(0,splitBody[i].indexOf('\\r\\n')) + '\n'
+        const body = data.slice(data.indexOf(':', data.search('body')) + 2, -1)
+        var splitBody = body.split('*')
+        var slicedBody = ''
+        for (var i = 1; i < splitBody.length; i++) {
+          slicedBody += '* ' + splitBody[i].slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
         }
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
-        const current = fs.readFileSync(__dirname + "/tweelectron-version",'utf8').trim()
+        const current = fs.readFileSync(__dirname + '/tweelectron-version', 'utf8').trim()
         //console.log("current: " + current)
         //For testing. Might be useful for later for better comparison (Probably better to get index of . and compare numbers)
         /*
@@ -520,90 +502,83 @@ function CheckForUpdates(){
           else console.log("current " + current[i] + " does match latest " + latest[i])
         }
         */
-        if(current != latest)
-        {
-          dialog.showMessageBox({type:'info', buttons:['OK'], title: 'Update available', message:'There is an Update available!\n\nCurrent version: v'+ current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody})
-          Log("Update available")
+        if (current !== latest) {
+          dialog.showMessageBox({ type: 'info', buttons: ['OK'], title: 'Update available', message: 'There is an Update available!\n\nCurrent version: v' + current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody })
+          Log('Update available')
         }
-        else Log("No update available")
+        else Log('No update available')
       }
     })
-  }).on('error', (err)=>{
-    Log("Error" + '\n' + err.message)
+  }).on('error', (err) => {
+    Log('Error:' + '\n' + err.message)
   })
 }
-function Log(message) {
-  fs.appendFileSync(logFile,message + '\n')
+function Log (message) {
+  fs.appendFileSync(logFile, message + '\n')
   console.log(message)
 }
 app.on('ready', () => {
   app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
   Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
   //app.setAppLogsPath()//Sets logpath to userData (appData in Windows and .config in linux). No logs created though.
-  if(fs.existsSync(logFile)) {
-    fs.renameSync(logFile,logFile + '.backup')
+  if (fs.existsSync(logFile)) {
+    fs.renameSync(logFile, logFile + '.backup')
   }
-  if(!fs.existsSync(settingsFile))
-  {
-    dialog.showMessageBox({type:'question', buttons:['No','Yes'],message:'Do you want to use Tor?'}, (response)=>{
-      if(response){
+  if (!fs.existsSync(settingsFile)) {
+    dialog.showMessageBox({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' }, (response) => {
+      if (response) {
         Settings[0][0] = true
-        Log("clicked YES")
+        Log('clicked YES')
         startTor()
-        }
+      }
       else {
         Settings[0][0] = false
-        Log("clicked NO")
+        Log('clicked NO')
       }
       SaveSettings(Settings)//Could move to mainWindow creation, but unnecessary file operations
       createWindow(Settings)
     })
   }
-  else if(fs.existsSync(settingsFile)) {
-    const settingsData= fs.readFileSync(settingsFile,'utf8')
-    Log("Data:\n" + settingsData + "\nend of data")
+  else if (fs.existsSync(settingsFile)) {
+    const settingsData = fs.readFileSync(settingsFile, 'utf8')
+    Log('Data:\n' + settingsData + '\nend of data')
 
-    for(var i=0;i<Settings.length;i++)
-    {
-      if(settingsData.search("=") == -1)
-      {
-        Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1])+Settings[i][1].length,settingsData.indexOf('\n',settingsData.search(Settings[i][1]))).trim()
+    for (var i = 0; i < Settings.length; i++) {
+      if (settingsData.search('=') === -1) {
+        Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
       }
       else {
-        Log("Settings file has wrong format")
-        let temp = settingsData.split('\n')
-        if(i < temp.length-1) {
-          Settings[i][0] = temp[i].slice(temp[i].search('=')+1)
+        Log('Settings file has wrong format')
+        const temp = settingsData.split('\n')
+        if (i < temp.length - 1) {
+          Settings[i][0] = temp[i].slice(temp[i].search('=') + 1)
         }
       }
       //remove ","
-      if(Settings[i][0].search(",") !=-1)
-      {
-        Settings[i][0] = Settings[i][0].slice(0,-1)
+      if (Settings[i][0].search(',') !== -1) {
+        Settings[i][0] = Settings[i][0].slice(0, -1)
       }
       //if setting is "true" or "false", convert to boolean
-      if(Settings[i][0] == 'true'||Settings[i][0] == 'false')
-      {
-        Settings[i][0] = (Settings[i][0] == 'true')
+      if (Settings[i][0] === 'true' || Settings[i][0] === 'false') {
+        Settings[i][0] = (Settings[i][0] === 'true')
       }
       //if setting is a number, convert to integer
-      else if(!isNaN(Number(Settings[i][0]))){
+      else if (!isNaN(Number(Settings[i][0]))) {
         Settings[i][0] = Number(Settings[i][0])
       }
       //else remove ""
-      else if(Settings[i][0].search("\"")!=-1){
-        Settings[i][0]=Settings[i][0].slice(1,Settings[i][0].lastIndexOf("\""))
+      else if (Settings[i][0].search('"') !== -1) {
+        Settings[i][0] = Settings[i][0].slice(1, Settings[i][0].lastIndexOf('"'))
       }
     }
     Log(Settings)
-      if(Settings[0][0] && !Settings[1][0])
-      {
-        startTor()
-      }
-      createWindow(Settings)
+    if (Settings[0][0] && !Settings[1][0]) {
+      startTor()
+    }
+    createWindow(Settings)
   }
   else { //unreachable code, but... you know
-    Log("Something went terribly wrong")
+    Log('Something went terribly wrong\nThe universe collapsed')
   }
   const themeTrulyDark =
   //Overall appearance (Tweets, sidebar etc.)
@@ -685,38 +660,35 @@ app.on('ready', () => {
   'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
   'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
   'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
-  if(!fs.existsSync(themeDir)) {
+  if (!fs.existsSync(themeDir)) {
     fs.mkdirSync(themeDir)
     fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark)
     Log('created Truly Dark.css')
   }
-  if(fs.existsSync(themeDir))
-  {
+  if (fs.existsSync(themeDir)) {
     themeFiles = fs.readdirSync(themeDir)
-    if(fs.existsSync(themeDir + '/Truly Dark.css')) {
-      const themeTemp = fs.readFileSync(themeDir + '/Truly Dark.css','utf8').trim()
-      if(themeTemp !== themeTrulyDark.trim()) {
+    if (fs.existsSync(themeDir + '/Truly Dark.css')) {
+      const themeTemp = fs.readFileSync(themeDir + '/Truly Dark.css', 'utf8').trim()
+      if (themeTemp !== themeTrulyDark.trim()) {
         fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark)
         Log('updated Truly Dark')
       }
     }
     Log(themeFiles)
-    Log("found " + themeFiles.length + " themes")
+    Log('found ' + themeFiles.length + ' themes')
   }
 })
 app.on('browser-window-created', function (event, win) {
   win.webContents.on('context-menu', function (e, params) {
     const cmenu = new Menu()
-    if(params.linkURL && params.mediaType === 'none')
-    {
+    if (params.linkURL && params.mediaType === 'none') {
       cmenu.append(new MenuItem({
         label: 'Copy URL',
         click () {
           clipboard.writeText(params.linkURL)//Note to self: Don't use linkText. Doesn't work. Whoops.
         }
       }))
-      if(params.linkText.charAt(0) === '#')
-      {
+      if (params.linkText.charAt(0) === '#') {
         cmenu.append(new MenuItem({
           label: 'Copy Hashtag',
           click () {
@@ -724,8 +696,7 @@ app.on('browser-window-created', function (event, win) {
           }
         }))
       }
-      if(params.linkText.charAt(0) === '@')
-      {
+      if (params.linkText.charAt(0) === '@') {
         cmenu.append(new MenuItem({
           label: 'Copy Username',
           click () {
@@ -734,12 +705,11 @@ app.on('browser-window-created', function (event, win) {
         }))
       }
     }
-    else if(params.mediaType === 'image')
-    {
+    else if (params.mediaType === 'image') {
       cmenu.append(new MenuItem({
         label: 'Copy Image',
         click () {
-          win.webContents.copyImageAt(params.x,params.y)
+          win.webContents.copyImageAt(params.x, params.y)
         }
       }))
       cmenu.append(new MenuItem({
@@ -749,8 +719,7 @@ app.on('browser-window-created', function (event, win) {
         }
       }))
     }
-    else if(params.mediaType === 'video')
-    {
+    else if (params.mediaType === 'video') {
       cmenu.append(new MenuItem({
         label: 'Save Video',
         click () {
@@ -758,33 +727,32 @@ app.on('browser-window-created', function (event, win) {
         }
       }))
     }
-    else if(params.mediaType === 'none'){
-      cmenu.append(new MenuItem({role: 'copy'}))
-      cmenu.append(new MenuItem({label:'Paste', role: 'pasteandmatchstyle'}))
-      cmenu.append(new MenuItem({role: 'cut'}))
-      cmenu.append(new MenuItem({role: 'selectall'}))
+    else if (params.mediaType === 'none') {
+      cmenu.append(new MenuItem({ role: 'copy' }))
+      cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
+      cmenu.append(new MenuItem({ role: 'cut' }))
+      cmenu.append(new MenuItem({ role: 'selectall' }))
     }
     else {
-      cmenu.append(new MenuItem({label:'...'}))
+      cmenu.append(new MenuItem({ label: '...' }))
     }
     cmenu.popup(win, params.x, params.y)
   })
 })
 
 app.on('window-all-closed', function () {
-    app.quit()
+  app.quit()
 })
 app.on('quit', function () {
   //terminate tor when app is closed
   //(Could probably just check if child is undefined)
-  if(child != undefined)
-  {
+  if (child !== undefined) {
     child.kill()
-    Log("stopped tor")
+    Log('stopped tor')
   }
-  else Log("tor wasn't running")
+  else Log('tor wasn\'t running')
 })
-function createMenu() {
+function createMenu () {
   /*
   //No need to check if menu already exists here
   if (Menu.getApplicationMenu())
@@ -803,12 +771,12 @@ function createMenu() {
         {
           label: 'Settings',
           click () {
-            if(settingsWin != undefined) settingsWin.focus()
+            if (settingsWin !== undefined) settingsWin.focus()
             else {
-              settingsWin = new BrowserWindow({width: 450,height: 310,parent: mainWindow, webPreferences:{nodeIntegration: true}})
+              settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
-              if(process.platform === 'linux') {
+              if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
               }
               //settingsWin.webContents.toggleDevTools()
@@ -830,7 +798,7 @@ function createMenu() {
           role: 'copy'
         },
         {
-          label:'Paste',
+          label: 'Paste',
           accelerator: 'CmdOrCtrl+V',
           role: 'pasteandmatchstyle'
         },
@@ -845,17 +813,19 @@ function createMenu() {
         {
           label: 'TweetDeck',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL("https://tweetdeck.twitter.com/")}
+            if (focusedWindow) focusedWindow.loadURL('https://tweetdeck.twitter.com/')
+          }
         },
         {
           label: 'Twitter',
           click (item, focusedWindow) {
-            if(focusedWindow) focusedWindow.loadURL("https://twitter.com/")}
+            if (focusedWindow) focusedWindow.loadURL('https://twitter.com/')
+          }
         },
         {
           label: 'Check Tor',
           click (item, focusedWindow) {
-            if(focusedWindow) focusedWindow.loadURL("https://check.torproject.org/")
+            if (focusedWindow) focusedWindow.loadURL('https://check.torproject.org/')
           }
         },
         {
@@ -868,8 +838,8 @@ function createMenu() {
         {
           label: 'DevTools',
           accelerator: 'F12',
-          click (item, focusedWindow){
-            if(focusedWindow) focusedWindow.webContents.toggleDevTools()
+          click (item, focusedWindow) {
+            if (focusedWindow) focusedWindow.webContents.toggleDevTools()
           }
         },
         {
@@ -879,20 +849,20 @@ function createMenu() {
     },
     {
       label: 'About',
-      click(){
-        if(aboutWin != undefined) aboutWin.focus()
+      click () {
+        if (aboutWin !== undefined) aboutWin.focus()
         else {
-          aboutWin = new BrowserWindow({width: 500,height: 300,parent: mainWindow, webPreferences:{nodeIntegration: true}})
+          aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
-          if(process.platform === 'linux') {
+          if (process.platform === 'linux') {
             aboutWin.setIcon(icon)
           }
         }
-        aboutWin.on('closed', ()=> {
+        aboutWin.on('closed', () => {
           aboutWin = undefined
         })
-        aboutWin.webContents.on('will-navigate', (event,url) => {
+        aboutWin.webContents.on('will-navigate', (event, url) => {
           event.preventDefault()
           shell.openExternal(url)
         })
