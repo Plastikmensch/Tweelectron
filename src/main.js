@@ -349,7 +349,8 @@ function createWindow (Settings) {
         //Settings[8][0] + url
         if(Settings[8][0]!== "null")
         {
-          const linkChild = require('child_process').spawn(Settings[8][0],[url])
+          //allow remote and new tab might break opening links with other browsers
+          const linkChild = require('child_process').spawn(Settings[8][0],['--allow-remote','--new-tab',url])
           linkChild.on('error', (err) => {
             console.log(err)
           })
