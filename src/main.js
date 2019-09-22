@@ -54,6 +54,7 @@
 */
 const { remote, BrowserWindow, app, electron, shell, Menu, MenuItem, clipboard, dialog, ipcMain, session, nativeImage } = require('electron')
 const fs = require('fs')
+const path = require('path')
 
 const Settings = [
   [undefined, '"use-tor" :'],
@@ -70,10 +71,10 @@ let child
 
 const settingsFile = SettingsFile()
 const tor = TorFile()
-const themeDir = app.getPath('userData') + '/themes'
+const themeDir = path.join(app.getPath('userData'), 'themes')
 const icon = nativeImage.createFromPath(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf('/')) + '/tweelectron.png')
-const logFile = app.getPath('userData') + '/tweelectron.log'
-let themeFiles, urlList
+const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
+let themeAll, urlList
 let mainWindow, settingsWin, twitterwin, aboutWin
 
 function TorFile () {
@@ -81,7 +82,7 @@ function TorFile () {
     return process.resourcesPath + '/tor-linux/tor'
   }
   else {
-    return process.resourcesPath + '/tor-win32/Tor/tor.exe'
+    return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
   }
 }
 function SettingsFile () {
@@ -90,7 +91,7 @@ function SettingsFile () {
   }
   else {
     //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf('/')) + '/settings.json'
+    return path.join(app.getPath('exe').slice(0, app.getPath('exe').search(path.basename(app.getPath('exe')))), 'settings.json') //app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf('/')) + '/settings.json'
   }
 }
 function createWindow (Settings) {
@@ -99,7 +100,7 @@ function createWindow (Settings) {
   createMenu()
   Log(Settings)
   Log(themeDir)
-  const url2 = 'file://' + app.getAppPath() + '/fail.html'
+  const url2 = path.join('file://', app.getAppPath(), 'fail.html')
   const home = 'https://tweetdeck.twitter.com/'
   var retries = 0
   var reloadTimer
@@ -306,9 +307,10 @@ function createWindow (Settings) {
     }
     */
     if (Settings[2][0] > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
-      if (fs.existsSync(themeDir + '/' + themeFiles[Settings[2][0] - 1])) {
-        const fileContent = fs.readFileSync(themeDir + '/' + themeFiles[Settings[2][0] - 1], 'utf8').trim()
-        Log(themeDir + '/' + themeFiles[Settings[2][0] - 1])
+      const themeFile = path.join(themeDir, themeAll[Settings[2][0] - 1])
+      if (fs.existsSync(themeFile)) {
+        const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
+        Log(themeFile)
         //Log(fileContent)
         mainWindow.webContents.insertCSS(fileContent)
         Log('inserted custom theme')
@@ -317,7 +319,7 @@ function createWindow (Settings) {
     }
   })
   mainWindow.webContents.on('update-target-url', (event, url) => {
-    mainWindow.webContents.executeJavaScript(`function getURL() {var x = document.querySelectorAll('.url-ext');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode('href').value,x[i].getAttributeNode('data-full-url').value])} return urls}; getURL()`).then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
+    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       //console.log("result: " + result)
       urlList = result
     })
@@ -353,7 +355,7 @@ function createWindow (Settings) {
           Log('opened link in torbrowser')
         }
         else {
-          dialog.showMessageBox({type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+          dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
           Log('failed to open in tor')
         }
       }
@@ -435,8 +437,7 @@ function startTor () {
   })
   Log('pid: ' + child.pid)
   child.on('exit', (code, signal) => {
-    Log('tor stopped:')
-    Log('code: ' + code + ' signal: ' + signal)
+    Log('Tor stopped:\n' + 'code: ' + code + ' signal: ' + signal)
     child = undefined
   })
 }
@@ -489,7 +490,7 @@ function CheckForUpdates () {
           slicedBody += '* ' + splitBody[i].slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
         }
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
-        const current = fs.readFileSync(__dirname + '/tweelectron-version', 'utf8').trim()
+        const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
         //console.log("current: " + current)
         //For testing. Might be useful for later for better comparison (Probably better to get index of . and compare numbers)
         /*
@@ -660,22 +661,23 @@ app.on('ready', () => {
   'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
   'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
   'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
+  const fileTrulyDark = path.join(themeDir, 'Truly Dark.css')
   if (!fs.existsSync(themeDir)) {
     fs.mkdirSync(themeDir)
-    fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark)
+    fs.writeFileSync(fileTrulyDark, themeTrulyDark)
     Log('created Truly Dark.css')
   }
   if (fs.existsSync(themeDir)) {
-    themeFiles = fs.readdirSync(themeDir)
-    if (fs.existsSync(themeDir + '/Truly Dark.css')) {
-      const themeTemp = fs.readFileSync(themeDir + '/Truly Dark.css', 'utf8').trim()
+    themeAll = fs.readdirSync(themeDir)
+    if (fs.existsSync(fileTrulyDark)) {
+      const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
       if (themeTemp !== themeTrulyDark.trim()) {
-        fs.writeFileSync(themeDir + '/Truly Dark.css', themeTrulyDark)
+        fs.writeFileSync(fileTrulyDark, themeTrulyDark)
         Log('updated Truly Dark')
       }
     }
-    Log(themeFiles)
-    Log('found ' + themeFiles.length + ' themes')
+    Log(themeAll)
+    Log('found ' + themeAll.length + ' themes')
   }
 })
 app.on('browser-window-created', function (event, win) {
