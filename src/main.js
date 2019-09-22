@@ -123,7 +123,7 @@ function createWindow (Settings) {
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     Log('failed to load. Retrying...' + '\nError: ' + errorCode + ' ' + errorDescription + ' ' + validatedURL)
     if (validatedURL === home) {
-      reloadTimer = setTimeout(function () {
+      reloadTimer = setTimeout(() => {
         mainWindow.loadURL(home)
         if (retries === 3) {
           mainWindow.loadURL(url2)
@@ -140,91 +140,6 @@ function createWindow (Settings) {
       Log('inserted code for angular profile pics')
     }
     /*
-    if(Settings[2][0]==1 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
-    {
-      mainWindow.webContents.insertCSS(
-      //Overall appearance (Tweets, sidebar etc.)
-      "html.dark .stream-item{background-color: #222426 !important}" +
-      "html.dark .column-nav-item{background-color: #292f33 !important}" +
-      "html.dark .app-header{background-color: #292f33 !important}" +
-      "html.dark .app-navigator{background-color: #292f33 !important}" +
-      "html.dark .app-title{background-color: #292f33 !important}" +
-      "html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}" +
-      "html.dark .column-message{background-color: #292f33 !important}" +
-      "html.dark .app-content{background-color: #222426 !important}" +
-      "html.dark .column{background-color: #222426 !important}" +
-      "html.dark .app-columns-container{background-color: #14171a !important}" +
-      "html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}" +
-      "html.dark .is-inverted-dark{color: #fff !important}" +
-      "html.dark .scroll-conversation{background: #222426 !important}" +
-      "html.dark .detail-view-inline{background-color: #222426 !important}" +
-      "html.dark .detail-view-inline-text{background-color: #292f33 !important}" +
-      "html.dark .app-search-input{background-color: #222426 !important}" +
-      "html.dark .column-scroller{background-color: #222426 !important}" +
-      "html.dark .compose{background-color: #495966 !important}" +
-      "html.dark .old-composer-footer{background-color: #495966 !important}" +
-      "html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}" +
-      "html.dark .column-panel{background-color: #495966 !important}" +
-      "html.dark .accounts-drawer{background-color: #495966 !important}" + //TweetDeck, please stop using !important in your stylesheet
-      "html.dark .popover{background-color: #222426 !important}" +
-      "html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}" +
-      "html.dark .account-settings-row{background-color: #292f33 !important}" +
-      "html.dark .join-team{background-color: #292f33 !important}" +
-      "html.dark .app-nav-tab.is-selected{background-color: #111 !important}" +
-      "html.dark input.light-on-dark{color: #fff !important}" +
-      "html.dark #caltoday{color: #444 !important}" +
-      //Column options
-      "html.dark .column-options{background-color: #2a2c2d !important}" +
-      "html.dark .column-options .button-tray{background-color: #2a2c2d !important}" +
-      "html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}" +
-      "html.dark .facet-type.is-active{background-color: #2a2c2d !important}" +
-      //Dropdown
-      ".caret-inner{border-bottom: 6px solid #222426 !important}" +
-      ".dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}" +
-      "html.dark .non-selectable-item{color: #fff !important}" +
-      //Search Tips
-      "html.dark .bg-color-twitter-white{background-color: #222426 !important}" +
-      "html.dark .color-twitter-dark-gray{color: #fff !important}" +
-      "html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}" +
-      "html.dark .Button{background-color: #111 !important}" +
-      "html.dark .Button:hover{background-color: #111 !important}" +
-      "html.dark .mdl-dismiss{color: #fff !important}" +
-      //Keyboard shortcuts
-      "html.dark .color-twitter-dark-black{color: #fff !important}" +
-      ".text-like-keyboard-key{color: #000 !important}" +
-      //Settings
-      ".list-link:hover{background-color: #0e0e0e !important}" +
-      "html.dark .mdl{background-color: #222426 !important}" +
-      "html.dark .mdl-col-settings{background-color: #222426 !important}" +
-      "html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}" +
-      "html.dark .frm{color: #fff !important}" +
-      "html.dark .is-inverted-dark .list-link{color: #fff !important}" +
-      "html.dark .list-link:hover:hover{color: #fff !important}" +
-      "html.dark .list-filter{color: #fff !important}" +
-      "html.dark .mdl-header{color: #fff !important}" +
-      "html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}" +
-      //Profile
-      "html.dark .social-proof-container{background-color: #292f33 !important}" +
-      ".prf-stats a strong{color: #8899a6 !important}" +
-      "html.dark .prf-meta{background-color: #222426 !important}" +
-      "html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}" +
-      "html.dark .mdl-column-med{background: #222426 !important}" +
-      "html.dark .list-account .fullname{color: #fff !important}" +
-      "html.dark .list-account:hover:hover{background: #111 !important}" +
-      "html.dark .is-inverted-dark .account-link{color: #fff !important}" +
-      "html.dark .column-header-temp{background-color: #222426 !important}" +
-      "html.dark .column-background-fill{background-color: #222426 !important}" +
-      "html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}" +
-      "html.dark .Button{background-color: #222426 !important}" +
-      "html.dark .btn-round{background-color: #222426 !important}" +
-      "html.dark .Button:hover{background-color: #292f33 !important}" +
-      "html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}" +
-      "html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}" +
-      "html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}" +
-      "html.dark .s-not-following .follow-text{background-color: #222426 !important}"
-      )
-      console.log("inserted code for dark theme")
-    }
     if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
     {
       //First: Dropdown menu (Settings, account actions)
@@ -323,10 +238,6 @@ function createWindow (Settings) {
       //console.log("result: " + result)
       urlList = result
     })
-    /*
-    mainWindow.webContents.executeJavaScript(`document.querySelectorAll('.url-ext').length`, (result) => {
-      console.log("length: " + result)
-    })*/
   })
   /*Not needed anymore since what I wanted to do doesn't work.
   //Display all changes of cookies in console
@@ -396,7 +307,7 @@ function createWindow (Settings) {
   mainWindow.on('close', (event) => {
     SaveSettings(Settings)
   })
-  mainWindow.on('closed', function () {
+  mainWindow.on('closed', () => {
     app.quit()
   })
   ipcMain.on('Settings', (event, newSettings) => {
@@ -427,7 +338,7 @@ function createWindow (Settings) {
   }
 }
 function startTor () {
-  Log('Directory: ' + __dirname + '\nPath: ' + app.getPath('exe'))
+  Log(`Directory: ${__dirname}` + '\nPath: ' + app.getPath('exe'))
   child = require('child_process').execFile(tor, (err) => {
     if (err) {
       Log('couldn\'t start tor. (already running?)')
@@ -492,17 +403,6 @@ function CheckForUpdates () {
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
         const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
         //console.log("current: " + current)
-        //For testing. Might be useful for later for better comparison (Probably better to get index of . and compare numbers)
-        /*
-        for(var i= 0;i<current.length;i++)
-        {
-          if(current[i] != latest[i])
-          {
-            console.log("current " + current[i] + " doesn't match latest " + latest[i])
-          }
-          else console.log("current " + current[i] + " does match latest " + latest[i])
-        }
-        */
         if (current !== latest) {
           dialog.showMessageBox({ type: 'info', buttons: ['OK'], title: 'Update available', message: 'There is an Update available!\n\nCurrent version: v' + current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody })
           Log('Update available')
@@ -521,7 +421,6 @@ function Log (message) {
 app.on('ready', () => {
   app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
   Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
-  //app.setAppLogsPath()//Sets logpath to userData (appData in Windows and .config in linux). No logs created though.
   if (fs.existsSync(logFile)) {
     fs.renameSync(logFile, logFile + '.backup')
   }
@@ -742,12 +641,11 @@ app.on('browser-window-created', function (event, win) {
   })
 })
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
   app.quit()
 })
-app.on('quit', function () {
+app.on('quit', () => {
   //terminate tor when app is closed
-  //(Could probably just check if child is undefined)
   if (child !== undefined) {
     child.kill()
     Log('stopped tor')
@@ -755,14 +653,6 @@ app.on('quit', function () {
   else Log('tor wasn\'t running')
 })
 function createMenu () {
-  /*
-  //No need to check if menu already exists here
-  if (Menu.getApplicationMenu())
-  {
-    console.log("Menu exists already")
-    return
-  }*/
-
   const template = [
     {
       label: 'App',
