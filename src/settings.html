@@ -21,9 +21,10 @@
 
 <script type="text/javascript">
 const fs = require('fs')
+const path = require('path')
 const {ipcRenderer} = require('electron')
 const {app} = require('electron').remote
-const themeDir = app.getPath('userData') + '/themes'
+const themeDir = path.join(app.getPath('userData'), 'themes')
 var settingsData = fs.readFileSync(SettingsFile(),'utf8')
 var changed=false;
 let Settings = [
@@ -135,7 +136,7 @@ function SettingsFile(){
     return process.env.HOME + "/.config/Tweelectron/settings.json"
   }
   else {
-    return app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf("/")) + "/settings.json"
+    return path.join(app.getPath('exe').slice(0, app.getPath('exe').search(path.basename(app.getPath('exe')))), 'settings.json')
   }
 }
 </script>

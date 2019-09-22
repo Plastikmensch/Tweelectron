@@ -9,16 +9,17 @@
     Tweelectron version:
     <script>
       const fs = require('fs')
-      document.write(fs.readFileSync(__dirname +'/tweelectron-version','utf8'))
+      const path = require('path')
+      document.write(fs.readFileSync(path.join(__dirname, 'tweelectron-version'),'utf8'))
     </script><br>
     Electron version: <script>document.write(process.versions.electron)</script><br>
     Tor version:
     <script>
     if(process.platform == "linux"){
-      document.write(fs.readFileSync(__dirname + '/tor-version-linux','utf8'))
+      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-linux'),'utf8'))
     }
     else if(process.platform=="win32"){
-      document.write(fs.readFileSync(__dirname + '/tor-version-win', 'utf8'))
+      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-win'), 'utf8'))
     }
     </script><br>
     GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a>
