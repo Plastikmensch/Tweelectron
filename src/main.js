@@ -100,7 +100,8 @@ function createWindow (Settings) {
   createMenu()
   Log(Settings)
   Log(themeDir)
-  const url2 = path.join('file://', app.getAppPath(), 'fail.html')
+  const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
+  Log(url2)
   const home = 'https://tweetdeck.twitter.com/'
   var retries = 0
   var reloadTimer
@@ -135,6 +136,7 @@ function createWindow (Settings) {
   })
   mainWindow.webContents.on('did-finish-load', () => {
     clearTimeout(reloadTimer)
+    retries = 0
     if (!Settings[1][0]) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       Log('inserted code for angular profile pics')
@@ -667,7 +669,7 @@ function createMenu () {
             else {
               settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
               settingsWin.removeMenu()
-              settingsWin.loadURL('file://' + app.getAppPath() + '/settings.html')
+              settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
               if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
               }
@@ -746,7 +748,7 @@ function createMenu () {
         else {
           aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
           aboutWin.removeMenu()
-          aboutWin.loadURL('file://' + app.getAppPath() + '/about.html')
+          aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
           if (process.platform === 'linux') {
             aboutWin.setIcon(icon)
           }
