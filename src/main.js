@@ -130,7 +130,7 @@ function createWindow (Settings) {
   //Gets called after did-fail-load, preventing the timer from running
   mainWindow.webContents.on('did-finish-load', () => {
     //clearInterval(reloadTimer)
-    if (!Settings[1][0]) {
+    if (!Settings[1][0] && mainWindow.webContents.getURL().search(home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics')
     }
