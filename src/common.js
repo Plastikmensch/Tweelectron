@@ -22,24 +22,27 @@ const Settings = [
   ['null', '"tor-browser-exe" :'] //torExe
 ]
 
+const settingsFile = SettingsFile()
+function SettingsFile () {
+  if (process.platform === 'linux') {
+    return process.env.HOME + '/.config/Tweelectron/settings.json'
+  }
+  else {
+    //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
+    return path.join(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)), 'settings.json')
+  }
+}
+
 app.on('ready', () => {
   if (fs.existsSync(logFile)) {
     fs.renameSync(logFile, logFile + '.backup')
   }
 })
 var methods = {
-  settingsFile: function () {
-    if (process.platform === 'linux') {
-      return process.env.HOME + '/.config/Tweelectron/settings.json'
-    }
-    else {
-      //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-      return path.join(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)), 'settings.json')
-    }
-  },
   readSettings: function () {
-    if (fs.existsSync(methods.settingsFile())) {
-      const settingsData = fs.readFileSync(methods.settingsFile(), 'utf8')
+    if (fs.existsSync(settingsFile)) {
+      const settingsData = fs.readFileSync(settingsFile, 'utf8')
+      //Redo this mess
       for (let i = 0; i < Settings.length; i++) {
         if (settingsData.search('=') === -1) {
           Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
@@ -70,6 +73,24 @@ var methods = {
       }
     }
     return Settings
+  },
+  saveSettings: function (Settings) {
+    let saveSettings = '{\n'
+    for (let i = 0; i < Settings.length; i++) {
+      if (isNaN(Settings[i][0]) || Settings[i][0] === null) {
+        //console.log(Settings[i][0] + " is not a number or boolean")
+        saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
+      }
+      else {
+        //console.log(Settings[i][0] + " is a number or boolean")
+        saveSettings += (Settings[i][1] + Settings[i][0])
+      }
+      if (i === Settings.length - 1) saveSettings += '\n'
+      else saveSettings += ',\n'
+    }
+    saveSettings += '}'
+    fs.writeFileSync(settingsFile, saveSettings)
+    methods.log('Settings saved')
   },
   log: function (message) {
     fs.appendFileSync(logFile, message + '\n')
