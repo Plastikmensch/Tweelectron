@@ -42,6 +42,8 @@
      [x] create logfile
         - backup last logfile
      [] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
+     [x] move all settingsFile related stuff to common.js
+     [x] show titles in changelog
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -52,15 +54,16 @@
      [x] add support for custom themes
 
 */
-const { remote, BrowserWindow, app, electron, shell, Menu, MenuItem, clipboard, dialog, ipcMain, session, nativeImage } = require('electron')
+const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, session, nativeImage } = require('electron')
 const fs = require('fs')
 const path = require('path')
+const childProcess = require('child_process')
 const common = require('./common.js')
 
-const Settings = common.readSettings()
+let Settings = common.readSettings()
 let child
 
-const settingsFile = common.settingsFile()
+//const settingsFile = common.settingsFile()
 const tor = TorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
 
@@ -76,7 +79,7 @@ function TorFile () {
   }
 }
 
-function createWindow (Settings) {
+function createWindow () {
   //Disable nodeIntegration before release!
   mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
@@ -254,7 +257,7 @@ function createWindow (Settings) {
         //Settings[8][0] + url
         if (Settings[8][0] !== 'null') {
           //allow remote and new tab might break opening links with other browsers
-          const linkChild = require('child_process').spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
+          const linkChild = childProcess.spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
           linkChild.on('error', (err) => {
             common.log(err)
           })
@@ -301,7 +304,10 @@ function createWindow (Settings) {
     }
   })
   mainWindow.on('close', (event) => {
-    SaveSettings(Settings)
+    const size = mainWindow.getSize()
+    Settings[3][0] = size[0]//width
+    Settings[4][0] = size[1]//height
+    common.saveSettings(Settings)
   })
   mainWindow.on('closed', () => {
     app.quit()
@@ -322,7 +328,7 @@ function createWindow (Settings) {
       if (reload) {
         mainWindow.reload()
       }
-      SaveSettings(Settings)
+      common.saveSettings(Settings)
       event.returnValue = true
     }
     common.log(Settings)
@@ -335,7 +341,7 @@ function createWindow (Settings) {
 }
 function startTor () {
   common.log(`Directory: ${__dirname}` + '\nPath: ' + app.getPath('exe'))
-  child = require('child_process').execFile(tor, (err) => {
+  child = childProcess.execFile(tor, (err) => {
     if (err) {
       common.log('couldn\'t start tor. (already running?)')
       common.log(err)
@@ -348,30 +354,7 @@ function startTor () {
     child = undefined
   })
 }
-function SaveSettings (Settings) {
-  if (mainWindow !== undefined) {
-    const size = mainWindow.getSize()
-    Settings[3][0] = size[0]//width
-    Settings[4][0] = size[1]//height
-  }
-  else common.log('mainWindow undefined')
-  let saveSettings = '{' + '\n'
-  for (let i = 0; i < Settings.length; i++) {
-    if (isNaN(Settings[i][0]) || Settings[i][0] === null) {
-      //console.log(Settings[i][0] + " is not a number or boolean")
-      saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
-    }
-    else {
-      //console.log(Settings[i][0] + " is a number or boolean")
-      saveSettings += (Settings[i][1] + Settings[i][0])
-    }
-    if (i === Settings.length - 1) saveSettings += '\n'
-    else saveSettings += ',' + '\n'
-  }
-  saveSettings += '}'
-  fs.writeFileSync(settingsFile, saveSettings)
-  common.log('Settings saved')
-}
+
 function CheckForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
     if (response.statusCode !== 200) common.log('Request failed. Response code: ' + response.statusCode)
@@ -390,17 +373,20 @@ function CheckForUpdates () {
         //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
         const latest = data.slice(data.indexOf(':', data.search('tag_name')) + 3, data.indexOf(',', data.search('tag_name')) - 1)
         //console.log("latest: " + latest)
-        const body = data.slice(data.indexOf(':', data.search('body')) + 2, -1)
-        const splitBody = body.split('*')
+        const body = data.slice(data.indexOf(':', data.search('body')) + 2, -2)
+        const splitBody = body.split('\\r\\n')
         let slicedBody = ''
         for (let i = 1; i < splitBody.length; i++) {
-          slicedBody += '* ' + splitBody[i].slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
+          if (splitBody[i].search('_') !== -1) {
+            splitBody[i] = splitBody[i].slice(splitBody[i].indexOf('_') + 2, splitBody[i].lastIndexOf('_') - 1) + ':'
+          }
+          slicedBody += splitBody[i] + '\n'//.slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
         }
         //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
         const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
         //console.log("current: " + current)
         if (current !== latest) {
-          dialog.showMessageBox({ type: 'info', buttons: ['OK'], title: 'Update available', message: 'There is an Update available!\n\nCurrent version: v' + current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody })
+          dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: 'There is an Update available!\n\nCurrent version: v' + current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody })
           common.log('Update available')
         }
         else common.log('No update available')
@@ -410,35 +396,61 @@ function CheckForUpdates () {
     common.log('Error:' + '\n' + err.message)
   })
 }
+app.on('remote-require', (event, webContents, moduleName) => {
+  common.log(`${moduleName} required`)
+  event.preventDefault()
+})
+
+app.on('remote-get-builtin', (event, webContents, moduleName) => {
+  common.log(`get builtin ${moduleName}`)
+  if (moduleName !== 'app') {
+    event.preventDefault()
+    common.log(`preventing ${moduleName} from loading`)
+  }
+})
+
+app.on('remote-get-global', (event, webContents, globalName) => {
+  common.log(`get global ${globalName}`)
+  event.preventDefault()
+})
+
+app.on('remote-get-current-window', (event, webContents) => {
+  common.log('get current window')
+  event.preventDefault()
+})
+
+app.on('remote-get-current-web-contents', (event, webContents) => {
+  common.log('get current webcontents')
+  event.preventDefault()
+})
+
+app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) => {
+  common.log('get guest web contents')
+  event.preventDefault()
+})
 app.on('ready', () => {
   app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
   Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
 
-  if (!fs.existsSync(settingsFile)) {
-    dialog.showMessageBox({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' }, (response) => {
-      if (response) {
-        Settings[0][0] = true
-        common.log('clicked YES')
-        startTor()
-      }
-      else {
-        Settings[0][0] = false
-        common.log('clicked NO')
-      }
-      SaveSettings(Settings)//Could move to mainWindow creation, but unnecessary file operations
-      createWindow(Settings)
-    })
-  }
-  else if (fs.existsSync(settingsFile)) {
-    common.log(Settings)
-    if (Settings[0][0] && !Settings[1][0]) {
-      startTor()
+  if (Settings[0][0] === undefined) {
+    common.log('tor variable unset')
+    const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
+
+    if (dialogTor) {
+      Settings[0][0] = true
+      common.log('clicked YES')
     }
-    createWindow(Settings)
+    else {
+      Settings[0][0] = false
+      common.log('clicked NO')
+    }
+    common.saveSettings(Settings)
   }
-  else { //unreachable code, but... you know
-    common.log('Something went terribly wrong\nThe universe collapsed')
+  if (Settings[0][0] && !Settings[1][0]) {
+    startTor()
   }
+  createWindow()
+
   const themeTrulyDark =
   //Overall appearance (Tweets, sidebar etc.)
   'html.dark .stream-item{background-color: #222426 !important}\n' +
@@ -626,9 +638,13 @@ function createMenu () {
         {
           label: 'Settings',
           click () {
-            if (settingsWin !== undefined) settingsWin.focus()
+            if (settingsWin !== undefined) {
+              settingsWin.focus()
+              common.log('focusing settings window')
+            }
             else {
               settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+              common.log('created settings window')
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
               if (process.platform === 'linux') {
@@ -638,6 +654,7 @@ function createMenu () {
             }
             settingsWin.on('closed', () => {
               settingsWin = undefined
+              common.log('closed settings window')
             })
           }
         }
@@ -705,9 +722,13 @@ function createMenu () {
     {
       label: 'About',
       click () {
-        if (aboutWin !== undefined) aboutWin.focus()
+        if (aboutWin !== undefined) {
+          aboutWin.focus()
+          common.log('focusing about window')
+        }
         else {
           aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+          common.log('created about window')
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
           if (process.platform === 'linux') {
@@ -716,6 +737,7 @@ function createMenu () {
         }
         aboutWin.on('closed', () => {
           aboutWin = undefined
+          common.log('closed about window')
         })
         aboutWin.webContents.on('will-navigate', (event, url) => {
           event.preventDefault()
