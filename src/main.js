@@ -54,16 +54,15 @@
      [x] add support for custom themes
 
 */
-const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, session, nativeImage } = require('electron')
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
+const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
 
 let Settings = common.readSettings()
 let child
 
-//const settingsFile = common.settingsFile()
 const tor = TorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
 
@@ -89,7 +88,6 @@ function createWindow () {
   const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
-  //let reloadTimer
   if (Settings[0][0] && !Settings[5][0]) {
     mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' }, () => {
       mainWindow.loadURL(home)
@@ -107,7 +105,7 @@ function createWindow () {
     common.log('Not using Tor or custom Proxy')
   }
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    common.log('failed to load. Retrying...' + `\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`)
+    common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`)
     if (validatedURL === home) {
       if (retries === 3) {
         mainWindow.loadURL(url2)
@@ -118,21 +116,10 @@ function createWindow () {
         retries++
         common.log('Retrying...')
       }
-      /* //Forgot this doesn't work
-      reloadTimer = setInterval(() => {
-        mainWindow.loadURL(home)
-        if (retries === 3) {
-          mainWindow.loadURL(url2)
-          common.log('failed to load')
-        }
-      }, 5000)
-      retries++
-      */
     }
   })
-  //Gets called after did-fail-load, preventing the timer from running
+  //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    //clearInterval(reloadTimer)
     if (!Settings[1][0] && mainWindow.webContents.getURL().search(home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics')
@@ -340,24 +327,25 @@ function createWindow () {
   }
 }
 function startTor () {
-  common.log(`Directory: ${__dirname}` + '\nPath: ' + app.getPath('exe'))
+  common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`)
+  common.log('starting Tor')
   child = childProcess.execFile(tor, (err) => {
     if (err) {
       common.log('couldn\'t start tor. (already running?)')
       common.log(err)
     }
-    else common.log('started tor')
   })
-  common.log('pid: ' + child.pid)
+  common.log(`pid: ${child.pid}`)
+
   child.on('exit', (code, signal) => {
-    common.log('Tor stopped:\n' + 'code: ' + code + ' signal: ' + signal)
+    common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`)
     child = undefined
   })
 }
 
 function CheckForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
-    if (response.statusCode !== 200) common.log('Request failed. Response code: ' + response.statusCode)
+    if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`)
     //console.log(JSON.stringify(response.headers))
     response.setEncoding('utf8')//makes d readable
     let data = ''
@@ -386,14 +374,14 @@ function CheckForUpdates () {
         const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
         //console.log("current: " + current)
         if (current !== latest) {
-          dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: 'There is an Update available!\n\nCurrent version: v' + current + '\nlatest version: v' + latest + '\n\nChanges:\n' + slicedBody })
+          dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: v${current}\nlatest version: v${latest}\n\nChanges:\n${slicedBody}` })
           common.log('Update available')
         }
         else common.log('No update available')
       }
     })
   }).on('error', (err) => {
-    common.log('Error:' + '\n' + err.message)
+    common.log(`Error:\n${err.message}`)
   })
 }
 app.on('remote-require', (event, webContents, moduleName) => {
@@ -547,7 +535,7 @@ app.on('ready', () => {
       }
     }
     common.log(themeAll)
-    common.log('found ' + themeAll.length + ' themes')
+    common.log(`found ${themeAll.length} themes`)
   }
 })
 app.on('browser-window-created', (event, win) => {
