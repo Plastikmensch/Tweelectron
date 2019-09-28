@@ -34,7 +34,7 @@ function SettingsFile () {
 }
 
 app.on('ready', () => {
-  if (fs.existsSync(logFile)) {
+  if (app.hasSingleInstanceLock() && fs.existsSync(logFile)) {
     fs.renameSync(logFile, logFile + '.backup')
   }
 })

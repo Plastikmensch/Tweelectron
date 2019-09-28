@@ -65,6 +65,7 @@ let child
 
 const tor = TorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
+const singleInstance = app.requestSingleInstanceLock()
 
 let themeAll, urlList
 let mainWindow, settingsWin, twitterwin, aboutWin
@@ -416,205 +417,221 @@ app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) =
   common.log('get guest web contents')
   event.preventDefault()
 })
-app.on('ready', () => {
-  app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
-  Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
 
-  if (Settings[0][0] === undefined) {
-    common.log('tor variable unset')
-    const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
-
-    if (dialogTor) {
-      Settings[0][0] = true
-      common.log('clicked YES')
-    }
-    else {
-      Settings[0][0] = false
-      common.log('clicked NO')
-    }
-    common.saveSettings(Settings)
-  }
-  if (Settings[0][0] && !Settings[1][0]) {
-    startTor()
-  }
-  createWindow()
-
-  const themeTrulyDark =
-  //Overall appearance (Tweets, sidebar etc.)
-  'html.dark .stream-item{background-color: #222426 !important}\n' +
-  'html.dark .column-nav-item{background-color: #292f33 !important}\n' +
-  'html.dark .app-header{background-color: #292f33 !important}\n' +
-  'html.dark .app-navigator{background-color: #292f33 !important}\n' +
-  'html.dark .app-title{background-color: #292f33 !important}\n' +
-  'html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\n' +
-  'html.dark .column-message{background-color: #292f33 !important}\n' +
-  'html.dark .app-content{background-color: #222426 !important}\n' +
-  'html.dark .column{background-color: #222426 !important}\n' +
-  'html.dark .app-columns-container{background-color: #14171a !important}\n' +
-  'html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\n' +
-  'html.dark .is-inverted-dark{color: #fff !important}\n' +
-  'html.dark .scroll-conversation{background: #222426 !important}\n' +
-  'html.dark .detail-view-inline{background-color: #222426 !important}\n' +
-  'html.dark .detail-view-inline-text{background-color: #292f33 !important}\n' +
-  'html.dark .app-search-input{background-color: #222426 !important}\n' +
-  'html.dark .column-scroller{background-color: #222426 !important}\n' +
-  'html.dark .compose{background-color: #495966 !important}\n' +
-  'html.dark .old-composer-footer{background-color: #495966 !important}\n' +
-  'html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}\n' +
-  'html.dark .column-panel{background-color: #495966 !important}\n' +
-  'html.dark .accounts-drawer{background-color: #495966 !important}\n' + //TweetDeck, please stop using !important in your stylesheet
-  'html.dark .popover{background-color: #222426 !important}\n' +
-  'html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}\n' +
-  'html.dark .account-settings-row{background-color: #292f33 !important}\n' +
-  'html.dark .join-team{background-color: #292f33 !important}\n' +
-  'html.dark .app-nav-tab.is-selected{background-color: #111 !important}\n' +
-  'html.dark input.light-on-dark{color: #fff !important}\n' +
-  'html.dark #caltoday{color: #444 !important}\n' +
-  //Column options
-  'html.dark .column-options{background-color: #2a2c2d !important}\n' +
-  'html.dark .column-options .button-tray{background-color: #2a2c2d !important}\n' +
-  'html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\n' +
-  'html.dark .facet-type.is-active{background-color: #2a2c2d !important}\n' +
-  //Dropdown
-  '.caret-inner{border-bottom: 6px solid #222426 !important}\n' +
-  '.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\n' +
-  'html.dark .non-selectable-item{color: #fff !important}\n' +
-  //Search Tips
-  'html.dark .bg-color-twitter-white{background-color: #222426 !important}\n' +
-  'html.dark .color-twitter-dark-gray{color: #fff !important}\n' +
-  'html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\n' +
-  'html.dark .Button{background-color: #111 !important}\n' +
-  'html.dark .Button:hover{background-color: #111 !important}\n' +
-  'html.dark .mdl-dismiss{color: #fff !important}\n' +
-  //Keyboard shortcuts
-  'html.dark .color-twitter-dark-black{color: #fff !important}\n' +
-  '.text-like-keyboard-key{color: #000 !important}\n' +
-  //Settings
-  '.list-link:hover{background-color: #0e0e0e !important}\n' +
-  'html.dark .mdl{background-color: #222426 !important}\n' +
-  'html.dark .mdl-col-settings{background-color: #222426 !important}\n' +
-  'html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\n' +
-  'html.dark .frm{color: #fff !important}\n' +
-  'html.dark .is-inverted-dark .list-link{color: #fff !important}\n' +
-  'html.dark .list-link:hover:hover{color: #fff !important}\n' +
-  'html.dark .list-filter{color: #fff !important}\n' +
-  'html.dark .mdl-header{color: #fff !important}\n' +
-  'html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\n' +
-  //Profile
-  'html.dark .social-proof-container{background-color: #292f33 !important}\n' +
-  '.prf-stats a strong{color: #8899a6 !important}\n' +
-  'html.dark .prf-meta{background-color: #222426 !important}\n' +
-  'html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\n' +
-  'html.dark .mdl-column-med{background: #222426 !important}\n' +
-  'html.dark .list-account .fullname{color: #fff !important}\n' +
-  'html.dark .list-account:hover:hover{background: #111 !important}\n' +
-  'html.dark .is-inverted-dark .account-link{color: #fff !important}\n' +
-  'html.dark .column-header-temp{background-color: #222426 !important}\n' +
-  'html.dark .column-background-fill{background-color: #222426 !important}\n' +
-  'html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\n' +
-  'html.dark .Button{background-color: #222426 !important}\n' +
-  'html.dark .btn-round{background-color: #222426 !important}\n' +
-  'html.dark .Button:hover{background-color: #292f33 !important}\n' +
-  'html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\n' +
-  'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
-  'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
-  'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
-  const fileTrulyDark = path.join(common.themeDir, 'Truly Dark.css')
-  if (!fs.existsSync(common.themeDir)) {
-    fs.mkdirSync(common.themeDir)
-    fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-    common.log('created Truly Dark.css')
-  }
-  if (fs.existsSync(common.themeDir)) {
-    themeAll = fs.readdirSync(common.themeDir)
-    if (fs.existsSync(fileTrulyDark)) {
-      const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
-      if (themeTemp !== themeTrulyDark.trim()) {
-        fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-        common.log('updated Truly Dark')
-      }
-    }
-    common.log(themeAll)
-    common.log(`found ${themeAll.length} themes`)
-  }
-})
-app.on('browser-window-created', (event, win) => {
-  win.webContents.on('context-menu', (e, params) => {
-    const cmenu = new Menu()
-    if (params.linkURL && params.mediaType === 'none') {
-      cmenu.append(new MenuItem({
-        label: 'Copy URL',
-        click () {
-          let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
-          for (let i = 0; i < urlList.length; i++) {
-            if (url === urlList[i][0]) url = urlList[i][1]
-          }
-          clipboard.writeText(url)
-        }
-      }))
-      if (params.linkText.charAt(0) === '#') {
-        cmenu.append(new MenuItem({
-          label: 'Copy Hashtag',
-          click () {
-            clipboard.writeText(params.linkText)
-          }
-        }))
-      }
-      if (params.linkText.charAt(0) === '@') {
-        cmenu.append(new MenuItem({
-          label: 'Copy Username',
-          click () {
-            clipboard.writeText(params.linkText)
-          }
-        }))
-      }
-    }
-    else if (params.mediaType === 'image') {
-      cmenu.append(new MenuItem({
-        label: 'Copy Image',
-        click () {
-          win.webContents.copyImageAt(params.x, params.y)
-        }
-      }))
-      cmenu.append(new MenuItem({
-        label: 'Save Image',
-        click () {
-          win.webContents.downloadURL(params.srcURL)
-        }
-      }))
-    }
-    else if (params.mediaType === 'video') {
-      cmenu.append(new MenuItem({
-        label: 'Save Video',
-        click () {
-          win.webContents.downloadURL(params.srcURL)
-        }
-      }))
-    }
-    else if (params.mediaType === 'none') {
-      cmenu.append(new MenuItem({ role: 'copy' }))
-      cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
-      cmenu.append(new MenuItem({ role: 'cut' }))
-      cmenu.append(new MenuItem({ role: 'selectall' }))
-    }
-    else {
-      cmenu.append(new MenuItem({ label: '...' }))
-    }
-    cmenu.popup(win, params.x, params.y)
-  })
-})
-
-app.on('window-all-closed', () => {
+if (!singleInstance) {
+  //Close second instance
   app.quit()
-})
-app.on('quit', () => {
-  //terminate tor when app is closed
-  if (child !== undefined) {
-    child.kill()
-    common.log('stopped tor')
-  }
-  else common.log('tor wasn\'t running')
-})
+  common.log('quitting second instance')
+}
+else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    //Focus mainWindow when started a second time
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+      common.log('tried to start second instance, focusing main window')
+    }
+  })
+  app.on('ready', () => {
+    app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
+    Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
+
+    if (Settings[0][0] === undefined) {
+      common.log('tor variable unset')
+      const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
+
+      if (dialogTor) {
+        Settings[0][0] = true
+        common.log('clicked YES')
+      }
+      else {
+        Settings[0][0] = false
+        common.log('clicked NO')
+      }
+      common.saveSettings(Settings)
+    }
+    if (Settings[0][0] && !Settings[1][0]) {
+      startTor()
+    }
+    createWindow()
+
+    const themeTrulyDark =
+    //Overall appearance (Tweets, sidebar etc.)
+    'html.dark .stream-item{background-color: #222426 !important}\n' +
+    'html.dark .column-nav-item{background-color: #292f33 !important}\n' +
+    'html.dark .app-header{background-color: #292f33 !important}\n' +
+    'html.dark .app-navigator{background-color: #292f33 !important}\n' +
+    'html.dark .app-title{background-color: #292f33 !important}\n' +
+    'html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\n' +
+    'html.dark .column-message{background-color: #292f33 !important}\n' +
+    'html.dark .app-content{background-color: #222426 !important}\n' +
+    'html.dark .column{background-color: #222426 !important}\n' +
+    'html.dark .app-columns-container{background-color: #14171a !important}\n' +
+    'html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\n' +
+    'html.dark .is-inverted-dark{color: #fff !important}\n' +
+    'html.dark .scroll-conversation{background: #222426 !important}\n' +
+    'html.dark .detail-view-inline{background-color: #222426 !important}\n' +
+    'html.dark .detail-view-inline-text{background-color: #292f33 !important}\n' +
+    'html.dark .app-search-input{background-color: #222426 !important}\n' +
+    'html.dark .column-scroller{background-color: #222426 !important}\n' +
+    'html.dark .compose{background-color: #495966 !important}\n' +
+    'html.dark .old-composer-footer{background-color: #495966 !important}\n' +
+    'html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}\n' +
+    'html.dark .column-panel{background-color: #495966 !important}\n' +
+    'html.dark .accounts-drawer{background-color: #495966 !important}\n' + //TweetDeck, please stop using !important in your stylesheet
+    'html.dark .popover{background-color: #222426 !important}\n' +
+    'html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}\n' +
+    'html.dark .account-settings-row{background-color: #292f33 !important}\n' +
+    'html.dark .join-team{background-color: #292f33 !important}\n' +
+    'html.dark .app-nav-tab.is-selected{background-color: #111 !important}\n' +
+    'html.dark input.light-on-dark{color: #fff !important}\n' +
+    'html.dark #caltoday{color: #444 !important}\n' +
+    //Column options
+    'html.dark .column-options{background-color: #2a2c2d !important}\n' +
+    'html.dark .column-options .button-tray{background-color: #2a2c2d !important}\n' +
+    'html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\n' +
+    'html.dark .facet-type.is-active{background-color: #2a2c2d !important}\n' +
+    //Dropdown
+    '.caret-inner{border-bottom: 6px solid #222426 !important}\n' +
+    '.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\n' +
+    'html.dark .non-selectable-item{color: #fff !important}\n' +
+    //Search Tips
+    'html.dark .bg-color-twitter-white{background-color: #222426 !important}\n' +
+    'html.dark .color-twitter-dark-gray{color: #fff !important}\n' +
+    'html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\n' +
+    'html.dark .Button{background-color: #111 !important}\n' +
+    'html.dark .Button:hover{background-color: #111 !important}\n' +
+    'html.dark .mdl-dismiss{color: #fff !important}\n' +
+    //Keyboard shortcuts
+    'html.dark .color-twitter-dark-black{color: #fff !important}\n' +
+    '.text-like-keyboard-key{color: #000 !important}\n' +
+    //Settings
+    '.list-link:hover{background-color: #0e0e0e !important}\n' +
+    'html.dark .mdl{background-color: #222426 !important}\n' +
+    'html.dark .mdl-col-settings{background-color: #222426 !important}\n' +
+    'html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\n' +
+    'html.dark .frm{color: #fff !important}\n' +
+    'html.dark .is-inverted-dark .list-link{color: #fff !important}\n' +
+    'html.dark .list-link:hover:hover{color: #fff !important}\n' +
+    'html.dark .list-filter{color: #fff !important}\n' +
+    'html.dark .mdl-header{color: #fff !important}\n' +
+    'html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\n' +
+    //Profile
+    'html.dark .social-proof-container{background-color: #292f33 !important}\n' +
+    '.prf-stats a strong{color: #8899a6 !important}\n' +
+    'html.dark .prf-meta{background-color: #222426 !important}\n' +
+    'html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\n' +
+    'html.dark .mdl-column-med{background: #222426 !important}\n' +
+    'html.dark .list-account .fullname{color: #fff !important}\n' +
+    'html.dark .list-account:hover:hover{background: #111 !important}\n' +
+    'html.dark .is-inverted-dark .account-link{color: #fff !important}\n' +
+    'html.dark .column-header-temp{background-color: #222426 !important}\n' +
+    'html.dark .column-background-fill{background-color: #222426 !important}\n' +
+    'html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\n' +
+    'html.dark .Button{background-color: #222426 !important}\n' +
+    'html.dark .btn-round{background-color: #222426 !important}\n' +
+    'html.dark .Button:hover{background-color: #292f33 !important}\n' +
+    'html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\n' +
+    'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
+    'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
+    'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
+    const fileTrulyDark = path.join(common.themeDir, 'Truly Dark.css')
+    if (!fs.existsSync(common.themeDir)) {
+      fs.mkdirSync(common.themeDir)
+      fs.writeFileSync(fileTrulyDark, themeTrulyDark)
+      common.log('created Truly Dark.css')
+    }
+    if (fs.existsSync(common.themeDir)) {
+      themeAll = fs.readdirSync(common.themeDir)
+      if (fs.existsSync(fileTrulyDark)) {
+        const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
+        if (themeTemp !== themeTrulyDark.trim()) {
+          fs.writeFileSync(fileTrulyDark, themeTrulyDark)
+          common.log('updated Truly Dark')
+        }
+      }
+      common.log(themeAll)
+      common.log(`found ${themeAll.length} themes`)
+    }
+  })
+  app.on('browser-window-created', (event, win) => {
+    win.webContents.on('context-menu', (e, params) => {
+      const cmenu = new Menu()
+      if (params.linkURL && params.mediaType === 'none') {
+        cmenu.append(new MenuItem({
+          label: 'Copy URL',
+          click () {
+            let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
+            for (let i = 0; i < urlList.length; i++) {
+              if (url === urlList[i][0]) url = urlList[i][1]
+            }
+            clipboard.writeText(url)
+          }
+        }))
+        if (params.linkText.charAt(0) === '#') {
+          cmenu.append(new MenuItem({
+            label: 'Copy Hashtag',
+            click () {
+              clipboard.writeText(params.linkText)
+            }
+          }))
+        }
+        if (params.linkText.charAt(0) === '@') {
+          cmenu.append(new MenuItem({
+            label: 'Copy Username',
+            click () {
+              clipboard.writeText(params.linkText)
+            }
+          }))
+        }
+      }
+      else if (params.mediaType === 'image') {
+        cmenu.append(new MenuItem({
+          label: 'Copy Image',
+          click () {
+            win.webContents.copyImageAt(params.x, params.y)
+          }
+        }))
+        cmenu.append(new MenuItem({
+          label: 'Save Image',
+          click () {
+            win.webContents.downloadURL(params.srcURL)
+          }
+        }))
+      }
+      else if (params.mediaType === 'video') {
+        cmenu.append(new MenuItem({
+          label: 'Save Video',
+          click () {
+            win.webContents.downloadURL(params.srcURL)
+          }
+        }))
+      }
+      else if (params.mediaType === 'none') {
+        cmenu.append(new MenuItem({ role: 'copy' }))
+        cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
+        cmenu.append(new MenuItem({ role: 'cut' }))
+        cmenu.append(new MenuItem({ role: 'selectall' }))
+      }
+      else {
+        cmenu.append(new MenuItem({ label: '...' }))
+      }
+      cmenu.popup(win, params.x, params.y)
+    })
+  })
+
+  app.on('window-all-closed', () => {
+    app.quit()
+  })
+  app.on('quit', () => {
+    //terminate tor when app is closed
+    if (child !== undefined) {
+      child.kill()
+      common.log('stopped tor')
+    }
+    else common.log('tor wasn\'t running')
+  })
+}
 function createMenu () {
   const template = [
     {
