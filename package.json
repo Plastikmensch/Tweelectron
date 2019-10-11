@@ -18,11 +18,14 @@
     "rules": {
       "spaced-comment": 0,
       "no-unused-vars": "warn",
-      "brace-style": ["error", "stroustrup"]
+      "brace-style": [
+        "error",
+        "stroustrup"
+      ]
     }
   },
   "devDependencies": {
-    "electron": "^6.0.10",
+    "electron": "^6.0.12",
     "standardx": "^5.0.0"
   },
   "dependencies": {}
