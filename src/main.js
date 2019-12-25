@@ -44,6 +44,8 @@
      [] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
      [x] move all settingsFile related stuff to common.js
      [x] show titles in changelog
+     [] use app directory to store all files to be more portable and easier deletion
+        - keep EACCESS in mind (linux)
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -52,6 +54,10 @@
      [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
      [x] add support for custom themes
+     1.2 Release:
+     [] rewrite for Electron 7 (uuuuuuuugh)
+     [] bypass t.co on links in profiles (not really possible...)
+     [] fix font issues
 
 */
 const fs = require('fs')
@@ -70,6 +76,7 @@ const singleInstance = app.requestSingleInstanceLock()
 let themeAll, urlList
 let mainWindow, settingsWin, twitterwin, aboutWin
 
+//process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
 function TorFile () {
   if (process.platform === 'linux') {
     return process.resourcesPath + '/tor-linux/tor'
@@ -81,7 +88,7 @@ function TorFile () {
 
 function createWindow () {
   //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
+mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
   common.log(Settings)
   common.log(common.themeDir)
@@ -90,16 +97,24 @@ function createWindow () {
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
   if (Settings[0][0] && !Settings[5][0]) {
-    mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' }, () => {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+    if (proxy) {
       mainWindow.loadURL(home)
       common.log('using Tor')
-    })
+    }  
+    else {
+      common.log('connection to tor failed')
+    }
   }
   else if (Settings[5][0]) {
-    mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] }, () => {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] })
+    if (proxy) {
       mainWindow.loadURL(home)
       common.log('using custom Proxy')
-    })
+    }
+    else {
+      common.log('custom proxy failed')
+    }
   }
   else {
     mainWindow.loadURL(home)
@@ -225,11 +240,7 @@ function createWindow () {
       urlList = result
     })
   })
-  /*Not needed anymore since what I wanted to do doesn't work.
-  //Display all changes of cookies in console
-  session.defaultSession.cookies.on('changed', (event,cookie,cause,removed) =>{
-    console.log(event,cookie,cause,removed)
-  })*/
+
   mainWindow.webContents.on('new-window', (event, url) => {
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
@@ -240,10 +251,11 @@ function createWindow () {
         shell.openExternal(url)//opens link in default browser
         common.log('opened link external')
       }
-      else {
+      else { //NOTE: Something seems to be wrong here
         //Settings[8][0] browser exec
         //Settings[8][0] + url
         if (Settings[8][0] !== 'null') {
+          common.log(Settings[8][0])
           //allow remote and new tab might break opening links with other browsers
           const linkChild = childProcess.spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
           linkChild.on('error', (err) => {
@@ -265,16 +277,24 @@ function createWindow () {
       twitterwin = new BrowserWindow({ parent: mainWindow })
       twitterwin.removeMenu()
       if (Settings[0][0] && !Settings[5][0]) {
-        twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' }, () => {
+        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+        if (proxy) {
           twitterwin.loadURL(url)
           common.log('using Tor')
-        })
+        }
+        else {
+          common.log('tor connection failed')
+        }
       }
       else if (Settings[5][0]) {
-        twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] }, () => {
+        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] })
+        if (proxy) {
           twitterwin.loadURL(url)
           common.log('using custom Proxy')
-        })
+        }
+        else {
+          common.log('custom proxy failed')
+        }
       }
       else {
         twitterwin.loadURL(url)
@@ -386,12 +406,12 @@ function CheckForUpdates () {
   })
 }
 app.on('remote-require', (event, webContents, moduleName) => {
-  common.log(`${moduleName} required`)
+  common.log(`remote ${moduleName} required`)
   event.preventDefault()
 })
 
 app.on('remote-get-builtin', (event, webContents, moduleName) => {
-  common.log(`get builtin ${moduleName}`)
+  common.log(`remote get builtin ${moduleName}`)
   if (moduleName !== 'app') {
     event.preventDefault()
     common.log(`preventing ${moduleName} from loading`)
@@ -399,22 +419,22 @@ app.on('remote-get-builtin', (event, webContents, moduleName) => {
 })
 
 app.on('remote-get-global', (event, webContents, globalName) => {
-  common.log(`get global ${globalName}`)
+  common.log(`remote get global ${globalName}`)
   event.preventDefault()
 })
 
 app.on('remote-get-current-window', (event, webContents) => {
-  common.log('get current window')
+  common.log('remote get current window')
   event.preventDefault()
 })
 
 app.on('remote-get-current-web-contents', (event, webContents) => {
-  common.log('get current webcontents')
+  common.log('remote get current webcontents')
   event.preventDefault()
 })
 
 app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) => {
-  common.log('get guest web contents')
+  common.log('remote get guest web contents')
   event.preventDefault()
 })
 
@@ -553,6 +573,13 @@ else {
       common.log(themeAll)
       common.log(`found ${themeAll.length} themes`)
     }
+  })
+  //"Crashinfo"
+  app.on('gpu-process-crashed', (event, killed) => {
+    if (!killed) common.log('GPU process crashed')
+  })
+  app.on('renderer-process-crashed', (event, webContents, killed) => {
+    if (!killed) common.log('Renderer crashed')
   })
   app.on('browser-window-created', (event, win) => {
     win.webContents.on('context-menu', (e, params) => {
