@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 let app
-if (path.basename(require.main.filename) === 'main.js') {
+if (process.type === 'browser') {//(path.basename(require.main.filename) === 'main.js') {
   app = require('electron').app
 }
 else {
