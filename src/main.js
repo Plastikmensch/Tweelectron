@@ -57,7 +57,9 @@
      1.2 Release:
      [] rewrite for Electron 7 (uuuuuuuugh)
      [] bypass t.co on links in profiles (not really possible...)
-     [] fix font issues
+     [x] bypass t.co when clicking on pictures
+        - (optional) open them in new window
+     [x] fix font issues
 
 */
 const fs = require('fs')
@@ -235,8 +237,7 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
     }
   })
   mainWindow.webContents.on('update-target-url', (event, url) => {
-    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
-      //console.log("result: " + result)
+    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0;i<y.length;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       urlList = result
     })
   })
@@ -245,13 +246,14 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
       for (let i = 0; i < urlList.length; i++) {
+        //common.log(`${urlList[i][0]},${urlList[i][1]}`)
         if (url === urlList[i][0]) url = urlList[i][1]
       }
       if (!Settings[7][0]) {
         shell.openExternal(url)//opens link in default browser
         common.log('opened link external')
       }
-      else { //NOTE: Something seems to be wrong here
+      else {
         //Settings[8][0] browser exec
         //Settings[8][0] + url
         if (Settings[8][0] !== 'null') {
