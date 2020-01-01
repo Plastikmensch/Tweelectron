@@ -48,7 +48,7 @@ var methods = {
           Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
         }
         else {
-          methods.log('Settings file has wrong format')
+          this.log('Settings file has wrong format')
           const temp = settingsData.split('\n')
           if (i < temp.length - 1) {
             Settings[i][0] = temp[i].slice(temp[i].search('=') + 1)
@@ -70,6 +70,7 @@ var methods = {
         else if (Settings[i][0].search('"') !== -1) {
           Settings[i][0] = Settings[i][0].slice(1, Settings[i][0].lastIndexOf('"'))
         }
+        //this.log(`${Settings[i][1]} ${Settings[i][0]}`)
       }
     }
     return Settings
@@ -90,7 +91,7 @@ var methods = {
     }
     saveSettings += '}'
     fs.writeFileSync(settingsFile, saveSettings)
-    methods.log('Settings saved')
+    this.log('Settings saved')
   },
   log: function (message) {
     fs.appendFileSync(logFile, message + '\n')

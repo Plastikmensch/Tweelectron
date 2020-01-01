@@ -54,12 +54,17 @@
      [x] give option to open links in tor
         - (optional) let users, who already have torbrowser, pick a path
      [x] add support for custom themes
-     1.2 Release:
-     [] rewrite for Electron 7 (uuuuuuuugh)
-     [] bypass t.co on links in profiles (not really possible...)
+     1.1.1 Release:
      [x] bypass t.co when clicking on pictures
         - (optional) open them in new window
      [x] fix font issues
+     [x] rewrite for Electron 7 (uuuuuuuugh)
+     1.2 Release:
+     [] bypass t.co on links in profiles (not really possible...)
+     [] rewrite so settings are not duplicated through scripts
+        - let common.js handle settings completely
+     [] fix logs so backup is created before new stuff logs
+        - everything logged before the ready event ends up in backup
 
 */
 const fs = require('fs')
@@ -90,7 +95,7 @@ function TorFile () {
 
 function createWindow () {
   //Disable nodeIntegration before release!
-mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
   common.log(Settings)
   common.log(common.themeDir)
@@ -98,17 +103,7 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
   const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
-  if (Settings[0][0] && !Settings[5][0]) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-    if (proxy) {
-      mainWindow.loadURL(home)
-      common.log('using Tor')
-    }  
-    else {
-      common.log('connection to tor failed')
-    }
-  }
-  else if (Settings[5][0]) {
+  if (Settings[5][0]) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] })
     if (proxy) {
       mainWindow.loadURL(home)
@@ -116,6 +111,16 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
     }
     else {
       common.log('custom proxy failed')
+    }
+  }
+  else if (Settings[0][0]) {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+    if (proxy) {
+      mainWindow.loadURL(home)
+      common.log('using Tor')
+    }
+    else {
+      common.log('connection to tor failed')
     }
   }
   else {
@@ -247,7 +252,14 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
       event.preventDefault()
       for (let i = 0; i < urlList.length; i++) {
         //common.log(`${urlList[i][0]},${urlList[i][1]}`)
-        if (url === urlList[i][0]) url = urlList[i][1]
+        if (url === urlList[i][0]) {
+          //remove ?format=X&name=XxX from image links
+          if(urlList[i][1].search('https://pbs.twimg.com/media' === 0)) {
+            url = urlList[i][1].slice(0, urlList[i][1].lastIndexOf('?'))
+          }
+          else url = urlList[i][1]
+          break
+        }
       }
       if (!Settings[7][0]) {
         shell.openExternal(url)//opens link in default browser
@@ -278,17 +290,7 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
       event.preventDefault()
       twitterwin = new BrowserWindow({ parent: mainWindow })
       twitterwin.removeMenu()
-      if (Settings[0][0] && !Settings[5][0]) {
-        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-        if (proxy) {
-          twitterwin.loadURL(url)
-          common.log('using Tor')
-        }
-        else {
-          common.log('tor connection failed')
-        }
-      }
-      else if (Settings[5][0]) {
+      if (Settings[5][0]) {
         let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] })
         if (proxy) {
           twitterwin.loadURL(url)
@@ -299,8 +301,20 @@ mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], h
         }
       }
       else {
-        twitterwin.loadURL(url)
-        common.log('Not using Tor or custom Proxy')
+        if (Settings[0][0]) {
+          let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+          if (proxy) {
+            twitterwin.loadURL(url)
+            common.log('using Tor')
+          }
+          else {
+            common.log('tor connection failed')
+          }
+        }
+        else {
+          twitterwin.loadURL(url)
+          common.log('Not using Tor or custom Proxy')
+        }
       }
       twitterwin.webContents.on('did-fail-load', () => {
         twitterwin.loadURL(url2)
