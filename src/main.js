@@ -10,7 +10,7 @@
      [] add more comments
      [x] change file structure to be more compliant
      [] update Readme (How to use scripts, requirements etc., settings)
-     [] sort this list with version numbers, so it's clear why new releases take so long
+     [x] sort this list with version numbers, so it's clear why new releases take so long
      [] include pictures in Readme
      [] (Maybe) move to-do list to issues as task list
      Misc:
@@ -44,7 +44,7 @@
      [] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
      [x] move all settingsFile related stuff to common.js
      [x] show titles in changelog
-     [] use app directory to store all files to be more portable and easier deletion
+     [] (Maybe) use app directory to store all files to be more portable and easier deletion
         - keep EACCESS in mind (linux)
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
@@ -65,6 +65,7 @@
         - let common.js handle settings completely
      [] fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
+     [] optimise code
 
 */
 const fs = require('fs')
