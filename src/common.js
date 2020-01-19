@@ -8,7 +8,7 @@ else {
   app = require('electron').remote.app
 }
 
-const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
+//const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
 
 const Settings = [
   [undefined, '"use-tor" :'], //useTor
@@ -32,12 +32,13 @@ function SettingsFile () {
     return path.join(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)), 'settings.json')
   }
 }
-
+/*
 app.on('ready', () => {
   if (app.hasSingleInstanceLock() && fs.existsSync(logFile)) {
     fs.renameSync(logFile, logFile + '.backup')
   }
 })
+*/
 var methods = {
   readSettings: function () {
     if (fs.existsSync(settingsFile)) {
@@ -45,6 +46,7 @@ var methods = {
       //Redo this mess
       for (let i = 0; i < Settings.length; i++) {
         if (settingsData.search('=') === -1) {
+          //slice from start of key + length of key to end of the current line and trim the sliced part to remove whitespaces
           Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
         }
         else {
@@ -70,7 +72,7 @@ var methods = {
         else if (Settings[i][0].search('"') !== -1) {
           Settings[i][0] = Settings[i][0].slice(1, Settings[i][0].lastIndexOf('"'))
         }
-        //this.log(`${Settings[i][1]} ${Settings[i][0]}`)
+        this.log(`${Settings[i][1]} ${Settings[i][0]}`)
       }
     }
     return Settings
@@ -94,10 +96,11 @@ var methods = {
     this.log('Settings saved')
   },
   log: function (message) {
-    fs.appendFileSync(logFile, message + '\n')
+    fs.appendFileSync(this.logFile, message + '\n')
     console.log(message)
   },
   themeDir: path.join(app.getPath('userData'), 'themes'),
-  appDir: app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep))
+  appDir: app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)),
+  logFile: path.join(app.getPath('userData'), 'tweelectron.log')
 }
 module.exports = methods
