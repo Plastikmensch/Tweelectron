@@ -46,6 +46,7 @@
      [x] show titles in changelog
      [] (Maybe) use app directory to store all files to be more portable and easier deletion
         - keep EACCESS in mind (linux)
+     [] create loglevel setting, so it's not necessary to comment logs
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -66,6 +67,7 @@
      [] fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
      [] optimise code
+     [] Threadmaker
 
 */
 const fs = require('fs')
@@ -98,7 +100,7 @@ function createWindow () {
   //Disable nodeIntegration before release!
   mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
-  common.log(Settings)
+  //common.log(Settings)
   common.log(common.themeDir)
   common.log(common.appDir)
   const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
@@ -251,14 +253,17 @@ function createWindow () {
   mainWindow.webContents.on('new-window', (event, url) => {
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
+      //common.log(urlList)
       for (let i = 0; i < urlList.length; i++) {
         //common.log(`${urlList[i][0]},${urlList[i][1]}`)
         if (url === urlList[i][0]) {
           //remove ?format=X&name=XxX from image links
-          if(urlList[i][1].search('https://pbs.twimg.com/media' === 0)) {
+          if(urlList[i][1].search('https://pbs.twimg.com/media') === 0) {
             url = urlList[i][1].slice(0, urlList[i][1].lastIndexOf('?'))
+            //common.log(`${urlList[i][1]} is twitter media`)
           }
           else url = urlList[i][1]
+          //common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`)
           break
         }
       }
@@ -461,6 +466,9 @@ if (!singleInstance) {
   common.log('quitting second instance')
 }
 else {
+  if (fs.existsSync(common.logFile)) {
+    fs.renameSync(common.logFile, common.logFile + '.backup')
+  }
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     //Focus mainWindow when started a second time
     if (mainWindow) {
@@ -674,6 +682,7 @@ else {
       common.log('stopped tor')
     }
     else common.log('tor wasn\'t running')
+    common.log('Quitting Tweelectron')
   })
 }
 function createMenu () {
@@ -799,4 +808,5 @@ function createMenu () {
   const menu = Menu.buildFromTemplate(template)
   //win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
+  common.log('created app menu')
 }
