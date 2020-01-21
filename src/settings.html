@@ -15,6 +15,10 @@
     <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
     Select Tor Browser: <input type="file" id="torExe" onchange="fileChanged()"></input><br>
+    Loglevel: <select id="loglevel">
+      <option>Info</option>
+      <option>Debug</option>
+    </select><br>
     <button type='button' class='button' onclick="saveData()">Save</button>
   </div>
 <p id="success"></p>
@@ -35,26 +39,27 @@ if(fs.existsSync(common.themeDir))
     document.getElementById("theme").add(option)
   }
 }
-if(Settings[0][0]){
+if(Settings.useTor){
   document.getElementById("use-tor").checked=true
 }
-if(Settings[7][0]){
+if(Settings.openInTor){
   document.getElementById("openInTor").checked=true
 }
-if(Settings[1][0]){
+if(Settings.useRoundPics){
   document.getElementById("use-round-pics").checked=true
 }
 //check if index exists
-if(Settings[2][0] > document.getElementById("theme").length-1) {
+if(Settings.theme > document.getElementById("theme").length-1) {
   document.getElementById("theme").selectedIndex= 0
 }
 else {
-  document.getElementById("theme").selectedIndex= Settings[2][0]
+  document.getElementById("theme").selectedIndex= Settings.theme
 }
-if(Settings[5][0]){
+if(Settings.useCustomProxy){
   document.getElementById("use-custom-proxy").checked=true
 }
-document.getElementById("customProxy").value= Settings[6][0]
+document.getElementById("customProxy").value= Settings.customProxy
+document.getElementById("loglevel").selectedIndex = Settings.logLevel
 
 function fileChanged() {
   changed=true;
@@ -62,11 +67,12 @@ function fileChanged() {
 function saveData() {
   var timer
   clearTimeout(timer)
-  var path = Settings[8][0]
+  var path = Settings.torBrowserExe
   if(changed)
   {
     path= document.getElementById("torExe").files[0].path
   }
+  /*
   var newSettings = [
     [document.getElementById("use-tor").checked,Settings[0][1]],
     [document.getElementById("use-round-pics").checked,Settings[1][1]],
@@ -78,6 +84,20 @@ function saveData() {
     [document.getElementById("openInTor").checked,Settings[7][1]],
     [path,Settings[8][1]]
   ]
+  */
+ var newSettings = {
+    useTor: document.getElementById("use-tor").checked,
+    useRoundPics: document.getElementById("use-round-pics").checked,
+    theme: document.getElementById("theme").selectedIndex,
+    width: Settings.width,
+    height: Settings.height,
+    useCustomProxy: document.getElementById("use-custom-proxy").checked,
+    customProxy: document.getElementById("customProxy").value,
+    openInTor: document.getElementById("openInTor").checked,
+    torBrowserExe: path,
+    logLevel: document.getElementById("loglevel").selectedIndex
+ }
+
   if(ipcRenderer.sendSync('Settings',newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
