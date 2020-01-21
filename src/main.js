@@ -64,6 +64,7 @@
      [] bypass t.co on links in profiles (not really possible...)
      [] rewrite so settings are not duplicated through scripts
         - let common.js handle settings completely
+        - turn into object
      [] fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
      [] optimise code
@@ -98,57 +99,57 @@ function TorFile () {
 
 function createWindow () {
   //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings.width, height: Settings.height, minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
-  //common.log(Settings)
-  common.log(common.themeDir)
-  common.log(common.appDir)
+  common.log(Settings, 1)
+  common.log(common.themeDir, 1)
+  common.log(common.appDir, 1)
   const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
-  if (Settings[5][0]) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] })
+  if (Settings.useCustomProxy) {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings.customProxy })
     if (proxy) {
       mainWindow.loadURL(home)
-      common.log('using custom Proxy')
+      common.log('using custom Proxy', 0)
     }
     else {
-      common.log('custom proxy failed')
+      common.log('custom proxy failed', 0)
     }
   }
-  else if (Settings[0][0]) {
+  else if (Settings.useTor) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
     if (proxy) {
       mainWindow.loadURL(home)
-      common.log('using Tor')
+      common.log('using Tor', 0)
     }
     else {
-      common.log('connection to tor failed')
+      common.log('connection to tor failed', 0)
     }
   }
   else {
     mainWindow.loadURL(home)
-    common.log('Not using Tor or custom Proxy')
+    common.log('Not using Tor or custom Proxy', 0)
   }
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`)
+    common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
     if (validatedURL === home) {
       if (retries === 3) {
         mainWindow.loadURL(url2)
-        common.log('loading fail page')
+        common.log('loading fail page', 0)
       }
       else {
         mainWindow.loadURL(home)
         retries++
-        common.log('Retrying...')
+        common.log('Retrying...', 0)
       }
     }
   })
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    if (!Settings[1][0] && mainWindow.webContents.getURL().search(home) === 0) {
+    if (!Settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
-      common.log('inserted code for angular profile pics')
+      common.log('inserted code for angular profile pics', 0)
     }
     /*
     if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
@@ -232,16 +233,16 @@ function createWindow () {
       console.log("inserted code for blue theme")
     }
     */
-    if (Settings[2][0] > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
-      const themeFile = path.join(common.themeDir, themeAll[Settings[2][0] - 1])
+    if (Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
+      const themeFile = path.join(common.themeDir, themeAll[Settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
-        common.log(themeFile)
+        common.log(themeFile, 1)
         //common.log(fileContent)
         mainWindow.webContents.insertCSS(fileContent)
-        common.log('inserted custom theme')
+        common.log('inserted custom theme', 0)
       }
-      else common.log('failed to insert custom theme. File doesn\'t exist')
+      else common.log('failed to insert custom theme. File doesn\'t exist', 0)
     }
   })
   mainWindow.webContents.on('update-target-url', (event, url) => {
@@ -267,25 +268,23 @@ function createWindow () {
           break
         }
       }
-      if (!Settings[7][0]) {
+      if (!Settings.openInTor) {
         shell.openExternal(url)//opens link in default browser
-        common.log('opened link external')
+        common.log('opened link external', 0)
       }
       else {
-        //Settings[8][0] browser exec
-        //Settings[8][0] + url
-        if (Settings[8][0] !== 'null') {
-          common.log(Settings[8][0])
+        if (Settings.torBrowserExe !== null) {
+          common.log(Settings.torBrowserExe, 1)
           //allow remote and new tab might break opening links with other browsers
-          const linkChild = childProcess.spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
+          const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
           linkChild.on('error', (err) => {
-            common.log(err)
+            common.log(err, 0)
           })
-          common.log('opened link in torbrowser')
+          common.log('opened link in torbrowser', 0)
         }
         else {
           dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
-          common.log('failed to open in tor')
+          common.log('failed to open in tor', 0)
         }
       }
     }
@@ -296,35 +295,35 @@ function createWindow () {
       event.preventDefault()
       twitterwin = new BrowserWindow({ parent: mainWindow })
       twitterwin.removeMenu()
-      if (Settings[5][0]) {
-        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] })
+      if (Settings.useCustomProxy) {
+        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings.customProxy })
         if (proxy) {
           twitterwin.loadURL(url)
-          common.log('using custom Proxy')
+          common.log('using custom Proxy', 0)
         }
         else {
-          common.log('custom proxy failed')
+          common.log('custom proxy failed', 0)
         }
       }
       else {
-        if (Settings[0][0]) {
+        if (Settings.useTor) {
           let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
           if (proxy) {
             twitterwin.loadURL(url)
-            common.log('using Tor')
+            common.log('using Tor', 0)
           }
           else {
-            common.log('tor connection failed')
+            common.log('tor connection failed', 0)
           }
         }
         else {
           twitterwin.loadURL(url)
-          common.log('Not using Tor or custom Proxy')
+          common.log('Not using Tor or custom Proxy', 0)
         }
       }
       twitterwin.webContents.on('did-fail-load', () => {
         twitterwin.loadURL(url2)
-        common.log('failed to load')
+        common.log('failed to load', 0)
       })
       event.newGuest = twitterwin
       twitterwin.webContents.on('will-navigate', (event, url) => {
@@ -335,22 +334,23 @@ function createWindow () {
   })
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    Settings[3][0] = size[0]//width
-    Settings[4][0] = size[1]//height
+    Settings.width = size[0]//width
+    Settings.height = size[1]//height
     common.saveSettings(Settings)
   })
   mainWindow.on('closed', () => {
     app.quit()
   })
   ipcMain.on('Settings', (event, newSettings) => {
-    common.log(newSettings)
-    if (newSettings.toString() === Settings.toString()) {
+    common.log(newSettings, 1)
+    //NOTE: doesn't work as intended, but "works". Still is obsolete if Settings can be changed directly
+    if (JSON.stringify(newSettings) === JSON.stringify(Settings)) {//(newSettings.toString() === Settings.toString()) {
       event.returnValue = false
     }
     else {
       let reload = false
-      //check if theme is changed
-      if (Settings[2][0] !== newSettings[2][0]) {
+      //check if theme has changed
+      if (Settings.theme !== newSettings.theme) {
         reload = true
       }
       Settings = newSettings
@@ -361,7 +361,7 @@ function createWindow () {
       common.saveSettings(Settings)
       event.returnValue = true
     }
-    common.log(Settings)
+    common.log(Settings, 1)
   })
   CheckForUpdates()
   //Set icon on Linux
@@ -370,25 +370,25 @@ function createWindow () {
   }
 }
 function startTor () {
-  common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`)
-  common.log('starting Tor')
+  common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`, 1)
+  common.log('starting Tor', 0)
   child = childProcess.execFile(tor, (err) => {
     if (err) {
-      common.log('couldn\'t start tor. (already running?)')
-      common.log(err)
+      common.log('couldn\'t start tor. (already running?)', 0)
+      common.log(err, 0)
     }
   })
-  common.log(`pid: ${child.pid}`)
+  common.log(`pid: ${child.pid}`, 1)
 
   child.on('exit', (code, signal) => {
-    common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`)
+    common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`, 0)
     child = undefined
   })
 }
 
 function CheckForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
-    if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`)
+    if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
     //console.log(JSON.stringify(response.headers))
     response.setEncoding('utf8')//makes d readable
     let data = ''
@@ -400,6 +400,22 @@ function CheckForUpdates () {
     response.on('end', () => {
       //console.log(data)
       //console.log("end of response")
+      let fulldata = JSON.parse(data)
+      common.log(`tag_name: ${fulldata.tag_name}`, 1)
+      common.log(`body: ${fulldata.body}`, 1)
+
+      const current = `v${fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()}`
+
+      fulldata.body = fulldata.body.replace(/__changes__/i, 'Changes:')
+      fulldata.body = fulldata.body.replace(/__windows__/i, 'Windows:')
+      fulldata.body = fulldata.body.replace(/__linux__/i, 'Linux:')
+
+      if(current !== fulldata.tag_name) {
+        dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: ${current}\nlatest version: ${fulldata.tag_name}\n\n${fulldata.body}` })
+        common.log('Update available', 0)
+      }
+      else common.log('No update available', 0)
+      /*
       if (data.search('tag_name') !== -1) {
         //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
         const latest = data.slice(data.indexOf(':', data.search('tag_name')) + 3, data.indexOf(',', data.search('tag_name')) - 1)
@@ -418,52 +434,53 @@ function CheckForUpdates () {
         //console.log("current: " + current)
         if (current !== latest) {
           dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: v${current}\nlatest version: v${latest}\n\nChanges:\n${slicedBody}` })
-          common.log('Update available')
+          common.log('Update available', 0)
         }
-        else common.log('No update available')
+        else common.log('No update available', 0)
       }
+      */
     })
   }).on('error', (err) => {
-    common.log(`Error:\n${err.message}`)
+    common.log(`Error:\n${err.message}`, 0)
   })
 }
 app.on('remote-require', (event, webContents, moduleName) => {
-  common.log(`remote ${moduleName} required`)
+  common.log(`remote ${moduleName} required`, 1)
   event.preventDefault()
 })
 
 app.on('remote-get-builtin', (event, webContents, moduleName) => {
-  common.log(`remote get builtin ${moduleName}`)
+  common.log(`remote get builtin ${moduleName}`, 1)
   if (moduleName !== 'app') {
     event.preventDefault()
-    common.log(`preventing ${moduleName} from loading`)
+    common.log(`preventing ${moduleName} from loading`, 1)
   }
 })
 
 app.on('remote-get-global', (event, webContents, globalName) => {
-  common.log(`remote get global ${globalName}`)
+  common.log(`remote get global ${globalName}`, 1)
   event.preventDefault()
 })
 
 app.on('remote-get-current-window', (event, webContents) => {
-  common.log('remote get current window')
+  common.log('remote get current window', 1)
   event.preventDefault()
 })
 
 app.on('remote-get-current-web-contents', (event, webContents) => {
-  common.log('remote get current webcontents')
+  common.log('remote get current webcontents', 1)
   event.preventDefault()
 })
 
 app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) => {
-  common.log('remote get guest web contents')
+  common.log('remote get guest web contents', 1)
   event.preventDefault()
 })
 
 if (!singleInstance) {
   //Close second instance
   app.quit()
-  common.log('quitting second instance')
+  common.log('quitting second instance', 0)
 }
 else {
   if (fs.existsSync(common.logFile)) {
@@ -474,28 +491,28 @@ else {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
-      common.log('tried to start second instance, focusing main window')
+      common.log('tried to start second instance, focusing main window', 0)
     }
   })
   app.on('ready', () => {
     app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
     Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
 
-    if (Settings[0][0] === undefined) {
-      common.log('tor variable unset')
+    if (Settings.useTor === null) {
+      common.log('tor variable unset', 0)
       const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
 
       if (dialogTor) {
-        Settings[0][0] = true
-        common.log('clicked YES')
+        Settings.useTor = true
+        common.log('clicked YES', 0)
       }
       else {
-        Settings[0][0] = false
-        common.log('clicked NO')
+        Settings.useTor = false
+        common.log('clicked NO', 0)
       }
       common.saveSettings(Settings)
     }
-    if (Settings[0][0] && !Settings[1][0]) {
+    if (Settings.useTor && !Settings.useCustomProxy) {
       startTor()
     }
     createWindow()
@@ -584,7 +601,7 @@ else {
     if (!fs.existsSync(common.themeDir)) {
       fs.mkdirSync(common.themeDir)
       fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-      common.log('created Truly Dark.css')
+      common.log('created Truly Dark.css', 0)
     }
     if (fs.existsSync(common.themeDir)) {
       themeAll = fs.readdirSync(common.themeDir)
@@ -592,19 +609,19 @@ else {
         const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
         if (themeTemp !== themeTrulyDark.trim()) {
           fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-          common.log('updated Truly Dark')
+          common.log('updated Truly Dark', 0)
         }
       }
-      common.log(themeAll)
-      common.log(`found ${themeAll.length} themes`)
+      common.log(themeAll, 1)
+      common.log(`found ${themeAll.length} themes`, 0)
     }
   })
   //"Crashinfo"
   app.on('gpu-process-crashed', (event, killed) => {
-    if (!killed) common.log('GPU process crashed')
+    if (!killed) common.log('GPU process crashed', 0)
   })
   app.on('renderer-process-crashed', (event, webContents, killed) => {
-    if (!killed) common.log('Renderer crashed')
+    if (!killed) common.log('Renderer crashed', 0)
   })
   app.on('browser-window-created', (event, win) => {
     win.webContents.on('context-menu', (e, params) => {
@@ -679,10 +696,10 @@ else {
     //terminate tor when app is closed
     if (child !== undefined) {
       child.kill()
-      common.log('stopped tor')
+      common.log('stopped tor', 0)
     }
-    else common.log('tor wasn\'t running')
-    common.log('Quitting Tweelectron')
+    else common.log('tor wasn\'t running', 0)
+    common.log('Quitting Tweelectron', 0)
   })
 }
 function createMenu () {
@@ -698,11 +715,11 @@ function createMenu () {
           click () {
             if (settingsWin !== undefined) {
               settingsWin.focus()
-              common.log('focusing settings window')
+              common.log('focusing settings window', 0)
             }
             else {
               settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
-              common.log('created settings window')
+              common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
               if (process.platform === 'linux') {
@@ -712,7 +729,7 @@ function createMenu () {
             }
             settingsWin.on('closed', () => {
               settingsWin = undefined
-              common.log('closed settings window')
+              common.log('closed settings window', 0)
             })
           }
         }
@@ -782,11 +799,11 @@ function createMenu () {
       click () {
         if (aboutWin !== undefined) {
           aboutWin.focus()
-          common.log('focusing about window')
+          common.log('focusing about window', 0)
         }
         else {
           aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
-          common.log('created about window')
+          common.log('created about window', 0)
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
           if (process.platform === 'linux') {
@@ -795,7 +812,7 @@ function createMenu () {
         }
         aboutWin.on('closed', () => {
           aboutWin = undefined
-          common.log('closed about window')
+          common.log('closed about window', 0)
         })
         aboutWin.webContents.on('will-navigate', (event, url) => {
           event.preventDefault()
@@ -808,5 +825,5 @@ function createMenu () {
   const menu = Menu.buildFromTemplate(template)
   //win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
-  common.log('created app menu')
+  common.log('created app menu', 0)
 }
