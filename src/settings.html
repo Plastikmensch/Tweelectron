@@ -72,20 +72,7 @@ function saveData() {
   {
     path= document.getElementById("torExe").files[0].path
   }
-  /*
-  var newSettings = [
-    [document.getElementById("use-tor").checked,Settings[0][1]],
-    [document.getElementById("use-round-pics").checked,Settings[1][1]],
-    [document.getElementById("theme").selectedIndex,Settings[2][1]],
-    [Settings[3][0],Settings[3][1]],
-    [Settings[4][0],Settings[4][1]],
-    [document.getElementById("use-custom-proxy").checked,Settings[5][1]],
-    [document.getElementById("customProxy").value,Settings[6][1]],
-    [document.getElementById("openInTor").checked,Settings[7][1]],
-    [path,Settings[8][1]]
-  ]
-  */
- var newSettings = {
+  const newSettings = {
     useTor: document.getElementById("use-tor").checked,
     useRoundPics: document.getElementById("use-round-pics").checked,
     theme: document.getElementById("theme").selectedIndex,
@@ -96,9 +83,9 @@ function saveData() {
     openInTor: document.getElementById("openInTor").checked,
     torBrowserExe: path,
     logLevel: document.getElementById("loglevel").selectedIndex
- }
+  }
 
-  if(ipcRenderer.sendSync('Settings',newSettings))
+  if(ipcRenderer.sendSync('Settings', newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
     timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)

@@ -46,7 +46,7 @@
      [x] show titles in changelog
      [] (Maybe) use app directory to store all files to be more portable and easier deletion
         - keep EACCESS in mind (linux)
-     [] create loglevel setting, so it's not necessary to comment logs
+     [x] create loglevel setting, so it's not necessary to comment logs
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -343,25 +343,24 @@ function createWindow () {
   })
   ipcMain.on('Settings', (event, newSettings) => {
     common.log(newSettings, 1)
-    //NOTE: doesn't work as intended, but "works". Still is obsolete if Settings can be changed directly
-    if (JSON.stringify(newSettings) === JSON.stringify(Settings)) {//(newSettings.toString() === Settings.toString()) {
-      event.returnValue = false
-    }
-    else {
-      let reload = false
-      //check if theme has changed
-      if (Settings.theme !== newSettings.theme) {
-        reload = true
+    for (var i in Settings) {
+      if (Settings[i] !== newSettings[i]) {
+        common.log('change in Settings', 1)
+        let reload = false
+        if (Settings.theme !== newSettings.theme) {
+          reload = true
+        }
+        Settings = newSettings
+        if (reload) {
+          mainWindow.reload()
+        }
+        common.saveSettings(Settings)
+        common.log(Settings, 1)
+        event.returnValue = true
       }
-      Settings = newSettings
-      //reload TweetDeck if theme is changed
-      if (reload) {
-        mainWindow.reload()
-      }
-      common.saveSettings(Settings)
-      event.returnValue = true
     }
-    common.log(Settings, 1)
+    event.returnValue = false
+    common.log('this should not log', 1)
   })
   CheckForUpdates()
   //Set icon on Linux
@@ -415,30 +414,6 @@ function CheckForUpdates () {
         common.log('Update available', 0)
       }
       else common.log('No update available', 0)
-      /*
-      if (data.search('tag_name') !== -1) {
-        //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
-        const latest = data.slice(data.indexOf(':', data.search('tag_name')) + 3, data.indexOf(',', data.search('tag_name')) - 1)
-        //console.log("latest: " + latest)
-        const body = data.slice(data.indexOf(':', data.search('body')) + 2, -2)
-        const splitBody = body.split('\\r\\n')
-        let slicedBody = ''
-        for (let i = 1; i < splitBody.length; i++) {
-          if (splitBody[i].search('_') !== -1) {
-            splitBody[i] = splitBody[i].slice(splitBody[i].indexOf('_') + 2, splitBody[i].lastIndexOf('_') - 1) + ':'
-          }
-          slicedBody += splitBody[i] + '\n'//.slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
-        }
-        //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
-        const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
-        //console.log("current: " + current)
-        if (current !== latest) {
-          dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: v${current}\nlatest version: v${latest}\n\nChanges:\n${slicedBody}` })
-          common.log('Update available', 0)
-        }
-        else common.log('No update available', 0)
-      }
-      */
     })
   }).on('error', (err) => {
     common.log(`Error:\n${err.message}`, 0)

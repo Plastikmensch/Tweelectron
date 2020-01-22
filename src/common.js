@@ -9,20 +9,7 @@ else {
 }
 
 //const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
-/*
-const Settings = [
-  [undefined, '"use-tor" :'], //useTor
-  [false, '"use-round-pics" :'], //roundPics
-  [0, '"theme" :'], //theme
-  [1336, '"width" :'], //windowWidth
-  [720, '"height" :'], //windowHeight
-  [false, '"use-custom-proxy" :'], //useProxy
-  ['foopy:80', '"customProxy" :'], //customProxy
-  [false, '"links-in-torbrowser" :'], //openInTor
-  ['null', '"tor-browser-exe" :'], //torExe
-  [0, '"loglevel" :'] //logLevel
-]
-*/
+
 const Settings = {
   useTor: null,
   useRoundPics: false,
@@ -57,6 +44,7 @@ var methods = {
   readSettings: function () {
     if (fs.existsSync(settingsFile)) {
       JSON.parse(fs.readFileSync(settingsFile, 'utf8'), function (key, value) {
+        //Doing Settings[key] = value is more efficient but breaks backwards compability
         switch (key) {
           case 'use-tor':
           case 'useTor':
@@ -96,70 +84,17 @@ var methods = {
             Settings.logLevel = value
             break
           default:
-            methods.log(`unknown key found: ${key}`, 0)
+            methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
         }
       })
-      /*
-      const settingsData = fs.readFileSync(settingsFile, 'utf8')
-      //Redo this mess
-      for (let i = 0; i < Settings.length; i++) {
-        if (settingsData.search('=') === -1) {
-          //slice from start of key + length of key to end of the current line and trim the sliced part to remove whitespaces
-          Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
-        }
-        else {
-          this.log('Settings file has wrong format', 0)
-          const temp = settingsData.split('\n')
-          if (i < temp.length - 1) {
-            Settings[i][0] = temp[i].slice(temp[i].search('=') + 1)
-          }
-        }
-        //remove ","
-        if (Settings[i][0].search(',') !== -1) {
-          Settings[i][0] = Settings[i][0].slice(0, -1)
-        }
-        //if setting is "true" or "false", convert to boolean
-        if (Settings[i][0] === 'true' || Settings[i][0] === 'false') {
-          Settings[i][0] = (Settings[i][0] === 'true')
-        }
-        //if setting is a number, convert to integer
-        else if (!isNaN(Number(Settings[i][0]))) {
-          Settings[i][0] = Number(Settings[i][0])
-        }
-        //else remove ""
-        else if (Settings[i][0].search('"') !== -1) {
-          Settings[i][0] = Settings[i][0].slice(1, Settings[i][0].lastIndexOf('"'))
-        }
-        this.log(`${Settings[i][1]} ${Settings[i][0]}`, 1)
-      }
-      */
     }
     return Settings
   },
   saveSettings: function (Settings) {
     fs.writeFileSync(settingsFile, JSON.stringify(Settings, null, 4))
-    /*
-    let saveSettings = '{\n'
-    for (let i = 0; i < Settings.length; i++) {
-      if (isNaN(Settings[i][0]) || Settings[i][0] === null) {
-        //console.log(Settings[i][0] + " is not a number or boolean")
-        saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
-      }
-      else {
-        //console.log(Settings[i][0] + " is a number or boolean")
-        saveSettings += (Settings[i][1] + Settings[i][0])
-      }
-      if (i === Settings.length - 1) saveSettings += '\n'
-      else saveSettings += ',\n'
-    }
-    saveSettings += '}'
-    fs.writeFileSync(settingsFile, saveSettings)
-    */
     this.log('Settings saved', 0)
   },
   log: function (message, level) {
-    //Settings[9][0] loglevel
-    //add loglevel variable to function
     if (level <= Settings.logLevel) {
       if (!Array.isArray(message) && typeof message === 'object') {
         message = JSON.stringify(message)
