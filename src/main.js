@@ -47,6 +47,7 @@
      [] (Maybe) use app directory to store all files to be more portable and easier deletion
         - keep EACCESS in mind (linux)
      [x] create loglevel setting, so it's not necessary to comment logs
+     [] create function for opening stuff (no code repetition)
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -69,6 +70,7 @@
         - everything logged before the ready event ends up in backup
      [] optimise code
      [] Threadmaker
+     [] fix opening of multiple images in tweets
 
 */
 const fs = require('fs')
@@ -254,7 +256,8 @@ function createWindow () {
   mainWindow.webContents.on('new-window', (event, url) => {
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
-      //common.log(urlList)
+      common.log(urlList, 1)
+      common.log(`clicked on ${url}`, 1)
       for (let i = 0; i < urlList.length; i++) {
         //common.log(`${urlList[i][0]},${urlList[i][1]}`)
         if (url === urlList[i][0]) {
@@ -264,7 +267,7 @@ function createWindow () {
             //common.log(`${urlList[i][1]} is twitter media`)
           }
           else url = urlList[i][1]
-          //common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`)
+          common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`, 1)
           break
         }
       }
@@ -631,6 +634,30 @@ else {
       }
       else if (params.mediaType === 'image') {
         cmenu.append(new MenuItem({
+          label: 'Open Image',
+          click () {
+            if (!Settings.openInTor) {
+              shell.openExternal(params.srcURL)//opens link in default browser
+              common.log('opened link external', 0)
+            }
+            else {
+              if (Settings.torBrowserExe !== null) {
+                common.log(Settings.torBrowserExe, 1)
+                //allow remote and new tab might break opening links with other browsers
+                const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', params.srcURL])
+                linkChild.on('error', (err) => {
+                  common.log(err, 0)
+                })
+                common.log('opened link in torbrowser', 0)
+              }
+              else {
+                dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+                common.log('failed to open in tor', 0)
+              }
+            }
+          }
+        }))
+        cmenu.append(new MenuItem({
           label: 'Copy Image',
           click () {
             win.webContents.copyImageAt(params.x, params.y)
@@ -693,7 +720,7 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
@@ -777,7 +804,7 @@ function createMenu () {
           common.log('focusing about window', 0)
         }
         else {
-          aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
           common.log('created about window', 0)
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
