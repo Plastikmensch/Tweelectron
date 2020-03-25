@@ -84,7 +84,7 @@ function saveData() {
     torBrowserExe: path,
     logLevel: document.getElementById("loglevel").selectedIndex
   }
-
+  common.log(newSettings, 1)
   if(ipcRenderer.sendSync('Settings', newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
