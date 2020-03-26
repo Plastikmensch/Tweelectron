@@ -47,7 +47,7 @@
      [] (Maybe) use app directory to store all files to be more portable and easier deletion
         - keep EACCESS in mind (linux)
      [x] create loglevel setting, so it's not necessary to comment logs
-     [] create function for opening stuff (no code repetition)
+     [x] create function for opening stuff (no code repetition)
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -258,6 +258,8 @@ function createWindow () {
       event.preventDefault()
       common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
+
+      //Replace t.co url with real url
       for (let i = 0; i < urlList.length; i++) {
         //common.log(`${urlList[i][0]},${urlList[i][1]}`)
         if (url === urlList[i][0]) {
@@ -268,26 +270,7 @@ function createWindow () {
           }
           else url = urlList[i][1]
           common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`, 1)
-          break
-        }
-      }
-      if (!Settings.openInTor) {
-        shell.openExternal(url)//opens link in default browser
-        common.log('opened link external', 0)
-      }
-      else {
-        if (Settings.torBrowserExe !== null) {
-          common.log(Settings.torBrowserExe, 1)
-          //allow remote and new tab might break opening links with other browsers
-          const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
-          linkChild.on('error', (err) => {
-            common.log(err, 0)
-          })
-          common.log('opened link in torbrowser', 0)
-        }
-        else {
-          dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
-          common.log('failed to open in tor', 0)
+          OpenUrl(url)
         }
       }
     }
@@ -422,6 +405,29 @@ function CheckForUpdates () {
     common.log(`Error:\n${err.message}`, 0)
   })
 }
+
+function OpenUrl (url) {
+  if (!Settings.openInTor) {
+    shell.openExternal(url)//opens link in default browser
+    common.log('opened link external', 0)
+  }
+  else {
+    if (Settings.torBrowserExe !== null) {
+      common.log(Settings.torBrowserExe, 1)
+      //allow remote and new tab might break opening links with other browsers
+      const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
+      linkChild.on('error', (err) => {
+        common.log(err, 0)
+      })
+      common.log('opened link in torbrowser', 0)
+    }
+    else {
+      dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+      common.log('failed to open in tor', 0)
+    }
+  }
+}
+
 app.on('remote-require', (event, webContents, moduleName) => {
   common.log(`remote ${moduleName} required`, 1)
   event.preventDefault()
@@ -636,25 +642,10 @@ else {
         cmenu.append(new MenuItem({
           label: 'Open Image',
           click () {
-            if (!Settings.openInTor) {
-              shell.openExternal(params.srcURL)//opens link in default browser
-              common.log('opened link external', 0)
+            if (params.srcURL.search('https://pbs.twimg.com/media') === 0) {
+              params.srcURL = `${params.srcURL.slice(0, params.srcURL.lastIndexOf('?'))}.jpg`
             }
-            else {
-              if (Settings.torBrowserExe !== null) {
-                common.log(Settings.torBrowserExe, 1)
-                //allow remote and new tab might break opening links with other browsers
-                const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', params.srcURL])
-                linkChild.on('error', (err) => {
-                  common.log(err, 0)
-                })
-                common.log('opened link in torbrowser', 0)
-              }
-              else {
-                dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
-                common.log('failed to open in tor', 0)
-              }
-            }
+            OpenUrl(params.srcURL)
           }
         }))
         cmenu.append(new MenuItem({
