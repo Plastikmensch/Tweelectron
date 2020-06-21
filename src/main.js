@@ -70,7 +70,10 @@
         - everything logged before the ready event ends up in backup
      [] optimise code
      [] Threadmaker
+        - thinking about abandoning this idea
      [] fix opening of multiple images in tweets
+        - need a way to tell which image is clicked on
+        - function handling t.co returns only first match
 
 */
 const fs = require('fs')
@@ -103,14 +106,18 @@ function createWindow () {
   //Disable nodeIntegration before release!
   mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings.width, height: Settings.height, minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
   createMenu()
+
   common.log(Settings, 1)
   common.log(common.themeDir, 1)
   common.log(common.appDir, 1)
+
   const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
+
   if (Settings.useCustomProxy) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings.customProxy })
+
     if (proxy) {
       mainWindow.loadURL(home)
       common.log('using custom Proxy', 0)
@@ -121,6 +128,7 @@ function createWindow () {
   }
   else if (Settings.useTor) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+
     if (proxy) {
       mainWindow.loadURL(home)
       common.log('using Tor', 0)
@@ -133,6 +141,7 @@ function createWindow () {
     mainWindow.loadURL(home)
     common.log('Not using Tor or custom Proxy', 0)
   }
+
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
     if (validatedURL === home) {
@@ -235,6 +244,7 @@ function createWindow () {
       console.log("inserted code for blue theme")
     }
     */
+    //If theme is selected and url matches tweetdeck, read theme file and insert css
     if (Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
       const themeFile = path.join(common.themeDir, themeAll[Settings.theme - 1])
       if (fs.existsSync(themeFile)) {
@@ -247,6 +257,7 @@ function createWindow () {
       else common.log('failed to insert custom theme. File doesn\'t exist', 0)
     }
   })
+  //Read out every t.co url and real url from tweets and media and save result when mouse hovers over a link
   mainWindow.webContents.on('update-target-url', (event, url) => {
     mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0;i<y.length;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       urlList = result
@@ -254,6 +265,7 @@ function createWindow () {
   })
 
   mainWindow.webContents.on('new-window', (event, url) => {
+    //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
       common.log(urlList, 1)
@@ -318,15 +330,18 @@ function createWindow () {
       })
     }
   })
+
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
     Settings.width = size[0]//width
     Settings.height = size[1]//height
     common.saveSettings(Settings)
   })
+
   mainWindow.on('closed', () => {
     app.quit()
   })
+
   ipcMain.on('Settings', (event, newSettings) => {
     common.log(newSettings, 1)
     for (var i in Settings) {
@@ -346,8 +361,8 @@ function createWindow () {
       }
     }
     event.returnValue = false
-    common.log('this should not log', 1)
   })
+
   CheckForUpdates()
   //Set icon on Linux
   if (process.platform === 'linux') {
@@ -427,7 +442,7 @@ function OpenUrl (url) {
     }
   }
 }
-
+//Block unused remote modules
 app.on('remote-require', (event, webContents, moduleName) => {
   common.log(`remote ${moduleName} required`, 1)
   event.preventDefault()
@@ -461,15 +476,18 @@ app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) =
   event.preventDefault()
 })
 
+//Only allow single instance
 if (!singleInstance) {
   //Close second instance
   app.quit()
   common.log('quitting second instance', 0)
 }
 else {
+  //Make backup of logs
   if (fs.existsSync(common.logFile)) {
     fs.renameSync(common.logFile, common.logFile + '.backup')
   }
+
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     //Focus mainWindow when started a second time
     if (mainWindow) {
@@ -480,8 +498,10 @@ else {
   })
   app.on('ready', () => {
     app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
-    Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
+    //Disable Electrons default application menu
+    Menu.setApplicationMenu(null)
 
+    //Show dialog asking if user wants to use tor if useTor is unset
     if (Settings.useTor === null) {
       common.log('tor variable unset', 0)
       const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
@@ -581,7 +601,9 @@ else {
     'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
     'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
     'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
+
     const fileTrulyDark = path.join(common.themeDir, 'Truly Dark.css')
+
     if (!fs.existsSync(common.themeDir)) {
       fs.mkdirSync(common.themeDir)
       fs.writeFileSync(fileTrulyDark, themeTrulyDark)
@@ -600,6 +622,7 @@ else {
       common.log(`found ${themeAll.length} themes`, 0)
     }
   })
+
   //"Crashinfo"
   app.on('gpu-process-crashed', (event, killed) => {
     if (!killed) common.log('GPU process crashed', 0)
@@ -607,6 +630,7 @@ else {
   app.on('renderer-process-crashed', (event, webContents, killed) => {
     if (!killed) common.log('Renderer crashed', 0)
   })
+
   app.on('browser-window-created', (event, win) => {
     win.webContents.on('context-menu', (e, params) => {
       const cmenu = new Menu()
@@ -803,10 +827,12 @@ function createMenu () {
             aboutWin.setIcon(icon)
           }
         }
+
         aboutWin.on('closed', () => {
           aboutWin = undefined
           common.log('closed about window', 0)
         })
+
         aboutWin.webContents.on('will-navigate', (event, url) => {
           event.preventDefault()
           shell.openExternal(url)
@@ -816,7 +842,7 @@ function createMenu () {
   ]
 
   const menu = Menu.buildFromTemplate(template)
-  //win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
+  //NOTE: win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
   common.log('created app menu', 0)
 }
