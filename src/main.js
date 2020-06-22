@@ -63,6 +63,7 @@
      [x] rewrite for Electron 7 (uuuuuuuugh)
      1.2 Release:
      [] bypass t.co on links in profiles (not really possible...)
+        - links in profile description work, but link in profile doesn't
      [] rewrite so settings are not duplicated through scripts
         - let common.js handle settings completely
         - turn into object
@@ -82,7 +83,7 @@ const childProcess = require('child_process')
 const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
 
-let Settings = common.readSettings()
+let Settings = common.getSettings()
 let child
 
 const tor = TorFile()
@@ -104,7 +105,7 @@ function TorFile () {
 
 function createWindow () {
   //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings.width, height: Settings.height, minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings.width, height: Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true/*, nodeIntegration: true*/ } })
   createMenu()
 
   common.log(Settings, 1)
@@ -141,6 +142,11 @@ function createWindow () {
     mainWindow.loadURL(home)
     common.log('Not using Tor or custom Proxy', 0)
   }
+  //Deny all permissions by default
+  mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    common.log(`${webContents.getURL()} requested ${permission}`, 0)
+    return callback(false)
+  })
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
@@ -259,7 +265,16 @@ function createWindow () {
   })
   //Read out every t.co url and real url from tweets and media and save result when mouse hovers over a link
   mainWindow.webContents.on('update-target-url', (event, url) => {
-    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0;i<y.length;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
+    /*
+      Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
+      which is used to show the shortened link destination
+
+      Pictures: t.co refers to the tweet, not the image,
+      which makes getting the correct image difficult
+    */
+    //NOTE: urlList contains duplicates
+    //NOTE: Might be reasonable to move this to new-window event
+    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       urlList = result
     })
   })
@@ -271,9 +286,13 @@ function createWindow () {
       common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
+
+      //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
+      //Might work if multiple links can be parsed to OpenUrl
+      //FIXME: Clicking on an image when it's part of a tweet with multiple images, only first image opens
+
       //Replace t.co url with real url
-      for (let i = 0; i < urlList.length; i++) {
-        //common.log(`${urlList[i][0]},${urlList[i][1]}`)
+      for (let i = 0, j = urlList.length; i < j; i++) {
         if (url === urlList[i][0]) {
           //remove ?format=X&name=XxX from image links
           if(urlList[i][1].search('https://pbs.twimg.com/media') === 0) {
@@ -287,6 +306,11 @@ function createWindow () {
       }
     }
   })
+
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    common.log(`mainWindow log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
+  })
+
   //Login button doesn't call this anymore
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (url.search('https://twitter.com/login') === 0) {
@@ -343,6 +367,7 @@ function createWindow () {
   })
 
   ipcMain.on('Settings', (event, newSettings) => {
+    common.log('newSettings:', 1)
     common.log(newSettings, 1)
     for (var i in Settings) {
       if (Settings[i] !== newSettings[i]) {
@@ -351,11 +376,15 @@ function createWindow () {
         if (Settings.theme !== newSettings.theme) {
           reload = true
         }
+
         Settings = newSettings
+
         if (reload) {
           mainWindow.reload()
         }
+
         common.saveSettings(Settings)
+        common.log('Settings:', 1)
         common.log(Settings, 1)
         event.returnValue = true
       }
@@ -483,10 +512,6 @@ if (!singleInstance) {
   common.log('quitting second instance', 0)
 }
 else {
-  //Make backup of logs
-  if (fs.existsSync(common.logFile)) {
-    fs.renameSync(common.logFile, common.logFile + '.backup')
-  }
 
   app.on('second-instance', (event, commandLine, workingDirectory) => {
     //Focus mainWindow when started a second time
@@ -710,13 +735,21 @@ else {
     app.quit()
   })
   app.on('quit', () => {
+    common.log('Quitting Tweelectron', 0)
     //terminate tor when app is closed
     if (child !== undefined) {
       child.kill()
       common.log('stopped tor', 0)
     }
     else common.log('tor wasn\'t running', 0)
-    common.log('Quitting Tweelectron', 0)
+
+    //Make backup of logs
+    //Even though this won't work when the app is closed unexpectedly
+    //and it's not best practise
+    if (fs.existsSync(common.logFile)) {
+      common.log('created backup of logs', 0)
+      fs.renameSync(common.logFile, common.logFile + '.backup')
+    }
   })
 }
 function createMenu () {
