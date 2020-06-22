@@ -25,7 +25,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^7.3.1",
+    "electron": "^9.0.4",
     "standardx": "^5.0.0"
   },
   "dependencies": {}
