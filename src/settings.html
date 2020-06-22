@@ -27,8 +27,9 @@
 const fs = require('fs')
 const {ipcRenderer} = require('electron')
 const common = require('./common.js')
+
 var changed = false
-const Settings = common.readSettings()
+var Settings = common.getSettings()
 
 if(fs.existsSync(common.themeDir))
 {
@@ -39,6 +40,7 @@ if(fs.existsSync(common.themeDir))
     document.getElementById("theme").add(option)
   }
 }
+//Why didn't I do .checked= Settings.Variable?
 if(Settings.useTor){
   document.getElementById("use-tor").checked=true
 }
