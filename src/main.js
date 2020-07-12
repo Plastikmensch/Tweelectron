@@ -77,6 +77,11 @@
         - function handling t.co returns only first match
 
 */
+/*
+Blocking Emojis (replacing them with text)
+var t= document.getElementsByClassName('emoji')
+for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span'); span.innerText='(smoking emoji)';e.replaceWith(span)}}
+*/
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
@@ -267,13 +272,13 @@ function createWindow () {
   mainWindow.webContents.on('update-target-url', (event, url) => {
     /*
       Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
-      which is used to show the shortened link destination
+      which is used to show link destination
 
       Pictures: t.co refers to the tweet, not the image,
       which makes getting the correct image difficult
     */
     //NOTE: urlList contains duplicates
-    //NOTE: Might be reasonable to move this to new-window event
+    //NOTE: Moving this to new-window event leads to urlList being undefined
     mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       urlList = result
     })
@@ -306,11 +311,11 @@ function createWindow () {
       }
     }
   })
-
+  /*
   mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
     common.log(`mainWindow log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
   })
-
+  */
   //Login button doesn't call this anymore
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (url.search('https://twitter.com/login') === 0) {
@@ -656,6 +661,18 @@ else {
     if (!killed) common.log('Renderer crashed', 0)
   })
 
+  app.on('web-contents-created', (event, contents) => {
+    //Prevent webview tags
+    contents.on('will-attach-webview', (event, webPreferences, params) => {
+      event.preventDefault()
+      common.log('prevented webview tag', 0)
+    })
+    //Log console messages (test)
+    contents.on('console-message', (event, level, message, line, sourceId) => {
+      common.log(`log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
+    })
+  })
+
   app.on('browser-window-created', (event, win) => {
     win.webContents.on('context-menu', (e, params) => {
       const cmenu = new Menu()
@@ -734,6 +751,7 @@ else {
   app.on('window-all-closed', () => {
     app.quit()
   })
+
   app.on('quit', () => {
     common.log('Quitting Tweelectron', 0)
     //terminate tor when app is closed
