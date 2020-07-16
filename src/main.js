@@ -72,12 +72,19 @@
      [] optimise code
      [] Threadmaker
         - thinking about abandoning this idea
-     [] fix opening of multiple images in tweets
+     [x] fix opening of multiple images in tweets
         - need a way to tell which image is clicked on
         - function handling t.co returns only first match
-
+        - replacing link with image source might work
+     [] fix potential issue caused by corrupt settings file
+        - check settings value type
+        - issue caused by going back from 1.2.x to 1.1.x
+        - if settings can't be read, treat them as nonexistent
 */
 /*
+NOTE: This is just a proof of concept and will not be included,
+      since altering tweet content is out of scope
+      You can implement or run this code yourself, if you really want to
 Blocking Emojis (replacing them with text)
 var t= document.getElementsByClassName('emoji')
 for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span'); span.innerText='(smoking emoji)';e.replaceWith(span)}}
@@ -282,13 +289,16 @@ function createWindow () {
     mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
       urlList = result
     })
+
+    //Replace t.co link on images with src
+    mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img")[0]; if (m !== undefined) {m.parentElement.href = m.src}')
   })
 
   mainWindow.webContents.on('new-window', (event, url) => {
     //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
     if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
-      common.log(urlList, 1)
+      //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
 
@@ -306,9 +316,10 @@ function createWindow () {
           }
           else url = urlList[i][1]
           common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`, 1)
-          OpenUrl(url)
         }
       }
+      //NOTE: Applying removal of ?format... breaks replaced image links
+      OpenUrl(url)
     }
   })
   /*
