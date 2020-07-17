@@ -33,7 +33,9 @@
      [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
      [\] (Maybe) Get rid of old theme (Truly Dark)
      [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
-     [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
+     [\] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
+        - too unreliable
+        - implemented entry to context menu for inserting emoticons instead
      [x] Actually use json format for settings or just change it to .cfg
      [x] move theme code to files in theme folder
         - create files on first start
@@ -41,7 +43,8 @@
      [x] please linter (what a pain in the ass...)
      [x] create logfile
         - backup last logfile
-     [] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
+     [x] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
+        - seems to be working now
      [x] move all settingsFile related stuff to common.js
      [x] show titles in changelog
      [] (Maybe) use app directory to store all files to be more portable and easier deletion
@@ -67,7 +70,7 @@
      [] rewrite so settings are not duplicated through scripts
         - let common.js handle settings completely
         - turn into object
-     [] fix logs so backup is created before new stuff logs
+     [x] (kind of done) fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
      [] optimise code
      [] Threadmaker
@@ -751,6 +754,20 @@ else {
         cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
         cmenu.append(new MenuItem({ role: 'cut' }))
         cmenu.append(new MenuItem({ role: 'selectall' }))
+        if (params.isEditable && win === mainWindow) {
+          cmenu.append(new MenuItem({
+            label: 'insert',
+            type: 'submenu',
+            submenu: [{
+              //NOTE: This label is most likely bad for accessibility, needs testing
+              label: '¯\\_(ツ)_/¯',
+              click (item, focusedWindow) {
+                common.log('clicked shrug',1)
+                if (focusedWindow) focusedWindow.webContents.insertText('¯\\_(ツ)_/¯')
+              }
+            }]
+          }))
+        }
       }
       else {
         cmenu.append(new MenuItem({ label: '...' }))
