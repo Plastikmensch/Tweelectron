@@ -32,7 +32,7 @@
         - avoid closing tor when not started by Tweelectron
      [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
      [\] (Maybe) Get rid of old theme (Truly Dark)
-     [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
+     [\] rework theme (turns out: TweetDecks theme doesn't suck anymore)
      [\] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
         - too unreliable
         - implemented entry to context menu for inserting emoticons instead
@@ -51,6 +51,7 @@
         - keep EACCESS in mind (linux)
      [x] create loglevel setting, so it's not necessary to comment logs
      [x] create function for opening stuff (no code repetition)
+     [] (Maybe) create new themes
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -79,10 +80,19 @@
         - need a way to tell which image is clicked on
         - function handling t.co returns only first match
         - replacing link with image source might work
-     [] fix potential issue caused by corrupt settings file
+     [x] fix potential issue caused by corrupt settings file
         - check settings value type
         - issue caused by going back from 1.2.x to 1.1.x
         - if settings can't be read, treat them as nonexistent
+        - if value is of wrong type, default value is used now
+     [] inform users of errors in settings
+        - dialogs won't work before ready event
+        - showMessageBox is useless on Linux
+          - won't show up
+          - doesn't stop execution
+     [] define content security policy for child windows
+        - <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
+          might be a good start, needs testing
 */
 /*
 NOTE: This is just a proof of concept and will not be included,
@@ -98,7 +108,7 @@ const childProcess = require('child_process')
 const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
 
-let Settings = common.getSettings()
+//let Settings = common.getSettings()
 let child
 
 const tor = TorFile()
@@ -120,10 +130,10 @@ function TorFile () {
 
 function createWindow () {
   //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings.width, height: Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true/*, nodeIntegration: true*/ } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.Settings.width, height: common.Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true/*, nodeIntegration: true*/ } })
   createMenu()
 
-  common.log(Settings, 1)
+  common.log(common.Settings, 1)
   common.log(common.themeDir, 1)
   common.log(common.appDir, 1)
 
@@ -131,8 +141,8 @@ function createWindow () {
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
 
-  if (Settings.useCustomProxy) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings.customProxy })
+  if (common.Settings.useCustomProxy) {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: common.Settings.customProxy })
 
     if (proxy) {
       mainWindow.loadURL(home)
@@ -142,7 +152,7 @@ function createWindow () {
       common.log('custom proxy failed', 0)
     }
   }
-  else if (Settings.useTor) {
+  else if (common.Settings.useTor) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
 
     if (proxy) {
@@ -179,7 +189,7 @@ function createWindow () {
   })
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    if (!Settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
+    if (!common.Settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics', 0)
     }
@@ -266,8 +276,8 @@ function createWindow () {
     }
     */
     //If theme is selected and url matches tweetdeck, read theme file and insert css
-    if (Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
-      const themeFile = path.join(common.themeDir, themeAll[Settings.theme - 1])
+    if (common.Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
+      const themeFile = path.join(common.themeDir, themeAll[common.Settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
         common.log(themeFile, 1)
@@ -293,7 +303,11 @@ function createWindow () {
       urlList = result
     })
 
-    //Replace t.co link on images with src
+    //Replace t.co link on images with image src
+    /*
+      Replaces href attribute of parentElement of the image with the image src attribute
+      media-img is the class attribute of the image shown in preview and unique
+    */
     mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img")[0]; if (m !== undefined) {m.parentElement.href = m.src}')
   })
 
@@ -307,7 +321,6 @@ function createWindow () {
 
       //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
       //Might work if multiple links can be parsed to OpenUrl
-      //FIXME: Clicking on an image when it's part of a tweet with multiple images, only first image opens
 
       //Replace t.co url with real url
       for (let i = 0, j = urlList.length; i < j; i++) {
@@ -336,8 +349,8 @@ function createWindow () {
       event.preventDefault()
       twitterwin = new BrowserWindow({ parent: mainWindow })
       twitterwin.removeMenu()
-      if (Settings.useCustomProxy) {
-        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings.customProxy })
+      if (common.Settings.useCustomProxy) {
+        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: common.Settings.customProxy })
         if (proxy) {
           twitterwin.loadURL(url)
           common.log('using custom Proxy', 0)
@@ -347,7 +360,7 @@ function createWindow () {
         }
       }
       else {
-        if (Settings.useTor) {
+        if (common.Settings.useTor) {
           let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
           if (proxy) {
             twitterwin.loadURL(url)
@@ -376,35 +389,37 @@ function createWindow () {
 
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    Settings.width = size[0]//width
-    Settings.height = size[1]//height
-    common.saveSettings(Settings)
+    common.Settings.width = size[0]//width
+    common.Settings.height = size[1]//height
+    common.saveSettings(common.Settings)
   })
 
   mainWindow.on('closed', () => {
     app.quit()
   })
-
+  /*TODO: Needs rework
+          Since Settings can be set directly, using ipc is obsolete
+  */
   ipcMain.on('Settings', (event, newSettings) => {
     common.log('newSettings:', 1)
     common.log(newSettings, 1)
-    for (var i in Settings) {
-      if (Settings[i] !== newSettings[i]) {
+    for (var i in common.Settings) {
+      if (common.Settings[i] !== newSettings[i]) {
         common.log('change in Settings', 1)
         let reload = false
-        if (Settings.theme !== newSettings.theme) {
+        if (common.Settings.theme !== newSettings.theme) {
           reload = true
         }
 
-        Settings = newSettings
+        common.Settings = newSettings
 
         if (reload) {
           mainWindow.reload()
         }
 
-        common.saveSettings(Settings)
+        common.saveSettings(common.Settings)
         common.log('Settings:', 1)
-        common.log(Settings, 1)
+        common.log(common.Settings, 1)
         event.returnValue = true
       }
     }
@@ -470,15 +485,15 @@ function CheckForUpdates () {
 }
 
 function OpenUrl (url) {
-  if (!Settings.openInTor) {
+  if (!common.Settings.openInTor) {
     shell.openExternal(url)//opens link in default browser
     common.log('opened link external', 0)
   }
   else {
-    if (Settings.torBrowserExe !== null) {
-      common.log(Settings.torBrowserExe, 1)
+    if (common.Settings.torBrowserExe !== null) {
+      common.log(common.Settings.torBrowserExe, 1)
       //allow remote and new tab might break opening links with other browsers
-      const linkChild = childProcess.spawn(Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
+      const linkChild = childProcess.spawn(common.Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
       linkChild.on('error', (err) => {
         common.log(err, 0)
       })
@@ -546,21 +561,21 @@ else {
     Menu.setApplicationMenu(null)
 
     //Show dialog asking if user wants to use tor if useTor is unset
-    if (Settings.useTor === null) {
+    if (common.Settings.useTor === null) {
       common.log('tor variable unset', 0)
       const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
 
       if (dialogTor) {
-        Settings.useTor = true
+        common.Settings.useTor = true
         common.log('clicked YES', 0)
       }
       else {
-        Settings.useTor = false
+        common.Settings.useTor = false
         common.log('clicked NO', 0)
       }
-      common.saveSettings(Settings)
+      common.saveSettings(common.Settings)
     }
-    if (Settings.useTor && !Settings.useCustomProxy) {
+    if (common.Settings.useTor && !common.Settings.useCustomProxy) {
       startTor()
     }
     createWindow()
@@ -814,7 +829,12 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+              /*
+              NOTE: enableRemoteModule is set to true to prevent breaking in Electron 10
+                    Read: https://www.electronjs.org/docs/breaking-changes#default-changed-enableremotemodule-defaults-to-false
+                    Need a better way for this not involving remote module
+              */
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true, enableRemoteModule: true } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))

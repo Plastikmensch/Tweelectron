@@ -9,7 +9,7 @@ else {
 }
 
 //const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
-
+/*
 const Settings = {
   useTor: null,
   useRoundPics: false,
@@ -22,7 +22,7 @@ const Settings = {
   torBrowserExe: null,
   logLevel: 0
 }
-
+*/
 const settingsFile = SettingsFile()
 function SettingsFile () {
   if (process.platform === 'linux') {
@@ -49,64 +49,64 @@ function readSettings () {
         case 'use-tor':
         case 'useTor':
           if (typeof value === 'boolean' ) {
-            Settings.useTor = value
+            methods.Settings.useTor = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'use-round-pics':
         case 'useRoundPics':
           if (typeof value === 'boolean') {
-            Settings.useRoundPics = value
+            methods.Settings.useRoundPics = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'theme':
           if (typeof value === 'number') {
-            Settings.theme = value
+            methods.Settings.theme = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'width':
           if (typeof value === 'number') {
-            Settings.width = value
+            methods.Settings.width = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'height':
           if (typeof value === 'number') {
-            Settings.height = value
+            methods.Settings.height = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'use-custom-proxy':
         case 'useCustomProxy':
           if (typeof value === 'boolean') {
-            Settings.useCustomProxy = value
+            methods.Settings.useCustomProxy = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'customProxy':
           if (typeof value === 'string') {
-            Settings.customProxy = value
+            methods.Settings.customProxy = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'links-in-torbrowser':
         case 'openInTor':
           if (typeof value === 'boolean') {
-            Settings.openInTor = value
+            methods.Settings.openInTor = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'tor-browser-exe':
         case 'torBrowserExe':
           if (value !== 'null') {
-            Settings.torBrowserExe = value
+            methods.Settings.torBrowserExe = value
           }
           break
         case 'logLevel':
           if (typeof value === 'number') {
-            Settings.logLevel = value
+            methods.Settings.logLevel = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
@@ -180,11 +180,13 @@ var methods = {
     this.log('Settings saved', 0)
     readSettings()
   },
+  /*
   getSettings: function () {
-    return Settings
+    return this.Settings
   },
+  */
   log: function (message, level = 0) {
-    if (level <= Settings.logLevel) {
+    if (level <= this.Settings.logLevel) {
       if (!Array.isArray(message) && typeof message === 'object') {
         message = JSON.stringify(message)
       }
@@ -194,7 +196,19 @@ var methods = {
   },
   themeDir: path.join(app.getPath('userData'), 'themes'),
   appDir: app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)),
-  logFile: path.join(app.getPath('userData'), 'tweelectron.log')
+  logFile: path.join(app.getPath('userData'), 'tweelectron.log'),
+  Settings: {
+    useTor: null,
+    useRoundPics: false,
+    theme: 0,
+    width: 1336,
+    height: 720,
+    useCustomProxy: false,
+    customProxy: 'foopy:80',
+    openInTor: false,
+    torBrowserExe: null,
+    logLevel: 0
+  }
 }
 
 readSettings()

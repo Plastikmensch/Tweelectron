@@ -29,7 +29,7 @@ const {ipcRenderer} = require('electron')
 const common = require('./common.js')
 
 var changed = false
-var Settings = common.getSettings()
+//var Settings = common.getSettings()
 
 if(fs.existsSync(common.themeDir))
 {
@@ -40,36 +40,37 @@ if(fs.existsSync(common.themeDir))
     document.getElementById("theme").add(option)
   }
 }
-//Why didn't I do .checked= Settings.Variable?
-if(Settings.useTor){
+//Why didn't I do .checked= common.Settings.Variable?
+if(common.Settings.useTor){
   document.getElementById("use-tor").checked=true
 }
-if(Settings.openInTor){
+if(common.Settings.openInTor){
   document.getElementById("openInTor").checked=true
 }
-if(Settings.useRoundPics){
+if(common.Settings.useRoundPics){
   document.getElementById("use-round-pics").checked=true
 }
 //check if index exists
-if(Settings.theme > document.getElementById("theme").length-1) {
+if(common.Settings.theme > document.getElementById("theme").length-1) {
   document.getElementById("theme").selectedIndex= 0
 }
 else {
-  document.getElementById("theme").selectedIndex= Settings.theme
+  document.getElementById("theme").selectedIndex= common.Settings.theme
 }
-if(Settings.useCustomProxy){
+if(common.Settings.useCustomProxy){
   document.getElementById("use-custom-proxy").checked=true
 }
-document.getElementById("customProxy").value= Settings.customProxy
-document.getElementById("loglevel").selectedIndex = Settings.logLevel
+document.getElementById("customProxy").value= common.Settings.customProxy
+document.getElementById("loglevel").selectedIndex = common.Settings.logLevel
 
 function fileChanged() {
   changed=true;
 }
+//TODO: Needs rework
 function saveData() {
   var timer
   clearTimeout(timer)
-  var path = Settings.torBrowserExe
+  var path = common.Settings.torBrowserExe
   if(changed)
   {
     path= document.getElementById("torExe").files[0].path
@@ -78,8 +79,8 @@ function saveData() {
     useTor: document.getElementById("use-tor").checked,
     useRoundPics: document.getElementById("use-round-pics").checked,
     theme: document.getElementById("theme").selectedIndex,
-    width: Settings.width,
-    height: Settings.height,
+    width: common.Settings.width,
+    height: common.Settings.height,
     useCustomProxy: document.getElementById("use-custom-proxy").checked,
     customProxy: document.getElementById("customProxy").value,
     openInTor: document.getElementById("openInTor").checked,
