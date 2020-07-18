@@ -74,6 +74,7 @@
      [x] (kind of done) fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
      [] optimise code
+        - rework settings and about page
      [] Threadmaker
         - thinking about abandoning this idea
      [x] fix opening of multiple images in tweets
@@ -391,7 +392,7 @@ function createWindow () {
     const size = mainWindow.getSize()
     common.Settings.width = size[0]//width
     common.Settings.height = size[1]//height
-    common.saveSettings(common.Settings)
+    common.saveSettings()
   })
 
   mainWindow.on('closed', () => {
@@ -417,7 +418,7 @@ function createWindow () {
           mainWindow.reload()
         }
 
-        common.saveSettings(common.Settings)
+        common.saveSettings()
         common.log('Settings:', 1)
         common.log(common.Settings, 1)
         event.returnValue = true
@@ -573,7 +574,7 @@ else {
         common.Settings.useTor = false
         common.log('clicked NO', 0)
       }
-      common.saveSettings(common.Settings)
+      common.saveSettings()
     }
     if (common.Settings.useTor && !common.Settings.useCustomProxy) {
       startTor()

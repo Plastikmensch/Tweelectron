@@ -175,8 +175,8 @@ var methods = {
     return Settings
   },
   */
-  saveSettings: function (Settings) {
-    fs.writeFileSync(settingsFile, JSON.stringify(Settings, null, 4))
+  saveSettings: function () {
+    fs.writeFileSync(settingsFile, JSON.stringify(this.Settings, null, 4))
     this.log('Settings saved', 0)
     readSettings()
   },
