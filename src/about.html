@@ -2,29 +2,23 @@
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="pages.css">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EuZTlj83sqy5YGuX34l+TU5fr/UGZNikHRJlytTkLxg='">
 </head>
 <body>
   <h1>About Tweelectron</h1>
   <p class="about">
-    Tweelectron version:
-    <script>
-      const fs = require('fs')
-      const path = require('path')
-      document.write(fs.readFileSync(path.join(__dirname, 'tweelectron-version'),'utf8'))
-    </script><br>
-    Electron version: <script>document.write(process.versions.electron)</script><br>
-    Tor version:
-    <script>
-    if(process.platform == "linux"){
-      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-linux'),'utf8'))
-    }
-    else if(process.platform=="win32"){
-      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-win'), 'utf8'))
-    }
-    </script><br>
+    Tweelectron version: <span id="app-version"></span><br>
+    Electron version: <span id="electron-version"></span><br>
+    Tor version: <span id="tor-version"></span><br>
     GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a> *<br>
     * Opens in default browser
   </p>
+  <script type="text/javascript">
+    const fs = require('fs')
+    const path = require('path')
+    document.getElementById("app-version").innerText = fs.readFileSync(path.join(__dirname, 'tweelectron-version'),'utf8').trim()
+    document.getElementById("electron-version").innerText = process.versions.electron
+    document.getElementById("tor-version").innerText = process.platform === 'linux' ? fs.readFileSync(path.join(__dirname, 'tor-version-linux'),'utf8').trim() : fs.readFileSync(path.join(__dirname, 'tor-version-win'), 'utf8').trim()
+  </script>
 </body>
 </html>
