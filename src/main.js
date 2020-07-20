@@ -100,7 +100,7 @@
      [] define content security policy for child windows
         - <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
           might be a good start, needs testing
-     [] change theme code
+     [x] change theme code
         - having truly dark as a const is a waste of memory
         - adding user supplied themes can be easier
 */
@@ -516,6 +516,39 @@ function OpenUrl (url) {
     }
   }
 }
+
+function checkThemes () {
+  const includedThemes = fs.readdirSync(path.join(__dirname, 'themes'), 'utf-8')
+  common.log(includedThemes, 1)
+  // If theme directory doesn't exist, create it and themes
+  // else check themes for updates
+  if (!fs.existsSync(common.themeDir)) {
+    fs.mkdirSync(common.themeDir)
+    common.log('created theme directory', 0)
+    for (const theme of includedThemes) {
+      fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+      common.log(`created ${theme}`, 0)
+    }
+  }
+  else {
+    for (const theme of includedThemes) {
+      //create theme file if it doesn't exist
+      //else if theme file doesn't match internal file, overwrite it
+      if (!fs.existsSync(path.join(common.themeDir, theme))) {
+        fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+        common.log(`created missing ${theme}`, 0)
+      }
+      else if (fs.readFileSync(path.join(common.themeDir, theme), 'utf-8').trim() !== fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8').trim()) {
+        fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+        common.log(`updated ${theme}`, 0)
+      }
+    }
+  }
+
+  //Read theme directory
+  themeAll = fs.readdirSync(common.themeDir)
+  common.log(`found ${themeAll.length} theme(s)`, 0)
+}
 //Block unused remote modules
 app.on('remote-require', (event, webContents, moduleName) => {
   common.log(`remote ${moduleName} required`, 1)
@@ -591,6 +624,8 @@ else {
     }
     createWindow()
 
+    checkThemes()
+    /*
     const themeTrulyDark =
     //Overall appearance (Tweets, sidebar etc.)
     'html.dark .stream-item{background-color: #222426 !important}\n' +
@@ -689,8 +724,9 @@ else {
         }
       }
       common.log(themeAll, 1)
-      common.log(`found ${themeAll.length} themes`, 0)
+      common.log(`found ${themeAll.length} theme(s)`, 0)
     }
+    */
   })
 
   //"Crashinfo"
