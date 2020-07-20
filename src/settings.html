@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'">
@@ -26,12 +26,13 @@
 
 <script type="text/javascript">
 const fs = require('fs')
-const {ipcRenderer} = require('electron')
+const { ipcRenderer } = require('electron')
 const common = require('./common.js')
 
 var changed = false
 //var Settings = common.getSettings()
 
+//read themeDir and add options to theme element
 if(fs.existsSync(common.themeDir))
 {
   const themeFiles = fs.readdirSync(common.themeDir)
@@ -41,6 +42,7 @@ if(fs.existsSync(common.themeDir))
     document.getElementById("theme").add(option)
   }
 }
+//Set values of elements to match settings
 //Why didn't I do .checked= common.Settings.Variable?
 if(common.Settings.useTor){
   document.getElementById("useTor").checked=true
@@ -62,6 +64,7 @@ if(common.Settings.useCustomProxy){
   document.getElementById("useCustomProxy").checked=true
 }
 document.getElementById("customProxy").value= common.Settings.customProxy
+//TODO: Probably safer to check if index exists
 document.getElementById("logLevel").selectedIndex = common.Settings.logLevel
 
 function fileChanged() {
@@ -72,8 +75,7 @@ function saveData() {
   var timer
   clearTimeout(timer)
   var path = common.Settings.torBrowserExe
-  if(changed)
-  {
+  if(changed) {
     path= document.getElementById("torBrowserExe").files[0].path
   }
 
@@ -91,7 +93,7 @@ function saveData() {
   }
   
   common.log(newSettings, 1)
-  
+
   if(ipcRenderer.sendSync('Settings', newSettings))
   {
     document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
