@@ -8,6 +8,7 @@ else {
   app = require('electron').remote.app
 }
 
+let firstLog = true
 //const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
 /*
 const Settings = {
@@ -24,6 +25,7 @@ const Settings = {
 }
 */
 const settingsFile = SettingsFile()
+
 function SettingsFile () {
   if (process.platform === 'linux') {
     return process.env.HOME + '/.config/Tweelectron/settings.json'
@@ -187,9 +189,18 @@ var methods = {
   */
   log: function (message, level = 0) {
     if (level <= this.Settings.logLevel) {
+      if (firstLog) {
+        firstLog = false
+        if (fs.existsSync(this.logFile)) {
+          fs.renameSync(this.logFile, this.logFile + '.backup')
+          this.log('created backup of logs', 0)
+        }
+      }
+      // Stringify message if it's an object, so logs don't say [object Object]
       if (!Array.isArray(message) && typeof message === 'object') {
         message = JSON.stringify(message)
       }
+      //Append message to log file
       fs.appendFileSync(this.logFile, message + '\n')
       console.log(message)
     }

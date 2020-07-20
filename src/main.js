@@ -13,6 +13,7 @@
      [x] sort this list with version numbers, so it's clear why new releases take so long
      [] include pictures in Readme
      [] (Maybe) move to-do list to issues as task list
+     [] Open issues for bugs/unintended behaviour instead of maintaining this list
      Misc:
      [x] use an array or object to store settings variables
      [x] save settings when app quits
@@ -65,14 +66,19 @@
         - (optional) open them in new window
      [x] fix font issues
      [x] rewrite for Electron 7 (uuuuuuuugh)
+     [] provide better accessibility
+        - need a screenreader or audit tool
      1.2 Release:
      [] bypass t.co on links in profiles (not really possible...)
         - links in profile description work, but link in profile doesn't
-     [] rewrite so settings are not duplicated through scripts
+     [x] rewrite so settings are not duplicated through scripts
         - let common.js handle settings completely
         - turn into object
-     [x] (kind of done) fix logs so backup is created before new stuff logs
+     [x] fix logs so backup is created before new stuff logs
         - everything logged before the ready event ends up in backup
+        - backup is now created on exit
+        - adding a check for first log in common.log might be a better solution
+        - added check
      [] optimise code
         - rework settings and about page
      [] Threadmaker
@@ -81,19 +87,22 @@
         - need a way to tell which image is clicked on
         - function handling t.co returns only first match
         - replacing link with image source might work
-     [x] fix potential issue caused by corrupt settings file
+     [x] fix potential issues caused by corrupt settings file
         - check settings value type
         - issue caused by going back from 1.2.x to 1.1.x
         - if settings can't be read, treat them as nonexistent
         - if value is of wrong type, default value is used now
      [] inform users of errors in settings
         - dialogs won't work before ready event
-        - showMessageBox is useless on Linux
+        - showErrorBox is useless on Linux
           - won't show up
           - doesn't stop execution
      [] define content security policy for child windows
         - <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
           might be a good start, needs testing
+     [] change theme code
+        - having truly dark as a const is a waste of memory
+        - adding user supplied themes can be easier
 */
 /*
 NOTE: This is just a proof of concept and will not be included,
@@ -103,6 +112,7 @@ Blocking Emojis (replacing them with text)
 var t= document.getElementsByClassName('emoji')
 for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span'); span.innerText='(smoking emoji)';e.replaceWith(span)}}
 */
+
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
@@ -805,13 +815,16 @@ else {
     }
     else common.log('tor wasn\'t running', 0)
 
-    //Make backup of logs
-    //Even though this won't work when the app is closed unexpectedly
-    //and it's not best practise
+    /*NOTE: Make backup of log file
+            Even though this won't work when the app is closed unexpectedly
+            and it's not best practise
+            using powerMonitor module with shutdown event might be a solution
+
     if (fs.existsSync(common.logFile)) {
       common.log('created backup of logs', 0)
       fs.renameSync(common.logFile, common.logFile + '.backup')
     }
+    */
   })
 }
 function createMenu () {
