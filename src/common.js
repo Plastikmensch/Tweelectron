@@ -194,7 +194,7 @@ var methods = {
         firstLog = false
         if (fs.existsSync(this.logFile)) {
           fs.renameSync(this.logFile, this.logFile + '.backup')
-          this.log('created backup of logs', 0)
+          fs.appendFileSync(this.logFile, 'created backup of logs\n')
         }
       }
       // Stringify message if it's an object, so logs don't say [object Object]
