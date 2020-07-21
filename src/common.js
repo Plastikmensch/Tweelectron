@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+/*
 let app
 if (process.type === 'browser') {//(path.basename(require.main.filename) === 'main.js') {
   app = require('electron').app
@@ -7,7 +8,7 @@ if (process.type === 'browser') {//(path.basename(require.main.filename) === 'ma
 else {
   app = require('electron').remote.app
 }
-
+*/
 let firstLog = true
 //const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
 /*
@@ -32,7 +33,7 @@ function SettingsFile () {
   }
   else {
     //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-    return path.join(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)), 'settings.json')
+    return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
   }
 }
 /*
@@ -205,9 +206,9 @@ var methods = {
       console.log(message)
     }
   },
-  themeDir: path.join(app.getPath('userData'), 'themes'),
-  appDir: app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)),
-  logFile: path.join(app.getPath('userData'), 'tweelectron.log'),
+  themeDir: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'themes') : path.join(process.env.HOME, '.config', 'Tweelectron', 'themes'),//path.join(app.getPath('userData'), 'themes'),
+  appDir: process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)),
+  logFile: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'tweelectron.log') : path.join(process.env.HOME, '.config', 'Tweelectron', 'tweelectron.log'),//path.join(app.getPath('userData'), 'tweelectron.log'),
   Settings: {
     useTor: null,
     useRoundPics: false,
