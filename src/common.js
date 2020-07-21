@@ -63,19 +63,19 @@ function readSettings () {
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'theme':
-          if (typeof value === 'number') {
+          if (typeof value === 'number' && value >= 0) {
             methods.Settings.theme = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'width':
-          if (typeof value === 'number') {
+          if (typeof value === 'number' && value >= 0) {
             methods.Settings.width = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
           break
         case 'height':
-          if (typeof value === 'number') {
+          if (typeof value === 'number' && value >= 0) {
             methods.Settings.height = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
@@ -102,12 +102,12 @@ function readSettings () {
           break
         case 'tor-browser-exe':
         case 'torBrowserExe':
-          if (value !== 'null') {
+          if (typeof value === 'string' && value !== 'null') {
             methods.Settings.torBrowserExe = value
           }
           break
         case 'logLevel':
-          if (typeof value === 'number') {
+          if (typeof value === 'number' && value >= 0) {
             methods.Settings.logLevel = value
           }
           else methods.log(`Error in Settings: value of ${key} is invalid type`)
