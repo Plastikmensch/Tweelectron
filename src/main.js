@@ -53,6 +53,8 @@
      [x] create loglevel setting, so it's not necessary to comment logs
      [x] create function for opening stuff (no code repetition)
      [] (Maybe) create new themes
+     [] provide better accessibility
+        - need a screenreader or audit tool
      1.1 Release:
      [x] find a way to bypass t.co links (Need help)
         - https://github.com/Spaxe/Goodbye--t.co- ?
@@ -66,8 +68,6 @@
         - (optional) open them in new window
      [x] fix font issues
      [x] rewrite for Electron 7 (uuuuuuuugh)
-     [] provide better accessibility
-        - need a screenreader or audit tool
      1.2 Release:
      [] bypass t.co on links in profiles (not really possible...)
         - links in profile description work, but link in profile doesn't
@@ -879,12 +879,7 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              /*
-              NOTE: enableRemoteModule is set to true to prevent breaking in Electron 10
-                    Read: https://www.electronjs.org/docs/breaking-changes#default-changed-enableremotemodule-defaults-to-false
-                    Need a better way for this not involving remote module
-              */
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true, enableRemoteModule: true } })
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
