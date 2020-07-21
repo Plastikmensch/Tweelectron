@@ -33,42 +33,41 @@ var changed = false
 //var Settings = common.getSettings()
 
 //read themeDir and add options to theme element
-if(fs.existsSync(common.themeDir))
-{
+if(fs.existsSync(common.themeDir)) {
   const themeFiles = fs.readdirSync(common.themeDir)
   for(var i=0;i<themeFiles.length;i++) {
-    var option = document.createElement("option")
+    var option = document.createElement('option')
     option.text=themeFiles[i].slice(0,themeFiles[i].lastIndexOf('.'))
-    document.getElementById("theme").add(option)
+    document.getElementById('theme').add(option)
   }
 }
 //Set values of elements to match settings
 //Why didn't I do .checked= common.Settings.Variable?
-if(common.Settings.useTor){
-  document.getElementById("useTor").checked=true
+if (common.Settings.useTor) {
+  document.getElementById('useTor').checked=true
 }
-if(common.Settings.openInTor){
-  document.getElementById("openInTor").checked=true
+if (common.Settings.openInTor) {
+  document.getElementById('openInTor').checked=true
 }
-if(common.Settings.useRoundPics){
-  document.getElementById("useRoundPics").checked=true
+if (common.Settings.useRoundPics) {
+  document.getElementById('useRoundPics').checked=true
 }
 //check if index exists
-if(common.Settings.theme > document.getElementById("theme").length-1) {
-  document.getElementById("theme").selectedIndex= 0
+if (common.Settings.theme > document.getElementById('theme').length-1) {
+  document.getElementById('theme').selectedIndex= 0
 }
 else {
-  document.getElementById("theme").selectedIndex= common.Settings.theme
+  document.getElementById('theme').selectedIndex= common.Settings.theme
 }
-if(common.Settings.useCustomProxy){
-  document.getElementById("useCustomProxy").checked=true
+if (common.Settings.useCustomProxy) {
+  document.getElementById('useCustomProxy').checked=true
 }
-document.getElementById("customProxy").value= common.Settings.customProxy
+document.getElementById('customProxy').value= common.Settings.customProxy
 //TODO: Probably safer to check if index exists
-document.getElementById("logLevel").selectedIndex = common.Settings.logLevel
+document.getElementById('logLevel').selectedIndex = common.Settings.logLevel
 
 function fileChanged() {
-  changed=true;
+  changed=true
 }
 //TODO: Needs rework
 function saveData() {
@@ -76,33 +75,36 @@ function saveData() {
   clearTimeout(timer)
   var path = common.Settings.torBrowserExe
   if(changed) {
-    path= document.getElementById("torBrowserExe").files[0].path
+    path = document.getElementById('torBrowserExe').files[0].path
   }
 
   const newSettings = {
-    useTor: document.getElementById("useTor").checked,
-    useRoundPics: document.getElementById("useRoundPics").checked,
-    theme: document.getElementById("theme").selectedIndex,
+    useTor: document.getElementById('useTor').checked,
+    useRoundPics: document.getElementById('useRoundPics').checked,
+    theme: document.getElementById('theme').selectedIndex,
     width: common.Settings.width,
     height: common.Settings.height,
-    useCustomProxy: document.getElementById("useCustomProxy").checked,
-    customProxy: document.getElementById("customProxy").value,
-    openInTor: document.getElementById("openInTor").checked,
+    useCustomProxy: document.getElementById('useCustomProxy').checked,
+    customProxy: document.getElementById('customProxy').value,
+    openInTor: document.getElementById('openInTor').checked,
     torBrowserExe: path,
-    logLevel: document.getElementById("logLevel").selectedIndex
+    logLevel: document.getElementById('logLevel').selectedIndex
   }
-  
+
   common.log(newSettings, 1)
 
-  if(ipcRenderer.sendSync('Settings', newSettings))
-  {
-    document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
-    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+  if (ipcRenderer.sendSync('Settings', newSettings)) {
+    document.getElementById('success').innerHTML = '<b>Settings saved!</b>'
+    timer = setTimeout(resetSuccess, 3000)
   }
   else {
-    document.getElementById("success").innerHTML = "<b>Already saved!</b>"
-    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+    document.getElementById('success').innerHTML = '<b>Already saved!</b>'
+    timer = setTimeout(resetSuccess, 3000)
   }
+}
+
+function resetSuccess () {
+  document.getElementById('success').innerHTML = ''
 }
 </script>
 </body>
