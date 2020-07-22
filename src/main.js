@@ -140,8 +140,7 @@ function TorFile () {
 }
 
 function createWindow () {
-  //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.Settings.width, height: common.Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true/*, nodeIntegration: true*/ } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.Settings.width, height: common.Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true } })
   createMenu()
 
   common.log(common.Settings, 1)
@@ -889,7 +888,7 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') } })
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
@@ -973,7 +972,7 @@ function createMenu () {
           common.log('focusing about window', 0)
         }
         else {
-          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
           common.log('created about window', 0)
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
