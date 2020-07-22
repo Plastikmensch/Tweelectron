@@ -9,7 +9,13 @@ else {
   app = require('electron').remote.app
 }
 */
+
 let firstLog = true
+//Fix for backup being created if common is required in other scripts
+if (process.type !== 'browser') {
+  firstLog = false
+}
+
 //const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
 /*
 const Settings = {
@@ -195,6 +201,7 @@ var methods = {
         if (fs.existsSync(this.logFile)) {
           fs.renameSync(this.logFile, this.logFile + '.backup')
           fs.appendFileSync(this.logFile, 'created backup of logs\n')
+          console.log('created backup of logs')
         }
       }
       // Stringify message if it's an object, so logs don't say [object Object]
