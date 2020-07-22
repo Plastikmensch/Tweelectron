@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" type="text/css" href="pages.css">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-EuZTlj83sqy5YGuX34l+TU5fr/UGZNikHRJlytTkLxg='">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-fcvsOwr5JlJCGhCpDXIWrowx3Dpcr5PnWMaRVxCt4JA='">
 </head>
 <body>
   <h1>About Tweelectron</h1>
@@ -14,11 +14,9 @@
     * Opens in default browser
   </p>
   <script type="text/javascript">
-    const fs = require('fs')
-    const path = require('path')
-    document.getElementById("app-version").innerText = fs.readFileSync(path.join(__dirname, 'tweelectron-version'),'utf8').trim()
-    document.getElementById("electron-version").innerText = process.versions.electron
-    document.getElementById("tor-version").innerText = process.platform === 'linux' ? fs.readFileSync(path.join(__dirname, 'tor-version-linux'),'utf8').trim() : fs.readFileSync(path.join(__dirname, 'tor-version-win'), 'utf8').trim()
+    document.getElementById("app-version").innerText = window.version.app
+    document.getElementById("electron-version").innerText = window.version.electron
+    document.getElementById("tor-version").innerText = window.version.tor
   </script>
 </body>
 </html>
