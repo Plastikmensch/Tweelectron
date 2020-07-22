@@ -60,52 +60,52 @@ function readSettings () {
           if (typeof value === 'boolean' ) {
             methods.Settings.useTor = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'use-round-pics':
         case 'useRoundPics':
           if (typeof value === 'boolean') {
             methods.Settings.useRoundPics = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'theme':
           if (typeof value === 'number' && value >= 0) {
             methods.Settings.theme = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'width':
           if (typeof value === 'number' && value >= 0) {
             methods.Settings.width = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'height':
           if (typeof value === 'number' && value >= 0) {
             methods.Settings.height = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'use-custom-proxy':
         case 'useCustomProxy':
           if (typeof value === 'boolean') {
             methods.Settings.useCustomProxy = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'customProxy':
           if (typeof value === 'string') {
             methods.Settings.customProxy = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'links-in-torbrowser':
         case 'openInTor':
           if (typeof value === 'boolean') {
             methods.Settings.openInTor = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         case 'tor-browser-exe':
         case 'torBrowserExe':
@@ -117,13 +117,20 @@ function readSettings () {
           if (typeof value === 'number' && value >= 0) {
             methods.Settings.logLevel = value
           }
-          else methods.log(`Error in Settings: value of ${key} is invalid type`)
+          else foundError(key)
           break
         default:
           methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
       }
     })
   }
+}
+
+function foundError (key) {
+  methods.log(`Error in Settings: value of ${key} is of invalid type`)
+  methods.errorInSettings.value = true
+  methods.errorInSettings.title = 'Error in Settings'
+  methods.errorInSettings.message += `value of ${key} is invalid\n`
 }
 /*
 function saveSettings () {
@@ -227,6 +234,11 @@ var methods = {
     openInTor: false,
     torBrowserExe: null,
     logLevel: 0
+  },
+  errorInSettings: {
+    value: false,
+    title: '',
+    message: ''
   }
 }
 

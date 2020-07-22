@@ -408,9 +408,7 @@ function createWindow () {
   mainWindow.on('closed', () => {
     app.quit()
   })
-  /*TODO: Needs rework
-          Since Settings can be set directly, using ipc is obsolete
-  */
+
   ipcMain.on('Settings', (event, newSettings) => {
     common.log('newSettings:', 1)
     common.log(newSettings, 1)
@@ -437,10 +435,7 @@ function createWindow () {
     event.returnValue = false
   })
   ipcMain.on('Themes', (event) => {
-    common.log('received themes ipc')
     checkThemes ()
-    common.log('checked themes')
-    common.log(`returning ${themeAll}`)
     event.returnValue = themeAll
   })
 
@@ -612,6 +607,12 @@ else {
     //Disable Electrons default application menu
     Menu.setApplicationMenu(null)
 
+    //exit immediately if settings are faulty
+    if (common.errorInSettings.value) {
+      dialog.showMessageBoxSync({type: 'error', buttons: ['Quit'], message: common.errorInSettings.message, title: common.errorInSettings.title})
+      app.exit()
+    }
+
     //Show dialog asking if user wants to use tor if useTor is unset
     if (common.Settings.useTor === null) {
       common.log('tor variable unset', 0)
@@ -630,6 +631,7 @@ else {
     if (common.Settings.useTor && !common.Settings.useCustomProxy) {
       startTor()
     }
+
     createWindow()
 
     checkThemes()
