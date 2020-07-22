@@ -25,13 +25,24 @@
 <p id="success"></p>
 
 <script type="text/javascript">
+/*
 const fs = require('fs')
 const { ipcRenderer } = require('electron')
 const common = require('./common.js')
-
+*/
+const ipcRenderer = window.api
+const common = window.api.common
 var changed = false
 //var Settings = common.getSettings()
 
+const themes = window.api.sendSync('Themes')
+common.log(themes)
+for (const theme of themes) {
+  var option = document.createElement('option')
+  option.text = theme.slice(0,theme.lastIndexOf('.'))
+  document.getElementById('theme').add(option)
+}
+/*
 //read themeDir and add options to theme element
 if(fs.existsSync(common.themeDir)) {
   const themeFiles = fs.readdirSync(common.themeDir)
@@ -41,6 +52,7 @@ if(fs.existsSync(common.themeDir)) {
     document.getElementById('theme').add(option)
   }
 }
+*/
 //Set values of elements to match settings
 //Why didn't I do .checked= common.Settings.Variable?
 if (common.Settings.useTor) {
