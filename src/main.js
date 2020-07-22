@@ -92,7 +92,7 @@
         - issue caused by going back from 1.2.x to 1.1.x
         - if settings can't be read, treat them as nonexistent
         - if value is of wrong type, default value is used now
-     [] inform users of errors in settings
+     [x] inform users of errors in settings
         - dialogs won't work before ready event
         - showErrorBox is useless on Linux
           - won't show up
@@ -203,88 +203,7 @@ function createWindow () {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics', 0)
     }
-    /*
-    if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
-    {
-      //First: Dropdown menu (Settings, account actions)
-      //Second: Keyboard shortcuts
-      //Third: Settings
-      //Fourth: Search
-      //Fifth: Profile
-      //Sixth: Profile -> Tweets, Mentions, Lists etc.
-      //Seventh: Tweets (Pictures, Videos)
 
-      //Twitter bg color #15202b
-      //Not needed anymore
-      //mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
-
-      //Basically not needed anymore and full of obsolete stuff
-
-      /*html.dark .dropdown-menu{background-color: #243447 !important}\
-      html.dark .non-selectable-item{color: #e1e8ed !important}\
-      html.dark .dropdown-menu .typeahead-item, html.dark .dropdown-menu [data-action]{color: #e1e8ed !important}\
-      html.dark .dropdown-menu .dropdown-menu-url-item{color: #e1e8ed !important}\
-      \
-      html.dark .mdl{background-color: #243447 !important}\
-      html.dark .text-like-keyboard-key{color: #292f33 !important}\
-      html.dark .keyboard-shortcut-list{color: #e1e8ed !important}\
-      html.dark .mdl-header{color: #e1e8ed !important}\
-      html.dark .mdl-dismiss{color: #e1e8ed !important}\
-      .txt-r-deep-gray{color: #e1e8ed !important}\
-      .bg-r-white{background-color: #243447 !important}\
-      \
-      html.dark .mdl-col-settings{background-color: #243447 !important}\
-      html.dark .frm{color: #e1e8ed !important}\
-      html.dark .bg-color-twitter-lightest-gray{background-color: #243447 !important}\
-      html.dark .is-inverted-dark .list-link{color: #e1e8ed !important}\
-      html.dark .list-filter{color: #e1e8ed !important}\
-      html.dark .list-link:hover:hover{color: #e1e8ed !important; background-color: #1B2836 !important}\
-      \
-      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
-      .txt-twitter-dark-black{color: #e1e8ed !important}\
-      html.dark .is-inverted-dark{color: #e1e8ed !important}\
-      html.dark .popover{background-color: #243447 !important}\
-      .caret-inner{border-bottom: 6px solid #243447 !important}\
-      html.dark .list-item{color: #e1e8ed !important}\
-      html.dark .bg-color-twitter-white{background-color: #243447 !important}\
-      html.dark .color-twitter-dark-gray{color:#fff !important}\
-      html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #1B2836 !important}\
-      html.dark .Button{background-color: #1B2836 !important}\
-      html.dark .Button:hover{background-color: #1B2836 !important}\
-      \
-      html.dark .prf-meta{background-color: #1B2836 !important}\
-      html.dark .prf-stats a strong{color: #e1e8ed !important}\
-      html.dark .social-proof-container{background-color: #1B2836 !important}\
-      html.dark .is-inverted-dark .btn:hover, html.dark .is-inverted-dark .btn:focus{background-color: #243447 !important}\
-      html.dark .Button{background-color: #1B2836 !important}\
-      html.dark .btn-round{background-color: #1B2836 !important}\
-      html.dark .Button:hover{background-color: #243447 !important}\
-      html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
-      html.dark .s-thats-you .thats-you-text{background-color: #1B2836 !important}\
-      html.dark .s-thats-you .thats-you-text:hover{background-color: #243447 !important}\
-      html.dark .s-not-following .follow-text{background-color: #1b2836 !important}\
-      \
-      html.dark .mdl-column-med{background: #243447 !important}\
-      html.dark .mdl-column-rhs{background: #243447 !important}\
-      html.dark .is-inverted-dark .stream-item{background-color: #1B2836 !important}\
-      html.dark .is-inverted-dark .account-link{color: #e1e8ed !important}\
-      html.dark .list-account .fullname{color: #e1e8ed !important}\
-      html.dark .column-background-fill{background-color: #243447 !important}\
-      html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
-      .list-btn{background-color: #243447 !important;border-color: #000 !important}\
-      .list-btn:hover{background-color: #1B2836 !important}\
-      .list-explaination{background-color: #243447 !important}\
-      .page-bottom{background-color: #243447 !important;color: #7a8994 !important}\
-      html.dark .modal-content-with-border{border: 1px solid #000 !important}\
-      .list-btn:first-of-type{border: 2px solid #000 !important}\
-      \
-      html.dark .med-fullpanel{background-color: #14171A !important}\
-      html.dark .is-unread{background-color: #2d4a6d !important}\
-      html.dark .color-twitter-dark-black{color: #fff !important}\
-      ")
-      console.log("inserted code for blue theme")
-    }
-    */
     //If theme is selected and url matches tweetdeck, read theme file and insert css
     if (common.Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
       const themeFile = path.join(common.themeDir, themeAll[common.Settings.theme - 1])
@@ -348,11 +267,7 @@ function createWindow () {
       OpenUrl(url)
     }
   })
-  /*
-  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
-    common.log(`mainWindow log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
-  })
-  */
+
   //Login button doesn't call this anymore
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (url.search('https://twitter.com/login') === 0) {
@@ -464,8 +379,9 @@ function startTor () {
 function CheckForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
     if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
-    //console.log(JSON.stringify(response.headers))
-    response.setEncoding('utf8')//makes d readable
+    //Make response readable
+    response.setEncoding('utf8')
+
     let data = ''
     //Warning: gets called multiple times
     response.on('data', (d) => {
@@ -634,108 +550,6 @@ else {
     createWindow()
 
     checkThemes()
-    /*
-    const themeTrulyDark =
-    //Overall appearance (Tweets, sidebar etc.)
-    'html.dark .stream-item{background-color: #222426 !important}\n' +
-    'html.dark .column-nav-item{background-color: #292f33 !important}\n' +
-    'html.dark .app-header{background-color: #292f33 !important}\n' +
-    'html.dark .app-navigator{background-color: #292f33 !important}\n' +
-    'html.dark .app-title{background-color: #292f33 !important}\n' +
-    'html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\n' +
-    'html.dark .column-message{background-color: #292f33 !important}\n' +
-    'html.dark .app-content{background-color: #222426 !important}\n' +
-    'html.dark .column{background-color: #222426 !important}\n' +
-    'html.dark .app-columns-container{background-color: #14171a !important}\n' +
-    'html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark{color: #fff !important}\n' +
-    'html.dark .scroll-conversation{background: #222426 !important}\n' +
-    'html.dark .detail-view-inline{background-color: #222426 !important}\n' +
-    'html.dark .detail-view-inline-text{background-color: #292f33 !important}\n' +
-    'html.dark .app-search-input{background-color: #222426 !important}\n' +
-    'html.dark .column-scroller{background-color: #222426 !important}\n' +
-    'html.dark .compose{background-color: #495966 !important}\n' +
-    'html.dark .old-composer-footer{background-color: #495966 !important}\n' +
-    'html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}\n' +
-    'html.dark .column-panel{background-color: #495966 !important}\n' +
-    'html.dark .accounts-drawer{background-color: #495966 !important}\n' + //TweetDeck, please stop using !important in your stylesheet
-    'html.dark .popover{background-color: #222426 !important}\n' +
-    'html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}\n' +
-    'html.dark .account-settings-row{background-color: #292f33 !important}\n' +
-    'html.dark .join-team{background-color: #292f33 !important}\n' +
-    'html.dark .app-nav-tab.is-selected{background-color: #111 !important}\n' +
-    'html.dark input.light-on-dark{color: #fff !important}\n' +
-    'html.dark #caltoday{color: #444 !important}\n' +
-    //Column options
-    'html.dark .column-options{background-color: #2a2c2d !important}\n' +
-    'html.dark .column-options .button-tray{background-color: #2a2c2d !important}\n' +
-    'html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\n' +
-    'html.dark .facet-type.is-active{background-color: #2a2c2d !important}\n' +
-    //Dropdown
-    '.caret-inner{border-bottom: 6px solid #222426 !important}\n' +
-    '.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\n' +
-    'html.dark .non-selectable-item{color: #fff !important}\n' +
-    //Search Tips
-    'html.dark .bg-color-twitter-white{background-color: #222426 !important}\n' +
-    'html.dark .color-twitter-dark-gray{color: #fff !important}\n' +
-    'html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\n' +
-    'html.dark .Button{background-color: #111 !important}\n' +
-    'html.dark .Button:hover{background-color: #111 !important}\n' +
-    'html.dark .mdl-dismiss{color: #fff !important}\n' +
-    //Keyboard shortcuts
-    'html.dark .color-twitter-dark-black{color: #fff !important}\n' +
-    '.text-like-keyboard-key{color: #000 !important}\n' +
-    //Settings
-    '.list-link:hover{background-color: #0e0e0e !important}\n' +
-    'html.dark .mdl{background-color: #222426 !important}\n' +
-    'html.dark .mdl-col-settings{background-color: #222426 !important}\n' +
-    'html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\n' +
-    'html.dark .frm{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark .list-link{color: #fff !important}\n' +
-    'html.dark .list-link:hover:hover{color: #fff !important}\n' +
-    'html.dark .list-filter{color: #fff !important}\n' +
-    'html.dark .mdl-header{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\n' +
-    //Profile
-    'html.dark .social-proof-container{background-color: #292f33 !important}\n' +
-    '.prf-stats a strong{color: #8899a6 !important}\n' +
-    'html.dark .prf-meta{background-color: #222426 !important}\n' +
-    'html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\n' +
-    'html.dark .mdl-column-med{background: #222426 !important}\n' +
-    'html.dark .list-account .fullname{color: #fff !important}\n' +
-    'html.dark .list-account:hover:hover{background: #111 !important}\n' +
-    'html.dark .is-inverted-dark .account-link{color: #fff !important}\n' +
-    'html.dark .column-header-temp{background-color: #222426 !important}\n' +
-    'html.dark .column-background-fill{background-color: #222426 !important}\n' +
-    'html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\n' +
-    'html.dark .Button{background-color: #222426 !important}\n' +
-    'html.dark .btn-round{background-color: #222426 !important}\n' +
-    'html.dark .Button:hover{background-color: #292f33 !important}\n' +
-    'html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\n' +
-    'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
-    'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
-    'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
-
-    const fileTrulyDark = path.join(common.themeDir, 'Truly Dark.css')
-
-    if (!fs.existsSync(common.themeDir)) {
-      fs.mkdirSync(common.themeDir)
-      fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-      common.log('created Truly Dark.css', 0)
-    }
-    if (fs.existsSync(common.themeDir)) {
-      themeAll = fs.readdirSync(common.themeDir)
-      if (fs.existsSync(fileTrulyDark)) {
-        const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
-        if (themeTemp !== themeTrulyDark.trim()) {
-          fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-          common.log('updated Truly Dark', 0)
-        }
-      }
-      common.log(themeAll, 1)
-      common.log(`found ${themeAll.length} theme(s)`, 0)
-    }
-    */
   })
 
   //"Crashinfo"
@@ -859,17 +673,6 @@ else {
       common.log('stopped tor', 0)
     }
     else common.log('tor wasn\'t running', 0)
-
-    /*NOTE: Make backup of log file
-            Even though this won't work when the app is closed unexpectedly
-            and it's not best practise
-            using powerMonitor module with shutdown event might be a solution
-
-    if (fs.existsSync(common.logFile)) {
-      common.log('created backup of logs', 0)
-      fs.renameSync(common.logFile, common.logFile + '.backup')
-    }
-    */
   })
 }
 function createMenu () {

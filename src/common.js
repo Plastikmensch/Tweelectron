@@ -1,14 +1,5 @@
 const path = require('path')
 const fs = require('fs')
-/*
-let app
-if (process.type === 'browser') {//(path.basename(require.main.filename) === 'main.js') {
-  app = require('electron').app
-}
-else {
-  app = require('electron').remote.app
-}
-*/
 
 let firstLog = true
 //Fix for backup being created if common is required in other scripts
@@ -16,21 +7,6 @@ if (process.type !== 'browser') {
   firstLog = false
 }
 
-//const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
-/*
-const Settings = {
-  useTor: null,
-  useRoundPics: false,
-  theme: 0,
-  width: 1336,
-  height: 720,
-  useCustomProxy: false,
-  customProxy: 'foopy:80',
-  openInTor: false,
-  torBrowserExe: null,
-  logLevel: 0
-}
-*/
 const settingsFile = SettingsFile()
 
 function SettingsFile () {
@@ -42,13 +18,6 @@ function SettingsFile () {
     return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
   }
 }
-/*
-app.on('ready', () => {
-  if (app.hasSingleInstanceLock() && fs.existsSync(logFile)) {
-    fs.renameSync(logFile, logFile + '.backup')
-  }
-})
-*/
 
 function readSettings () {
   if (fs.existsSync(settingsFile)) {
@@ -132,75 +101,13 @@ function foundError (key) {
   methods.errorInSettings.title = 'Error in Settings'
   methods.errorInSettings.message += `value of ${key} is invalid\n`
 }
-/*
-function saveSettings () {
-  fs.writeFileSync(settingsFile, JSON.stringify(Settings, null, 4))
-  methods.log('Settings saved', 0)
-  readSettings ()
-}
-*/
+
 var methods = {
-  /*
-  readSettings: function () {
-    if (fs.existsSync(settingsFile)) {
-      JSON.parse(fs.readFileSync(settingsFile, 'utf8'), function (key, value) {
-        //Doing Settings[key] = value is more efficient but breaks backwards compability
-        switch (key) {
-          case 'use-tor':
-          case 'useTor':
-            Settings.useTor = value
-            break
-          case 'use-round-pics':
-          case 'useRoundPics':
-            Settings.useRoundPics = value
-            break
-          case 'theme':
-            Settings.theme = value
-            break
-          case 'width':
-            Settings.width = value
-            break
-          case 'height':
-            Settings.height = value
-            break
-          case 'use-custom-proxy':
-          case 'useCustomProxy':
-            Settings.useCustomProxy = value
-            break
-          case 'customProxy':
-            Settings.customProxy = value
-            break
-          case 'links-in-torbrowser':
-          case 'openInTor':
-            Settings.openInTor = value
-            break
-          case 'tor-browser-exe':
-          case 'torBrowserExe':
-            if (value !== 'null') {
-              Settings.torBrowserExe = value
-            }
-            break
-          case 'logLevel':
-            Settings.logLevel = value
-            break
-          default:
-            methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
-        }
-      })
-    }
-    return Settings
-  },
-  */
   saveSettings: function () {
     fs.writeFileSync(settingsFile, JSON.stringify(this.Settings, null, 4))
     this.log('Settings saved', 0)
     readSettings()
   },
-  /*
-  getSettings: function () {
-    return this.Settings
-  },
-  */
   log: function (message, level = 0) {
     if (level <= this.Settings.logLevel) {
       if (firstLog) {
