@@ -436,6 +436,13 @@ function createWindow () {
     }
     event.returnValue = false
   })
+  ipcMain.on('Themes', (event) => {
+    common.log('received themes ipc')
+    checkThemes ()
+    common.log('checked themes')
+    common.log(`returning ${themeAll}`)
+    event.returnValue = themeAll
+  })
 
   CheckForUpdates()
   //Set icon on Linux
@@ -549,6 +556,7 @@ function checkThemes () {
   themeAll = fs.readdirSync(common.themeDir)
   common.log(`found ${themeAll.length} theme(s)`, 0)
 }
+
 //Block unused remote modules
 app.on('remote-require', (event, webContents, moduleName) => {
   common.log(`remote ${moduleName} required`, 1)
@@ -879,7 +887,7 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: true } })
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
