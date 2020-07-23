@@ -397,9 +397,9 @@ function CheckForUpdates () {
 
       const current = `v${fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()}`
 
-      fulldata.body = fulldata.body.replace(/__changes__/i, 'Changes:')
-      fulldata.body = fulldata.body.replace(/__windows__/i, 'Windows:')
-      fulldata.body = fulldata.body.replace(/__linux__/i, 'Linux:')
+      fulldata.body = fulldata.body.replace(/__.+__/g, function (x) {
+        return `${x.replace(/_/g, '')}:`
+      })
 
       if(current !== fulldata.tag_name) {
         dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: ${current}\nlatest version: ${fulldata.tag_name}\n\n${fulldata.body}` })
