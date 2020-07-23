@@ -205,7 +205,7 @@ function createWindow () {
     }
 
     //If theme is selected and url matches tweetdeck, read theme file and insert css
-    if (common.Settings.theme > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
+    if (common.Settings.theme > 0 && mainWindow.webContents.getURL().search(home) === 0) {
       const themeFile = path.join(common.themeDir, themeAll[common.Settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
@@ -467,7 +467,8 @@ function checkThemes () {
   common.log(`found ${themeAll.length} theme(s)`, 0)
 }
 
-//Block unused remote modules
+//Block remote modules
+//NOTE: The new default of disabling the remote module makes this obsolete in Electron 10
 app.on('remote-require', (event, webContents, moduleName) => {
   common.log(`remote ${moduleName} required`, 1)
   event.preventDefault()
@@ -475,10 +476,7 @@ app.on('remote-require', (event, webContents, moduleName) => {
 
 app.on('remote-get-builtin', (event, webContents, moduleName) => {
   common.log(`remote get builtin ${moduleName}`, 1)
-  if (moduleName !== 'app') {
-    event.preventDefault()
-    common.log(`preventing ${moduleName} from loading`, 1)
-  }
+  event.preventDefault()
 })
 
 app.on('remote-get-global', (event, webContents, globalName) => {
@@ -558,6 +556,9 @@ else {
   })
   app.on('renderer-process-crashed', (event, webContents, killed) => {
     if (!killed) common.log('Renderer crashed', 0)
+  })
+  app.on('render-process-gone', (event, webContents, details) => {
+    common.log(`Renderer gone ${details.reason}`)
   })
 
   app.on('web-contents-created', (event, contents) => {
