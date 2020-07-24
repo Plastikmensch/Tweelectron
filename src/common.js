@@ -96,7 +96,7 @@ function readSettings () {
 
 function foundError (key) {
   methods.log(`Error in Settings: value of ${key} is of invalid type`)
-  methods.errorInSettings.value = true
+  methods.errorInSettings.found = true
   methods.errorInSettings.title = 'Error in Settings'
   methods.errorInSettings.message += `value of ${key} is invalid\n`
 }
@@ -142,7 +142,7 @@ var methods = {
     logLevel: 0
   },
   errorInSettings: {
-    value: false,
+    found: false,
     title: '',
     message: ''
   }

@@ -519,7 +519,7 @@ else {
     Menu.setApplicationMenu(null)
 
     //exit immediately if settings are faulty
-    if (common.errorInSettings.value) {
+    if (common.errorInSettings.found) {
       dialog.showMessageBoxSync({type: 'error', buttons: ['Quit'], message: common.errorInSettings.message, title: common.errorInSettings.title})
       app.exit()
     }
