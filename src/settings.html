@@ -28,7 +28,7 @@
 var changed = false
 
 //Send ipc to main to get themes and add options to theme element
-const themes = window.api.sendSync('Themes')
+const themes = window.api.ipc.sendSync('Themes')
 for (const theme of themes) {
   var option = document.createElement('option')
   option.text = theme.slice(0,theme.lastIndexOf('.'))
@@ -36,38 +36,36 @@ for (const theme of themes) {
 }
 
 //Set values of elements to match settings
-//Why didn't I do .checked= window.api.common.settings.Variable?
-if (window.api.common.settings.useTor) {
-  document.getElementById('useTor').checked=true
-}
-if (window.api.common.settings.openInTor) {
-  document.getElementById('openInTor').checked=true
-}
-if (window.api.common.settings.useRoundPics) {
-  document.getElementById('useRoundPics').checked=true
-}
-//check if index exists
+document.getElementById('useTor').checked = window.api.common.settings.useTor
+document.getElementById('openInTor').checked = window.api.common.settings.openInTor
+document.getElementById('useRoundPics').checked = window.api.common.settings.useRoundPics
+document.getElementById('useCustomProxy').checked = window.api.common.settings.useCustomProxy
+document.getElementById('customProxy').value = window.api.common.settings.customProxy
+//check if index exists, default to 0
 if (window.api.common.settings.theme > document.getElementById('theme').length-1) {
   document.getElementById('theme').selectedIndex= 0
 }
 else {
   document.getElementById('theme').selectedIndex= window.api.common.settings.theme
 }
-if (window.api.common.settings.useCustomProxy) {
-  document.getElementById('useCustomProxy').checked=true
+//check if index exists, default to highest option
+if (window.api.common.settings.logLevel > document.getElementById('logLevel').length-1) {
+  document.getElementById('logLevel').selectedIndex = document.getElementById('logLevel').length-1
 }
-document.getElementById('customProxy').value= window.api.common.settings.customProxy
-//TODO: Probably safer to check if index exists
-document.getElementById('logLevel').selectedIndex = window.api.common.settings.logLevel
+else {
+  document.getElementById('logLevel').selectedIndex = window.api.common.settings.logLevel
+}
 
 function fileChanged() {
   changed=true
 }
-//TODO: Needs rework
+
 function saveData() {
   var timer
-  clearTimeout(timer)
   var path = window.api.common.settings.torBrowserExe
+
+  clearTimeout(timer)
+
   if(changed) {
     path = document.getElementById('torBrowserExe').files[0].path
   }
@@ -87,18 +85,14 @@ function saveData() {
 
   window.api.common.log(newSettings, 1)
 
-  if (window.api.sendSync('Settings', newSettings)) {
+  if (window.api.ipc.sendSync('Settings', newSettings)) {
     document.getElementById('success').innerHTML = '<b>Settings saved!</b>'
-    timer = setTimeout(resetSuccess, 3000)
   }
   else {
     document.getElementById('success').innerHTML = '<b>Already saved!</b>'
-    timer = setTimeout(resetSuccess, 3000)
   }
-}
 
-function resetSuccess () {
-  document.getElementById('success').innerHTML = ''
+  timer = setTimeout(function () { document.getElementById('success').innerHTML = '' }, 3000)
 }
 </script>
 </body>
