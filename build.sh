@@ -1,4 +1,10 @@
 #!/bin/bash
+if ! electron-packager --version
+then
+  echo "electron-packager not installed"
+  echo "install using: sudo npm install electron-packager -g"
+  exit
+fi
 npm update electron
 cp package.json ./src/
 electron-packager ./src --platform=linux --arch=x64,ia32 --overwrite --asar --ignore="tor-(linux|win32)" --extra-resource="./src/tor-linux" --out ./dist
