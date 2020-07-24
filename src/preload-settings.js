@@ -4,15 +4,17 @@ const common = require('./common.js')
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld(
   'api', {
-    sendSync: (channel, data) => {
-      // whitelist channels
-      let validChannels = ['Settings', 'Themes']
+    ipc: {
+      sendSync: (channel, data) => {
+        // whitelist channels
+        let validChannels = ['Settings', 'Themes']
 
-      if (validChannels.includes(channel)) {
-        return ipcRenderer.sendSync(channel, data)
-      }
-      else {
-        common.log('prevented invalid ipc call', 0)
+        if (validChannels.includes(channel)) {
+          return ipcRenderer.sendSync(channel, data)
+        }
+        else {
+          common.log('prevented invalid ipc call', 0)
+        }
       }
     },
     common: {
