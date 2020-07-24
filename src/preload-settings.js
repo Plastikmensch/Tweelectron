@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld(
       log: (message, logLevel = 0) => {
         common.log(message, logLevel)
       },
-      Settings: common.Settings
+      settings: common.settings
     }
   }
 )

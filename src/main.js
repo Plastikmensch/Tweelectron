@@ -119,18 +119,16 @@ const childProcess = require('child_process')
 const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
 
-//let Settings = common.getSettings()
-let child
-
-const tor = TorFile()
+const torFile = getTorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
 const singleInstance = app.requestSingleInstanceLock()
 
 let themeAll, urlList
-let mainWindow, settingsWin, twitterwin, aboutWin
+let mainWindow, settingsWin, loginWin, aboutWin
+let torProcess
 
 //process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
-function TorFile () {
+function getTorFile () {
   if (process.platform === 'linux') {
     return process.resourcesPath + '/tor-linux/tor'
   }
@@ -140,10 +138,10 @@ function TorFile () {
 }
 
 function createWindow () {
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.Settings.width, height: common.Settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true } })
   createMenu()
 
-  common.log(common.Settings, 1)
+  common.log(common.settings, 1)
   common.log(common.themeDir, 1)
   common.log(common.appDir, 1)
 
@@ -151,8 +149,8 @@ function createWindow () {
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
 
-  if (common.Settings.useCustomProxy) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: common.Settings.customProxy })
+  if (common.settings.useCustomProxy) {
+    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
 
     if (proxy) {
       mainWindow.loadURL(home)
@@ -162,7 +160,7 @@ function createWindow () {
       common.log('custom proxy failed', 0)
     }
   }
-  else if (common.Settings.useTor) {
+  else if (common.settings.useTor) {
     let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
 
     if (proxy) {
@@ -199,14 +197,14 @@ function createWindow () {
   })
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    if (!common.Settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
+    if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics', 0)
     }
 
     //If theme is selected and url matches tweetdeck, read theme file and insert css
-    if (common.Settings.theme > 0 && mainWindow.webContents.getURL().search(home) === 0) {
-      const themeFile = path.join(common.themeDir, themeAll[common.Settings.theme - 1])
+    if (common.settings.theme > 0 && mainWindow.webContents.getURL().search(home) === 0) {
+      const themeFile = path.join(common.themeDir, themeAll[common.settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
         common.log(themeFile, 1)
@@ -242,7 +240,7 @@ function createWindow () {
 
   mainWindow.webContents.on('new-window', (event, url) => {
     //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
-    if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
+    if (url.search('https://tweetdeck.twitter.com/') !== 0 && url.search('https://twitter.com/') !== 0) {
       event.preventDefault()
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
@@ -264,7 +262,7 @@ function createWindow () {
         }
       }
       //NOTE: Applying removal of ?format... breaks replaced image links
-      OpenUrl(url)
+      openUrl(url)
     }
   })
 
@@ -272,12 +270,12 @@ function createWindow () {
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (url.search('https://twitter.com/login') === 0) {
       event.preventDefault()
-      twitterwin = new BrowserWindow({ parent: mainWindow })
-      twitterwin.removeMenu()
-      if (common.Settings.useCustomProxy) {
-        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: common.Settings.customProxy })
+      loginWin = new BrowserWindow({ parent: mainWindow })
+      loginWin.removeMenu()
+      if (common.settings.useCustomProxy) {
+        let proxy = loginWin.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
         if (proxy) {
-          twitterwin.loadURL(url)
+          loginWin.loadURL(url)
           common.log('using custom Proxy', 0)
         }
         else {
@@ -285,10 +283,10 @@ function createWindow () {
         }
       }
       else {
-        if (common.Settings.useTor) {
-          let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+        if (common.settings.useTor) {
+          let proxy = loginWin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
           if (proxy) {
-            twitterwin.loadURL(url)
+            loginWin.loadURL(url)
             common.log('using Tor', 0)
           }
           else {
@@ -296,26 +294,26 @@ function createWindow () {
           }
         }
         else {
-          twitterwin.loadURL(url)
+          loginWin.loadURL(url)
           common.log('Not using Tor or custom Proxy', 0)
         }
       }
-      twitterwin.webContents.on('did-fail-load', () => {
-        twitterwin.loadURL(url2)
+      loginWin.webContents.on('did-fail-load', () => {
+        loginWin.loadURL(url2)
         common.log('failed to load', 0)
       })
-      event.newGuest = twitterwin
-      twitterwin.webContents.on('will-navigate', (event, url) => {
+      event.newGuest = loginWin
+      loginWin.webContents.on('will-navigate', (event, url) => {
         mainWindow.loadURL(url)
-        twitterwin.close()
+        loginWin.close()
       })
     }
   })
 
   mainWindow.on('close', (event) => {
     const size = mainWindow.getSize()
-    common.Settings.width = size[0]//width
-    common.Settings.height = size[1]//height
+    common.settings.width = size[0]//width
+    common.settings.height = size[1]//height
     common.saveSettings()
   })
 
@@ -326,15 +324,15 @@ function createWindow () {
   ipcMain.on('Settings', (event, newSettings) => {
     common.log('newSettings:', 1)
     common.log(newSettings, 1)
-    for (var i in common.Settings) {
-      if (common.Settings[i] !== newSettings[i]) {
+    for (var i in common.settings) {
+      if (common.settings[i] !== newSettings[i]) {
         common.log('change in Settings', 1)
         let reload = false
-        if (common.Settings.theme !== newSettings.theme) {
+        if (common.settings.theme !== newSettings.theme) {
           reload = true
         }
 
-        common.Settings = newSettings
+        common.settings = newSettings
 
         if (reload) {
           mainWindow.reload()
@@ -342,7 +340,7 @@ function createWindow () {
 
         common.saveSettings()
         common.log('Settings:', 1)
-        common.log(common.Settings, 1)
+        common.log(common.settings, 1)
         event.returnValue = true
       }
     }
@@ -353,7 +351,7 @@ function createWindow () {
     event.returnValue = themeAll
   })
 
-  CheckForUpdates()
+  checkForUpdates()
   //Set icon on Linux
   if (process.platform === 'linux') {
     mainWindow.setIcon(icon)
@@ -362,21 +360,21 @@ function createWindow () {
 function startTor () {
   common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`, 1)
   common.log('starting Tor', 0)
-  child = childProcess.execFile(tor, (err) => {
+  torProcess = childProcess.execFile(torFile, (err) => {
     if (err) {
       common.log('couldn\'t start tor. (already running?)', 0)
       common.log(err, 0)
     }
   })
-  common.log(`pid: ${child.pid}`, 1)
+  common.log(`pid: ${torProcess.pid}`, 1)
 
-  child.on('exit', (code, signal) => {
+  torProcess.on('exit', (code, signal) => {
     common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`, 0)
-    child = undefined
+    torProcess = undefined
   })
 }
 
-function CheckForUpdates () {
+function checkForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
     if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
     //Make response readable
@@ -412,16 +410,16 @@ function CheckForUpdates () {
   })
 }
 
-function OpenUrl (url) {
-  if (!common.Settings.openInTor) {
+function openUrl (url) {
+  if (!common.settings.openInTor) {
     shell.openExternal(url)//opens link in default browser
     common.log('opened link external', 0)
   }
   else {
-    if (common.Settings.torBrowserExe !== null) {
-      common.log(common.Settings.torBrowserExe, 1)
+    if (common.settings.torBrowserExe !== null) {
+      common.log(common.settings.torBrowserExe, 1)
       //allow remote and new tab might break opening links with other browsers
-      const linkChild = childProcess.spawn(common.Settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
+      const linkChild = childProcess.spawn(common.settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
       linkChild.on('error', (err) => {
         common.log(err, 0)
       })
@@ -527,21 +525,21 @@ else {
     }
 
     //Show dialog asking if user wants to use tor if useTor is unset
-    if (common.Settings.useTor === null) {
+    if (common.settings.useTor === null) {
       common.log('tor variable unset', 0)
       const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
 
       if (dialogTor) {
-        common.Settings.useTor = true
+        common.settings.useTor = true
         common.log('clicked YES', 0)
       }
       else {
-        common.Settings.useTor = false
+        common.settings.useTor = false
         common.log('clicked NO', 0)
       }
       common.saveSettings()
     }
-    if (common.Settings.useTor && !common.Settings.useCustomProxy) {
+    if (common.settings.useTor && !common.settings.useCustomProxy) {
       startTor()
     }
 
@@ -611,7 +609,7 @@ else {
             if (params.srcURL.search('https://pbs.twimg.com/media') === 0) {
               params.srcURL = `${params.srcURL.slice(0, params.srcURL.lastIndexOf('?'))}.jpg`
             }
-            OpenUrl(params.srcURL)
+            openUrl(params.srcURL)
           }
         }))
         cmenu.append(new MenuItem({
@@ -669,8 +667,8 @@ else {
   app.on('quit', () => {
     common.log('Quitting Tweelectron', 0)
     //terminate tor when app is closed
-    if (child !== undefined) {
-      child.kill()
+    if (torProcess !== undefined) {
+      torProcess.kill()
       common.log('stopped tor', 0)
     }
     else common.log('tor wasn\'t running', 0)

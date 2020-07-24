@@ -7,9 +7,8 @@ if (process.type !== 'browser') {
   firstLog = false
 }
 
-const settingsFile = SettingsFile()
-
-function SettingsFile () {
+const settingsFile = getSettingsFile()
+function getSettingsFile() {
   if (process.platform === 'linux') {
     return process.env.HOME + '/.config/Tweelectron/settings.json'
   }
@@ -27,64 +26,64 @@ function readSettings () {
         case 'use-tor':
         case 'useTor':
           if (typeof value === 'boolean' ) {
-            methods.Settings.useTor = value
+            methods.settings.useTor = value
           }
           else foundError(key)
           break
         case 'use-round-pics':
         case 'useRoundPics':
           if (typeof value === 'boolean') {
-            methods.Settings.useRoundPics = value
+            methods.settings.useRoundPics = value
           }
           else foundError(key)
           break
         case 'theme':
           if (typeof value === 'number' && value >= 0) {
-            methods.Settings.theme = value
+            methods.settings.theme = value
           }
           else foundError(key)
           break
         case 'width':
           if (typeof value === 'number' && value >= 0) {
-            methods.Settings.width = value
+            methods.settings.width = value
           }
           else foundError(key)
           break
         case 'height':
           if (typeof value === 'number' && value >= 0) {
-            methods.Settings.height = value
+            methods.settings.height = value
           }
           else foundError(key)
           break
         case 'use-custom-proxy':
         case 'useCustomProxy':
           if (typeof value === 'boolean') {
-            methods.Settings.useCustomProxy = value
+            methods.settings.useCustomProxy = value
           }
           else foundError(key)
           break
         case 'customProxy':
           if (typeof value === 'string') {
-            methods.Settings.customProxy = value
+            methods.settings.customProxy = value
           }
           else foundError(key)
           break
         case 'links-in-torbrowser':
         case 'openInTor':
           if (typeof value === 'boolean') {
-            methods.Settings.openInTor = value
+            methods.settings.openInTor = value
           }
           else foundError(key)
           break
         case 'tor-browser-exe':
         case 'torBrowserExe':
           if (typeof value === 'string' && value !== 'null') {
-            methods.Settings.torBrowserExe = value
+            methods.settings.torBrowserExe = value
           }
           break
         case 'logLevel':
           if (typeof value === 'number' && value >= 0) {
-            methods.Settings.logLevel = value
+            methods.settings.logLevel = value
           }
           else foundError(key)
           break
@@ -104,12 +103,12 @@ function foundError (key) {
 
 var methods = {
   saveSettings: function () {
-    fs.writeFileSync(settingsFile, JSON.stringify(this.Settings, null, 4))
+    fs.writeFileSync(settingsFile, JSON.stringify(this.settings, null, 4))
     this.log('Settings saved', 0)
     readSettings()
   },
   log: function (message, level = 0) {
-    if (level <= this.Settings.logLevel) {
+    if (level <= this.settings.logLevel) {
       if (firstLog) {
         firstLog = false
         if (fs.existsSync(this.logFile)) {
@@ -130,7 +129,7 @@ var methods = {
   themeDir: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'themes') : path.join(process.env.HOME, '.config', 'Tweelectron', 'themes'),//path.join(app.getPath('userData'), 'themes'),
   appDir: process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)),
   logFile: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'tweelectron.log') : path.join(process.env.HOME, '.config', 'Tweelectron', 'tweelectron.log'),//path.join(app.getPath('userData'), 'tweelectron.log'),
-  Settings: {
+  settings: {
     useTor: null,
     useRoundPics: false,
     theme: 0,
