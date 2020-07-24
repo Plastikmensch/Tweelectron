@@ -273,10 +273,10 @@ function createWindow () {
     }
   })
 
-  //Login button doesn't call this anymore
   mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    //Login button doesn't call this anymore
     if (url.search('https://twitter.com/login') === 0) {
-      event.preventDefault()
       loginWin = new BrowserWindow({ parent: mainWindow })
       loginWin.removeMenu()
 
