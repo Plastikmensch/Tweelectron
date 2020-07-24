@@ -582,6 +582,11 @@ else {
     contents.on('console-message', (event, level, message, line, sourceId) => {
       common.log(`log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
     })
+    //prevent any window from navigating, which isn't caused by loadURL
+    contents.on('will-navigate', (event) => {
+      event.preventDefault()
+      common.log('prevented navigation', 0)
+    })
   })
 
   app.on('browser-window-created', (event, win) => {
