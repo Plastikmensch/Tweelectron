@@ -124,7 +124,7 @@ const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.pn
 const singleInstance = app.requestSingleInstanceLock()
 
 let themeAll, urlList
-let mainWindow, settingsWin, loginWin, aboutWin
+let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
 
 //process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
@@ -149,32 +149,8 @@ function createWindow () {
   const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
 
-  if (common.settings.useCustomProxy) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
+  checkProxy(mainWindow, home)
 
-    if (proxy) {
-      mainWindow.loadURL(home)
-      common.log('using custom Proxy', 0)
-    }
-    else {
-      common.log('custom proxy failed', 0)
-    }
-  }
-  else if (common.settings.useTor) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-
-    if (proxy) {
-      mainWindow.loadURL(home)
-      common.log('using Tor', 0)
-    }
-    else {
-      common.log('connection to tor failed', 0)
-    }
-  }
-  else {
-    mainWindow.loadURL(home)
-    common.log('Not using Tor or custom Proxy', 0)
-  }
   //Deny all permissions by default
   mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
     common.log(`${webContents.getURL()} requested ${permission}`, 0)
@@ -239,9 +215,10 @@ function createWindow () {
   })
 
   mainWindow.webContents.on('new-window', (event, url) => {
+    //prevent default behavior
+    event.preventDefault()
     //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
     if (url.search('https://tweetdeck.twitter.com/') !== 0 && url.search('https://twitter.com/') !== 0) {
-      event.preventDefault()
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
@@ -264,6 +241,36 @@ function createWindow () {
       //NOTE: Applying removal of ?format... breaks replaced image links
       openUrl(url)
     }
+    else {
+      //open new window
+      if (twitterWin === undefined) {
+        twitterWin = new BrowserWindow({ parent: mainWindow, webPreferences: { contextIsolation: true}})
+        common.log('created twitterWin', 0)
+        twitterWin.removeMenu()
+
+        checkProxy(twitterWin, url)
+
+        twitterWin.webContents.on('did-fail-load', () => {
+          twitterWin.loadURL(url2)
+          common.log('failed to load', 0)
+        })
+        //prevent window from opening other windows
+        twitterWin.webContents.on('new-window', (event) => {
+          event.preventDefault()
+        })
+        twitterWin.webContents.on('will-navigate', (event) => {
+          //TODO: Filter navigation
+          event.preventDefault()
+        })
+        twitterWin.on('closed', () => {
+          twitterWin = undefined
+          common.log('closed twitterWin', 0)
+        })
+      }
+      else {
+        twitterWin.loadURL(url)
+      }
+    }
   })
 
   //Login button doesn't call this anymore
@@ -272,32 +279,9 @@ function createWindow () {
       event.preventDefault()
       loginWin = new BrowserWindow({ parent: mainWindow })
       loginWin.removeMenu()
-      if (common.settings.useCustomProxy) {
-        let proxy = loginWin.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
-        if (proxy) {
-          loginWin.loadURL(url)
-          common.log('using custom Proxy', 0)
-        }
-        else {
-          common.log('custom proxy failed', 0)
-        }
-      }
-      else {
-        if (common.settings.useTor) {
-          let proxy = loginWin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-          if (proxy) {
-            loginWin.loadURL(url)
-            common.log('using Tor', 0)
-          }
-          else {
-            common.log('tor connection failed', 0)
-          }
-        }
-        else {
-          loginWin.loadURL(url)
-          common.log('Not using Tor or custom Proxy', 0)
-        }
-      }
+
+      checkProxy(loginWin, url)
+
       loginWin.webContents.on('did-fail-load', () => {
         loginWin.loadURL(url2)
         common.log('failed to load', 0)
@@ -372,6 +356,35 @@ function startTor () {
     common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`, 0)
     torProcess = undefined
   })
+}
+
+function checkProxy (win, url) {
+  if (common.settings.useCustomProxy) {
+    let proxy = win.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
+    if (proxy) {
+      win.loadURL(url)
+      common.log('using custom Proxy', 0)
+    }
+    else {
+      common.log('custom proxy failed', 0)
+    }
+  }
+  else {
+    if (common.settings.useTor) {
+      let proxy = win.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+      if (proxy) {
+        win.loadURL(url)
+        common.log('using Tor', 0)
+      }
+      else {
+        common.log('tor connection failed', 0)
+      }
+    }
+    else {
+      win.loadURL(url)
+      common.log('Not using Tor or custom Proxy', 0)
+    }
+  }
 }
 
 function checkForUpdates () {
