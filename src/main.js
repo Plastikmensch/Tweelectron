@@ -123,6 +123,13 @@ const torFile = getTorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
 const singleInstance = app.requestSingleInstanceLock()
 
+const nav = {
+  home: 'https://tweetdeck.twitter.com/',
+  fail: 'file://' + path.join(app.getAppPath(), 'fail.html'),
+  checkTor: 'https://check.torproject.org/',
+  twitter: 'https://twitter.com/'
+}
+
 let themeAll, urlList
 let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
@@ -130,7 +137,7 @@ let torProcess
 //process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
 function getTorFile () {
   if (process.platform === 'linux') {
-    return process.resourcesPath + '/tor-linux/tor'
+    return path.join(process.resourcesPath, 'tor-linux','tor')
   }
   else {
     return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
@@ -145,11 +152,11 @@ function createWindow () {
   common.log(common.themeDir, 1)
   common.log(common.appDir, 1)
 
-  const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
-  const home = 'https://tweetdeck.twitter.com/'
+  //const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
+  //const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
 
-  checkProxy(mainWindow, home)
+  checkProxy(mainWindow, nav.home)
 
   //Deny all permissions by default
   mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
@@ -159,13 +166,13 @@ function createWindow () {
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
-    if (validatedURL === home) {
+    if (validatedURL === nav.home) {
       if (retries === 3) {
-        mainWindow.loadURL(url2)
+        mainWindow.loadURL(nav.fail)
         common.log('loading fail page', 0)
       }
       else {
-        mainWindow.loadURL(home)
+        mainWindow.loadURL(nav.home)
         retries++
         common.log('Retrying...', 0)
       }
@@ -173,13 +180,13 @@ function createWindow () {
   })
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(home) === 0) {
+    if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(nav.home) === 0) {
       mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
       common.log('inserted code for angular profile pics', 0)
     }
 
     //If theme is selected and url matches tweetdeck, read theme file and insert css
-    if (common.settings.theme > 0 && mainWindow.webContents.getURL().search(home) === 0) {
+    if (common.settings.theme > 0 && mainWindow.webContents.getURL().search(nav.home) === 0) {
       const themeFile = path.join(common.themeDir, themeAll[common.settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
@@ -218,7 +225,7 @@ function createWindow () {
     //prevent default behavior
     event.preventDefault()
     //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
-    if (url.search('https://tweetdeck.twitter.com/') !== 0 && url.search('https://twitter.com/') !== 0) {
+    if (url.search(nav.home) !== 0 && url.search(nav.twitter) !== 0) {
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
@@ -251,7 +258,7 @@ function createWindow () {
         checkProxy(twitterWin, url)
 
         twitterWin.webContents.on('did-fail-load', () => {
-          twitterWin.loadURL(url2)
+          twitterWin.loadURL(nav.fail)
           common.log('failed to load', 0)
         })
         //prevent window from opening other windows
@@ -283,7 +290,7 @@ function createWindow () {
       checkProxy(loginWin, url)
 
       loginWin.webContents.on('did-fail-load', () => {
-        loginWin.loadURL(url2)
+        loginWin.loadURL(nav.fail)
         common.log('failed to load', 0)
       })
       event.newGuest = loginWin
@@ -750,19 +757,19 @@ function createMenu () {
         {
           label: 'TweetDeck',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://tweetdeck.twitter.com/')
+            if (focusedWindow) focusedWindow.loadURL(nav.home)
           }
         },
         {
           label: 'Twitter',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://twitter.com/')
+            if (focusedWindow) focusedWindow.loadURL(nav.twitter)
           }
         },
         {
           label: 'Check Tor',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://check.torproject.org/')
+            if (focusedWindow) focusedWindow.loadURL(nav.checkTor)
           }
         },
         {
