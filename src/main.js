@@ -145,7 +145,7 @@ function getTorFile () {
 }
 
 function createWindow () {
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true, enableRemoteModule: false } })
   createMenu()
 
   common.log(common.settings, 1)
@@ -251,7 +251,7 @@ function createWindow () {
     else {
       //open new window
       if (twitterWin === undefined) {
-        twitterWin = new BrowserWindow({ parent: mainWindow, webPreferences: { contextIsolation: true}})
+        twitterWin = new BrowserWindow({ parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
         common.log('created twitterWin', 0)
         twitterWin.removeMenu()
 
@@ -283,7 +283,7 @@ function createWindow () {
     event.preventDefault()
     //Login button doesn't call this anymore
     if (url.search('https://twitter.com/login') === 0) {
-      loginWin = new BrowserWindow({ parent: mainWindow })
+      loginWin = new BrowserWindow({ parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
       loginWin.removeMenu()
 
       checkProxy(loginWin, url)
@@ -718,7 +718,7 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
+              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
               common.log('created settings window', 0)
               settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
@@ -802,7 +802,7 @@ function createMenu () {
           common.log('focusing about window', 0)
         }
         else {
-          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
+          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
           common.log('created about window', 0)
           aboutWin.removeMenu()
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
