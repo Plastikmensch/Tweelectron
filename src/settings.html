@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-pPGMYTgYvo8aldBLG/u2i7ZkIm7qSfBYIVVO4bukTds='">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-19ole86rrLhOH44KNMa8ctxsX50t0uFj9S45CUKprcM='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
@@ -15,17 +15,21 @@
     </select><br>
     <input type="checkbox" id="useCustomProxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
-    Select Tor Browser: <input type="file" id="torBrowserExe" onchange="fileChanged()"></input><br>
+    Select Tor Browser: <input type="file" id="torBrowserExe"></input><br>
     Loglevel: <select id="logLevel">
       <option>Info</option>
       <option>Debug</option>
     </select><br>
-    <button type='button' class='button' onclick="saveData()">Save</button>
+    <button type='button' class='button' id="saveButton">Save</button>
   </div>
 <p id="success"></p>
 
 <script type="text/javascript">
 var changed = false
+
+//add event listeners, because CSP blocks event attributes
+document.getElementById('torBrowserExe').addEventListener('change', fileChanged)
+document.getElementById('saveButton').addEventListener('click', saveData)
 
 //Send ipc to main to get themes and add options to theme element
 const themes = window.api.ipc.sendSync('Themes')
