@@ -1,110 +1,4 @@
 /*
-    TO-DO: [x] = done, [\] = won't do
-
-     Internal:
-     [] find motivation to work on this list
-     [x] push new release 1.0.10 (it's about time)
-     [x] write install script for linux
-        - find out why sudo doesn't work and script fails to execute (probably for security reasons)
-        (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
-     [] add more comments
-     [x] change file structure to be more compliant
-     [] update Readme (How to use scripts, requirements etc., settings)
-     [x] sort this list with version numbers, so it's clear why new releases take so long
-     [] include pictures in Readme
-     [] (Maybe) move to-do list to issues as task list
-     [] Open issues for bugs/unintended behaviour instead of maintaining this list
-     Misc:
-     [x] use an array or object to store settings variables
-     [x] save settings when app quits
-     [x] add custom proxy support
-     [x] create function to process settingsData
-     [x] add in-app settings
-     [x] make settings beautiful
-     [x] add 'already saved' to settings
-     [x] add about page
-     [x] adjust theme for TweetDecks awful color choice.
-     [x] rework old theme
-     [x] add theme selection
-     [x] find a way to include Tor in linux
-     [x] rework windows
-     [x] change location of settingsFile (EACCESS ERROR)
-     [x] make tor process close when Tweelectron closes
-        - avoid closing tor when not started by Tweelectron
-     [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
-     [\] (Maybe) Get rid of old theme (Truly Dark)
-     [\] rework theme (turns out: TweetDecks theme doesn't suck anymore)
-     [\] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
-        - too unreliable
-        - implemented entry to context menu for inserting emoticons instead
-     [x] Actually use json format for settings or just change it to .cfg
-     [x] move theme code to files in theme folder
-        - create files on first start
-     [x] rewrite code (avoid repetition and optimize)
-     [x] please linter (what a pain in the ass...)
-     [x] create logfile
-        - backup last logfile
-     [x] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
-        - seems to be working now
-     [x] move all settingsFile related stuff to common.js
-     [x] show titles in changelog
-     [] (Maybe) use app directory to store all files to be more portable and easier deletion
-        - keep EACCESS in mind (linux)
-     [x] create loglevel setting, so it's not necessary to comment logs
-     [x] create function for opening stuff (no code repetition)
-     [] (Maybe) create new themes
-     [] provide better accessibility
-        - need a screenreader or audit tool
-     1.1 Release:
-     [x] find a way to bypass t.co links (Need help)
-        - https://github.com/Spaxe/Goodbye--t.co- ?
-        - read out "data-full-url" (But how?)
-     [x] Update notifier
-     [x] give option to open links in tor
-        - (optional) let users, who already have torbrowser, pick a path
-     [x] add support for custom themes
-     1.1.1 Release:
-     [x] bypass t.co when clicking on pictures
-        - (optional) open them in new window
-     [x] fix font issues
-     [x] rewrite for Electron 7 (uuuuuuuugh)
-     1.2 Release:
-     [] bypass t.co on links in profiles (not really possible...)
-        - links in profile description work, but link in profile doesn't
-     [x] rewrite so settings are not duplicated through scripts
-        - let common.js handle settings completely
-        - turn into object
-     [x] fix logs so backup is created before new stuff logs
-        - everything logged before the ready event ends up in backup
-        - backup is now created on exit
-        - adding a check for first log in common.log might be a better solution
-        - added check
-     [] optimise code
-        - rework settings and about page
-     [] Threadmaker
-        - thinking about abandoning this idea
-     [x] fix opening of multiple images in tweets
-        - need a way to tell which image is clicked on
-        - function handling t.co returns only first match
-        - replacing link with image source might work
-     [x] fix potential issues caused by corrupt settings file
-        - check settings value type
-        - issue caused by going back from 1.2.x to 1.1.x
-        - if settings can't be read, treat them as nonexistent
-        - if value is of wrong type, default value is used now
-     [x] inform users of errors in settings
-        - dialogs won't work before ready event
-        - showErrorBox is useless on Linux
-          - won't show up
-          - doesn't stop execution
-     [] define content security policy for child windows
-        - <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'">
-          might be a good start, needs testing
-     [x] change theme code
-        - having truly dark as a const is a waste of memory
-        - adding user supplied themes can be easier
-*/
-/*
 NOTE: This is just a proof of concept and will not be included,
       since altering tweet content is out of scope
       You can implement or run this code yourself, if you really want to
@@ -152,17 +46,9 @@ function createWindow () {
   common.log(common.themeDir, 1)
   common.log(common.appDir, 1)
 
-  //const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
-  //const home = 'https://tweetdeck.twitter.com/'
   let retries = 0
 
   checkProxy(mainWindow, nav.home)
-
-  //Deny all permissions by default
-  mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-    common.log(`${webContents.getURL()} requested ${permission}`, 0)
-    return callback(false)
-  })
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
@@ -578,6 +464,9 @@ else {
     common.log(`Renderer gone ${details.reason}`)
   })
 
+  /*NOTE: Moving everything inside this to browser-window-created
+          could have the advantage of having a window reference
+  */
   app.on('web-contents-created', (event, contents) => {
     //Prevent webview tags
     contents.on('will-attach-webview', (event, webPreferences, params) => {
@@ -596,6 +485,11 @@ else {
     //Prevent any window from opening new windows
     contents.on('new-window', (event) => {
       event.preventDefault()
+    })
+    //Deny all permissions by default
+    contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+      common.log(`${webContents.getURL()} requested ${permission}`, 0)
+      return callback(false)
     })
   })
 
@@ -662,6 +556,17 @@ else {
         }))
       }
       else if (params.mediaType === 'none') {
+        if (params.misspelledWord) {
+          for (const word of params.dictionarySuggestions) {
+            cmenu.append(new MenuItem({
+              label: word,
+              click (item, focusedWindow) {
+                if (focusedWindow) focusedWindow.webContents.replaceMisspelling(word)
+              }
+            }))
+          }
+          cmenu.append(new MenuItem({type: 'separator'}))
+        }
         cmenu.append(new MenuItem({ role: 'copy' }))
         cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
         cmenu.append(new MenuItem({ role: 'cut' }))
