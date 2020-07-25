@@ -565,6 +565,12 @@ else {
               }
             }))
           }
+          cmenu.append(new MenuItem({
+            label: 'Add to Dictionary',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+            }
+          }))
           cmenu.append(new MenuItem({type: 'separator'}))
         }
         cmenu.append(new MenuItem({ role: 'copy' }))
