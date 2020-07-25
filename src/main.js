@@ -266,7 +266,6 @@ function createWindow () {
           event.preventDefault()
         })
         twitterWin.webContents.on('will-navigate', (event) => {
-          //TODO: Filter navigation
           event.preventDefault()
         })
         twitterWin.on('closed', () => {
@@ -593,6 +592,10 @@ else {
     contents.on('will-navigate', (event) => {
       event.preventDefault()
       common.log('prevented navigation', 0)
+    })
+    //Prevent any window from opening new windows
+    contents.on('new-window', (event) => {
+      event.preventDefault()
     })
   })
 
