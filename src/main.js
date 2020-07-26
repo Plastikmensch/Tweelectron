@@ -674,12 +674,14 @@ function createMenu () {
             if (focusedWindow) focusedWindow.loadURL(nav.home)
           }
         },
+        /*
         {
           label: 'Twitter',
           click (item, focusedWindow) {
             if (focusedWindow) focusedWindow.loadURL(nav.twitter)
           }
         },
+        */
         {
           label: 'Check Tor',
           click (item, focusedWindow) {
