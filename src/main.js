@@ -137,7 +137,7 @@ function createWindow () {
     else {
       //open new window
       if (twitterWin === undefined) {
-        twitterWin = new BrowserWindow({ parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
+        twitterWin = new BrowserWindow({ parent: mainWindow, width: 600, height: 700, resizable: false, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
         common.log('created twitterWin', 0)
         twitterWin.removeMenu()
 
@@ -147,13 +147,15 @@ function createWindow () {
           twitterWin.loadURL(nav.fail)
           common.log('failed to load', 0)
         })
-        //prevent window from opening other windows
-        twitterWin.webContents.on('new-window', (event) => {
-          event.preventDefault()
+
+        twitterWin.webContents.on('did-finish-load', () => {
+          //make navigation and back button invisible
+          const css =
+          `[role="banner"] {display: none !important}
+          .r-u0dd49 {display: none !important}`
+          twitterWin.webContents.insertCSS(css.trim())
         })
-        twitterWin.webContents.on('will-navigate', (event) => {
-          event.preventDefault()
-        })
+
         twitterWin.on('closed', () => {
           twitterWin = undefined
           common.log('closed twitterWin', 0)
