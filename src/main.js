@@ -149,17 +149,32 @@ function createWindow () {
         })
 
         twitterWin.webContents.on('did-finish-load', () => {
-          //make navigation and back button invisible
+          /*NOTE: navigation is still possible
+                  there is no good way of preventing it
+                  and I don't want to use executeJavaScript.
+                  There is also no good way to access the twitter settings
+                  Disabling the back button also disables some other buttons
+                  on a profile page, like sending a DM
+                  Good to know: Twitter creates all elements via JS,
+                  which makes did-navigate-in-page event useless,
+                  even though it gets called, because url doesn't change
+          */
+          //make navigation bar and back button invisible
           const css =
           `[role="banner"] {display: none !important}
           .r-u0dd49 {display: none !important}`
           twitterWin.webContents.insertCSS(css.trim())
+        })
+        //Disable navigation
+        twitterWin.webContents.on('will-navigate', (event) =>{
+          event.preventDefault()
         })
 
         twitterWin.on('closed', () => {
           twitterWin = undefined
           common.log('closed twitterWin', 0)
         })
+        event.newGuest = twitterWin
       }
       else {
         twitterWin.loadURL(url)
@@ -170,7 +185,7 @@ function createWindow () {
   mainWindow.webContents.on('will-navigate', (event, url) => {
     event.preventDefault()
     //Login button doesn't call this anymore
-    if (url.search('https://twitter.com/login') === 0) {
+    if (url.search('https://mobile.twitter.com/login') === 0) {
       loginWin = new BrowserWindow({ parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
       loginWin.removeMenu()
 
@@ -182,6 +197,7 @@ function createWindow () {
       })
       event.newGuest = loginWin
       loginWin.webContents.on('will-navigate', (event, url) => {
+        //NOTE: Having to solve a captcha, loads twitter instead
         mainWindow.loadURL(url)
         loginWin.close()
       })
@@ -469,6 +485,9 @@ else {
   /*NOTE: Moving everything inside this to browser-window-created
           could have the advantage of having a window reference
   */
+  /*NOTE: Not a good idea to prevent will-navigate event here,
+          breaks login window and other functionality
+  */
   app.on('web-contents-created', (event, contents) => {
     //Prevent webview tags
     contents.on('will-attach-webview', (event, webPreferences, params) => {
@@ -479,14 +498,10 @@ else {
     contents.on('console-message', (event, level, message, line, sourceId) => {
       common.log(`log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
     })
-    //prevent any window from navigating, which isn't caused by loadURL
-    contents.on('will-navigate', (event) => {
-      event.preventDefault()
-      common.log('prevented navigation', 0)
-    })
     //Prevent any window from opening new windows
     contents.on('new-window', (event) => {
       event.preventDefault()
+      common.log('prevented new window')
     })
     //Deny all permissions by default
     contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
