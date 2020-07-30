@@ -39,7 +39,7 @@ function getTorFile () {
 }
 
 function createWindow () {
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, webPreferences:{ contextIsolation: true, enableRemoteModule: false } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, show: false, webPreferences:{ contextIsolation: true, enableRemoteModule: false } })
   createMenu()
 
   common.log(common.settings, 1)
@@ -137,7 +137,7 @@ function createWindow () {
     else {
       //open new window
       if (twitterWin === undefined) {
-        twitterWin = new BrowserWindow({ parent: mainWindow, width: 600, height: 700, resizable: false, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
+        twitterWin = new BrowserWindow({ parent: mainWindow, show: false, width: 600, height: 700, resizable: false, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
         common.log('created twitterWin', 0)
         twitterWin.removeMenu()
 
@@ -184,9 +184,8 @@ function createWindow () {
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
     event.preventDefault()
-    //Login button doesn't call this anymore
     if (url.search('https://mobile.twitter.com/login') === 0) {
-      loginWin = new BrowserWindow({ parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
+      loginWin = new BrowserWindow({ parent: mainWindow, modal: true, show: false, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
       loginWin.removeMenu()
 
       checkProxy(loginWin, url)
@@ -494,15 +493,18 @@ else {
       event.preventDefault()
       common.log('prevented webview tag', 0)
     })
+    /*
     //Log console messages (test)
     contents.on('console-message', (event, level, message, line, sourceId) => {
       common.log(`log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
     })
+
     //Prevent any window from opening new windows
     contents.on('new-window', (event) => {
       event.preventDefault()
       common.log('prevented new window')
     })
+    */
     //Deny all permissions by default
     contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
       common.log(`${webContents.getURL()} requested ${permission}`, 0)
@@ -511,6 +513,19 @@ else {
   })
 
   app.on('browser-window-created', (event, win) => {
+    //Log console messages (test)
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      common.log(`${getWindowName(win)}: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
+    })
+    //Prevent any window from opening new windows
+    win.webContents.on('new-window', (event) => {
+      event.preventDefault()
+      common.log(`prevented ${getWindowName(win)} from opening new window`, 0)
+    })
+    // show windows gracefully
+    win.once('ready-to-show', () => {
+      win.show()
+    })
     win.webContents.on('context-menu', (e, params) => {
       const cmenu = new Menu()
       if (params.linkURL && params.mediaType === 'none') {
@@ -630,6 +645,24 @@ else {
     else common.log('tor wasn\'t running', 0)
   })
 }
+
+function getWindowName(win) {
+  switch(true) {
+    case mainWindow !== undefined && mainWindow.id == win.id:
+      return 'main window'
+    case loginWin !== undefined && loginWin.id == win.id:
+      return 'login window'
+    case twitterWin !== undefined && twitterWin.id == win.id:
+      return 'twitter window'
+    case settingsWin !== undefined && settingsWin.id == win.id:
+      return 'settings window'
+    case settingsWin !== undefined && aboutWin.id == win.id:
+      return 'about window'
+    default:
+      return 'unknown window'
+  }
+}
+
 function createMenu () {
   const template = [
     {
@@ -646,9 +679,9 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 320, minwidth: 440, minheight: 315, parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
+              settingsWin = new BrowserWindow({ parent: mainWindow, show: false, modal: true, width: 450, height: 320, minwidth: 440, minheight: 315, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
               common.log('created settings window', 0)
-              settingsWin.removeMenu()
+              //settingsWin.removeMenu()
               settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
               if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
@@ -732,10 +765,13 @@ function createMenu () {
           common.log('focusing about window', 0)
         }
         else {
-          aboutWin = new BrowserWindow({ width: 500, height: 300, minwidth: 500, minheight: 300, parent: mainWindow, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
+          aboutWin = new BrowserWindow({ parent: mainWindow, show: false, width: 500, height: 300, minwidth: 500, minheight: 300, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
           common.log('created about window', 0)
-          aboutWin.removeMenu()
+          //aboutWin.removeMenu()
+
           aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
+
+          //Set window icon for Linux
           if (process.platform === 'linux') {
             aboutWin.setIcon(icon)
           }
