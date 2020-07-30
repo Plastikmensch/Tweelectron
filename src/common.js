@@ -92,6 +92,9 @@ function readSettings () {
       }
     })
   }
+  else {
+    methods.log('Settings file doesn\'t exist', 0)
+  }
 }
 
 function foundError (key) {
