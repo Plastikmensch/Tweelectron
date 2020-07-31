@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-19ole86rrLhOH44KNMa8ctxsX50t0uFj9S45CUKprcM='">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4pfg1FrcNClAWjb9crVIvumeMWsEcgFnL2hM8pr4Hn4='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
@@ -70,8 +70,11 @@ function saveData() {
 
   clearTimeout(timer)
 
+  //Set path to the selected file, if one is selected
   if(changed) {
     path = document.getElementById('torBrowserExe').files[0].path
+    //Reset changed 
+    changed = false
   }
 
   const newSettings = {
