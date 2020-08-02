@@ -85,7 +85,7 @@ function createWindow () {
     }
   })
   //Read out every t.co url and real url from tweets and media and save result when mouse hovers over a link
-  mainWindow.webContents.on('update-target-url', (event, url) => {
+  mainWindow.webContents.on('update-target-url', () => {
     /*
       Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
       which is used to show link destination
@@ -203,7 +203,7 @@ function createWindow () {
     }
   })
 
-  mainWindow.on('close', (event) => {
+  mainWindow.on('close', () => {
     const size = mainWindow.getSize()
     common.settings.width = size[0]//width
     common.settings.height = size[1]//height
@@ -404,21 +404,22 @@ app.on('remote-get-global', (event, webContents, globalName) => {
   event.preventDefault()
 })
 
-app.on('remote-get-current-window', (event, webContents) => {
+app.on('remote-get-current-window', (event) => {
   common.log('remote get current window', 1)
   event.preventDefault()
 })
 
-app.on('remote-get-current-web-contents', (event, webContents) => {
+app.on('remote-get-current-web-contents', (event) => {
   common.log('remote get current webcontents', 1)
   event.preventDefault()
 })
 
-app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) => {
+app.on('remote-get-guest-web-contents', (event) => {
   common.log('remote get guest web contents', 1)
   event.preventDefault()
 })
 
+//NOTE: Single instance lock seems to not work when primary instance crashed
 //Only allow single instance
 if (!singleInstance) {
   //Close second instance
@@ -426,8 +427,7 @@ if (!singleInstance) {
   common.log('quitting second instance', 0)
 }
 else {
-
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', () => {
     //Focus mainWindow when started a second time
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
@@ -489,7 +489,7 @@ else {
   */
   app.on('web-contents-created', (event, contents) => {
     //Prevent webview tags
-    contents.on('will-attach-webview', (event, webPreferences, params) => {
+    contents.on('will-attach-webview', (event) => {
       event.preventDefault()
       common.log('prevented webview tag', 0)
     })
@@ -514,6 +514,7 @@ else {
 
   app.on('browser-window-created', (event, win) => {
     //Log console messages (test)
+    //NOTE: Doesn't always work. Might be an issue with logging
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
       common.log(`${getWindowName(win)}: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
     })
