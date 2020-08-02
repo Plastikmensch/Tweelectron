@@ -85,26 +85,30 @@ function createWindow () {
     }
   })
   //Read out every t.co url and real url from tweets and media and save result when mouse hovers over a link
-  mainWindow.webContents.on('update-target-url', () => {
-    /*
-      Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
-      which is used to show link destination
+  mainWindow.webContents.on('update-target-url', (event, url) => {
+    //Only execute JS on t.co links
+    if (url.search('https://t.co/') === 0) {
+      /*
+        Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
+        which is used to show link destination
 
-      Pictures: t.co refers to the tweet, not the image,
-      which makes getting the correct image difficult
-    */
-    //NOTE: urlList contains duplicates
-    //NOTE: Moving this to new-window event leads to urlList being undefined
-    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
-      urlList = result
-    })
+        Pictures: t.co refers to the tweet, not the image,
+        which makes getting the correct image difficult
+      */
+      //NOTE: urlList contains duplicates
+      //NOTE: Moving this to new-window event leads to urlList being undefined
+      //NOTE: Could be rewritten to directly return the corresponding link
+      mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
+        urlList = result
+      })
 
-    //Replace t.co link on images with image src
-    /*
-      Replaces href attribute of parentElement of the image with the image src attribute
-      media-img is the class attribute of the image shown in preview and unique
-    */
-    mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img")[0]; if (m !== undefined) {m.parentElement.href = m.src}')
+      //Replace t.co link on images with image src
+      /*
+        Replaces href attribute of parentElement of the image with the image src attribute
+        media-img is the class attribute of the image shown in preview and unique
+      */
+      mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img")[0]; if (m !== undefined) {m.parentElement.href = m.src}')
+    }
   })
 
   mainWindow.webContents.on('new-window', (event, url) => {
