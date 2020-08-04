@@ -104,12 +104,13 @@ function createWindow () {
       })
       common.log(`found ${urlList === undefined ? 'undefined' : urlList.length} urls`, 1)
       */
+
       //Replace t.co link on images with image src
       /*
-        Replaces href attribute of parentElement of the image with the image src attribute
-        media-img is the class attribute of the image shown in preview and unique
+        Replaces href attribute of parentElement of images with the image src attribute
+        media-img is the class attribute of the images shown in preview
       */
-      mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img")[0]; if (m !== undefined) {m.parentElement.href = m.src}')
+      mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
     }
   })
 
@@ -123,16 +124,19 @@ function createWindow () {
 
       /*
         Selects the element which has the href attribute with url
-        and tries to get it's data-full-url attribute value
-        Opens real url on success (has data-full-url attribute)
-        Opens url on failure (doesn't have data-full-url attribute)
+        and tries to get it's data-full-url or style attribute value
+        Opens real url on success (has data-full-url or style attribute)
+        Opens url on failure (doesn't have data-full-url or style attribute)
       */
       /*NOTE: Doesn't work as own function,
               because promise of executeJavascript seems to never get resolved,
               so there is no way to return the result
-              Alternative solution: Do the same as with images, replace href
+              Alternative solution: Do the same as with images, replace href.
       */
-      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) x.getAttribute('data-full-url')`)
+      /*TODO: Fix multiple images again (column preview)
+              Maybe move image related stuff to update-target-url
+      */
+      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
         .then((result) => {
           common.log(`found: ${result}`, 1)
           if(result) {
