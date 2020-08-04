@@ -24,7 +24,7 @@ const nav = {
   twitter: 'https://twitter.com/'
 }
 
-let themeAll, urlList
+let themeAll//, urlList
 let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
 
@@ -98,10 +98,12 @@ function createWindow () {
       //NOTE: urlList contains duplicates
       //NOTE: Moving this to new-window event leads to urlList being undefined
       //NOTE: Could be rewritten to directly return the corresponding link
+      /*
       mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
         urlList = result
       })
-
+      common.log(`found ${urlList === undefined ? 'undefined' : urlList.length} urls`, 1)
+      */
       //Replace t.co link on images with image src
       /*
         Replaces href attribute of parentElement of the image with the image src attribute
@@ -119,7 +121,26 @@ function createWindow () {
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
-
+      /*
+        Selects the element which has the href attribute with url
+        and tries to get it's data-full-url attribute value
+        Opens real url on success (has data-full-url attribute)
+        Opens url on failure (doesn't have data-full-url attribute)
+      */
+      /*NOTE: Doesn't work as own function,
+              because promise of executeJavascript seems to never get resolved,
+              so there is no way to return the result
+              Alternative solution: Do the same as with images, replace href
+      */
+      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) x.getAttribute('data-full-url')`)
+        .then((result) => {
+          common.log(`found: ${result}`, 1)
+          if(result) {
+            openUrl(result)
+          }
+          else openUrl(url)
+        })
+      /*
       //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
       //Might work if multiple links can be parsed to OpenUrl
 
@@ -135,8 +156,9 @@ function createWindow () {
           common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`, 1)
         }
       }
+      */
       //NOTE: Applying removal of ?format... breaks replaced image links
-      openUrl(url)
+      //openUrl(url)
     }
     else {
       //open new window
@@ -536,12 +558,28 @@ else {
       if (params.linkURL && params.mediaType === 'none') {
         cmenu.append(new MenuItem({
           label: 'Copy URL',
-          click () {
+          click (item, focusedWindow) {
             let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
+
+            if(focusedWindow.id === mainWindow.id) {
+              // For explaination see mainWindows new-window event
+              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) x.getAttribute('data-full-url')`)
+                .then((result) => {
+                  common.log(`found: ${result}`, 1)
+                  if(result) {
+                    clipboard.writeText(result)
+                  }
+                  else clipboard.writeText(url)
+                })
+            }
+            else clipboard.writeText(url)
+            /*
             for (let i = 0; i < urlList.length; i++) {
               if (url === urlList[i][0]) url = urlList[i][1]
             }
+
             clipboard.writeText(url)
+            */
           }
         }))
         if (params.linkText.charAt(0) === '#') {
