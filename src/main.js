@@ -24,7 +24,7 @@ const nav = {
   twitter: 'https://twitter.com/'
 }
 
-let themeAll//, urlList
+let themeAll
 let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
 
@@ -95,22 +95,18 @@ function createWindow () {
         Pictures: t.co refers to the tweet, not the image,
         which makes getting the correct image difficult
       */
-      //NOTE: urlList contains duplicates
-      //NOTE: Moving this to new-window event leads to urlList being undefined
-      //NOTE: Could be rewritten to directly return the corresponding link
-      /*
-      mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0, j=x.length;i<j;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0, j=y.length;i<j;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
-        urlList = result
-      })
-      common.log(`found ${urlList === undefined ? 'undefined' : urlList.length} urls`, 1)
-      */
 
       //Replace t.co link on images with image src
       /*
         Replaces href attribute of parentElement of images with the image src attribute
         media-img is the class attribute of the images shown in preview
       */
+      //NOTE: Removal of ?format... here breaks url
       mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
+      /*
+        Replaces href attributes of images in column preview with background-image style attribute
+      */
+      //TODO: Remove ?format... from links
       mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1)} }`)
     }
   })
@@ -123,6 +119,8 @@ function createWindow () {
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
+      //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
+
       /*
         Selects the element which has the href attribute with url
         and tries to get it's data-full-url or style attribute value
@@ -134,9 +132,7 @@ function createWindow () {
               so there is no way to return the result
               Alternative solution: Do the same as with images, replace href.
       */
-      /*TODO: Fix multiple images again (column preview)
-              Maybe move image related stuff to update-target-url
-      */
+      //TODO: Maybe move image related stuff to update-target-url
       mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
         .then((result) => {
           common.log(`found: ${result}`, 1)
@@ -145,25 +141,6 @@ function createWindow () {
           }
           else openUrl(url)
         })
-      /*
-      //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
-      //Might work if multiple links can be parsed to OpenUrl
-
-      //Replace t.co url with real url
-      for (let i = 0, j = urlList.length; i < j; i++) {
-        if (url === urlList[i][0]) {
-          //remove ?format=X&name=XxX from image links
-          if(urlList[i][1].search('https://pbs.twimg.com/media') === 0) {
-            url = urlList[i][1].slice(0, urlList[i][1].lastIndexOf('?'))
-            //common.log(`${urlList[i][1]} is twitter media`)
-          }
-          else url = urlList[i][1]
-          common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`, 1)
-        }
-      }
-      */
-      //NOTE: Applying removal of ?format... breaks replaced image links
-      //openUrl(url)
     }
     else {
       //open new window
@@ -524,18 +501,6 @@ else {
       event.preventDefault()
       common.log('prevented webview tag', 0)
     })
-    /*
-    //Log console messages (test)
-    contents.on('console-message', (event, level, message, line, sourceId) => {
-      common.log(`log event: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
-    })
-
-    //Prevent any window from opening new windows
-    contents.on('new-window', (event) => {
-      event.preventDefault()
-      common.log('prevented new window')
-    })
-    */
     //Deny all permissions by default
     contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
       common.log(`${webContents.getURL()} requested ${permission}`, 0)
@@ -568,7 +533,7 @@ else {
 
             if(focusedWindow.id === mainWindow.id) {
               // For explaination see mainWindows new-window event
-              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) x.getAttribute('data-full-url')`)
+              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
                 .then((result) => {
                   common.log(`found: ${result}`, 1)
                   if(result) {
@@ -578,13 +543,6 @@ else {
                 })
             }
             else clipboard.writeText(url)
-            /*
-            for (let i = 0; i < urlList.length; i++) {
-              if (url === urlList[i][0]) url = urlList[i][1]
-            }
-
-            clipboard.writeText(url)
-            */
           }
         }))
         if (params.linkText.charAt(0) === '#') {
