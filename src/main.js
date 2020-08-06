@@ -531,7 +531,7 @@ else {
           click (item, focusedWindow) {
             let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
 
-            if(focusedWindow.id === mainWindow.id) {
+            if(focusedWindow.id === mainWindow.id && url.search('https://t.co') === 0) {
               // For explaination see mainWindows new-window event
               mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
                 .then((result) => {
