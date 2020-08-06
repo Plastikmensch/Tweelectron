@@ -111,6 +111,7 @@ function createWindow () {
         media-img is the class attribute of the images shown in preview
       */
       mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
+      mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1)} }`)
     }
   })
 
