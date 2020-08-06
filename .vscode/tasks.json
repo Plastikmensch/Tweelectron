@@ -7,9 +7,10 @@
             "label": "build",
             "type": "shell",
             "command": "./build.sh",
-            "problemMatcher": [
-                "$eslint-stylish"
-            ]
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
