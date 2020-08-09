@@ -38,6 +38,22 @@
             "stroustrup"
         ],
         "no-trailing-spaces": "error",
-        "no-path-concat": "error"
+        "no-path-concat": "error",
+        "eqeqeq": "error",
+        "no-else-return": "error",
+        "no-self-compare": "error",
+        "yoda": [
+            "error",
+            "never",
+            {"exceptRange": true}
+        ],
+        "array-bracket-newline": [
+            "error",
+            "consistent"
+        ],
+        "key-spacing": "error",
+        "no-inline-comments": "error",
+        "prefer-template": "error",
+        "no-useless-concat": "error"
     }
 }
