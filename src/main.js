@@ -31,7 +31,7 @@ let torProcess
 //process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
 function getTorFile () {
   if (process.platform === 'linux') {
-    return path.join(process.resourcesPath, 'tor-linux','tor')
+    return path.join(process.resourcesPath, 'tor-linux', 'tor')
   }
   return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
 }
@@ -76,7 +76,6 @@ function createWindow () {
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
         common.log(themeFile, 1)
-        //common.log(fileContent)
         mainWindow.webContents.insertCSS(fileContent)
         common.log('inserted custom theme', 0)
       }
@@ -226,7 +225,7 @@ function createWindow () {
   ipcMain.on('Settings', (event, newSettings) => {
     common.log('newSettings:', 1)
     common.log(newSettings, 1)
-    for (var i in common.settings) {
+    for (let i in common.settings) {
       if (common.settings[i] !== newSettings[i]) {
         common.log('change in Settings', 1)
         let reload = false
@@ -249,7 +248,7 @@ function createWindow () {
     event.returnValue = false
   })
   ipcMain.on('Themes', (event) => {
-    checkThemes ()
+    checkThemes()
     event.returnValue = themeAll
   })
 
@@ -326,7 +325,7 @@ function checkForUpdates () {
 
       const current = `v${fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()}`
 
-      fulldata.body = fulldata.body.replace(/__.+__/g, function (x) {
+      fulldata.body = fulldata.body.replace(/__.+__/g, (x) => {
         return `${x.replace(/_/g, '')}:`
       })
 
@@ -628,7 +627,7 @@ else {
               //NOTE: This label is most likely bad for accessibility, needs testing
               label: '¯\\_(ツ)_/¯',
               click (item, focusedWindow) {
-                common.log('clicked shrug',1)
+                common.log('clicked shrug', 1)
                 if (focusedWindow) focusedWindow.webContents.insertText('¯\\_(ツ)_/¯')
               }
             }]

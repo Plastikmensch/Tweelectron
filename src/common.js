@@ -18,7 +18,7 @@ function getSettingsFile() {
 
 function readSettings () {
   if (fs.existsSync(settingsFile)) {
-    JSON.parse(fs.readFileSync(settingsFile, 'utf8'), function (key, value) {
+    JSON.parse(fs.readFileSync(settingsFile, 'utf8'), (key, value) => {
       //Doing Settings[key] = value is more efficient but breaks backwards compability
       switch (key) {
         case 'use-tor':
@@ -102,7 +102,7 @@ function foundError (key) {
   methods.errorInSettings.message += `value of ${key} is invalid\n`
 }
 
-var methods = {
+const methods = {
   saveSettings: function () {
     fs.writeFileSync(settingsFile, JSON.stringify(this.settings, null, 4))
     this.log('Settings saved', 0)
