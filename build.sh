@@ -15,5 +15,4 @@ cp ./tweelectron.png ./dist/Tweelectron-linux-ia32
 cp ./tweelectron.png ./dist/Tweelectron-linux-x64
 cp ./tweelectron.desktop ./dist/Tweelectron-linux-ia32
 cp ./tweelectron.desktop ./dist/Tweelectron-linux-x64
-echo "done"
-read -n1 -r -p "Press any key..." key
+echo "Finished build at $(date +%H:%M:%S)"
