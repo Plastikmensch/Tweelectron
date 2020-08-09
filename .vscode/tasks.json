@@ -11,6 +11,14 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "package",
+            "type": "shell",
+            "command": "./package.sh",
+            "group": "build",
+            "dependsOrder": "sequence",
+            "dependsOn":["build"]
         }
     ]
 }
