@@ -54,6 +54,16 @@
         "key-spacing": "error",
         "no-inline-comments": "error",
         "prefer-template": "error",
-        "no-useless-concat": "error"
+        "template-curly-spacing": "error",
+        "no-useless-concat": "error",
+        "block-spacing": "error",
+        "comma-spacing": "error",
+        "no-var": "error",
+        "prefer-arrow-callback": [
+            "error",
+            {"allowNamedFunctions": true}
+        ],
+        "func-call-spacing": "error",
+        "function-paren-newline": "error"
     }
 }
