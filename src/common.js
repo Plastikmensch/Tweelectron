@@ -10,12 +10,10 @@ if (process.type !== 'browser') {
 const settingsFile = getSettingsFile()
 function getSettingsFile() {
   if (process.platform === 'linux') {
-    return process.env.HOME + '/.config/Tweelectron/settings.json'
+    return `${process.env.HOME}/.config/Tweelectron/settings.json`
   }
-  else {
-    //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-    return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
-  }
+  //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
+  return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
 }
 
 function readSettings () {
@@ -115,7 +113,7 @@ var methods = {
       if (firstLog) {
         firstLog = false
         if (fs.existsSync(this.logFile)) {
-          fs.renameSync(this.logFile, this.logFile + '.backup')
+          fs.renameSync(this.logFile, `${this.logFile}.backup`)
           fs.appendFileSync(this.logFile, 'created backup of logs\n')
           console.log('created backup of logs')
         }
@@ -125,13 +123,13 @@ var methods = {
         message = JSON.stringify(message)
       }
       //Append message to log file
-      fs.appendFileSync(this.logFile, message + '\n')
+      fs.appendFileSync(this.logFile, `${message}\n`)
       console.log(message)
     }
   },
-  themeDir: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'themes') : path.join(process.env.HOME, '.config', 'Tweelectron', 'themes'),//path.join(app.getPath('userData'), 'themes'),
+  themeDir: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'themes') : path.join(process.env.HOME, '.config', 'Tweelectron', 'themes'),
   appDir: process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)),
-  logFile: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'tweelectron.log') : path.join(process.env.HOME, '.config', 'Tweelectron', 'tweelectron.log'),//path.join(app.getPath('userData'), 'tweelectron.log'),
+  logFile: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'tweelectron.log') : path.join(process.env.HOME, '.config', 'Tweelectron', 'tweelectron.log'),
   settings: {
     useTor: null,
     useRoundPics: false,

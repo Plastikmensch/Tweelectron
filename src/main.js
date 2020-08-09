@@ -19,7 +19,7 @@ const singleInstance = app.requestSingleInstanceLock()
 
 const nav = {
   home: 'https://tweetdeck.twitter.com/',
-  fail: 'file://' + path.join(app.getAppPath(), 'fail.html'),
+  fail: `file://${path.join(app.getAppPath(), 'fail.html')}`,
   checkTor: 'https://check.torproject.org/',
   twitter: 'https://twitter.com/'
 }
@@ -33,13 +33,11 @@ function getTorFile () {
   if (process.platform === 'linux') {
     return path.join(process.resourcesPath, 'tor-linux','tor')
   }
-  else {
-    return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
-  }
+  return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
 }
 
 function createWindow () {
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, show: false, webPreferences:{ contextIsolation: true, enableRemoteModule: false } })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, show: false, webPreferences: { contextIsolation: true, enableRemoteModule: false } })
   createMenu()
 
   common.log(common.settings, 1)
@@ -67,7 +65,8 @@ function createWindow () {
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
     if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(nav.home) === 0) {
-      mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
+      // makes profile pics angular shaped again Woohoo!
+      mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')
       common.log('inserted code for angular profile pics', 0)
     }
 
@@ -131,6 +130,7 @@ function createWindow () {
               because promise of executeJavascript seems to never get resolved,
               so there is no way to return the result
               Alternative solution: Do the same as with images, replace href.
+              Also executes on non-t.co
       */
       //TODO: Maybe move image related stuff to update-target-url
       mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
@@ -213,8 +213,10 @@ function createWindow () {
 
   mainWindow.on('close', () => {
     const size = mainWindow.getSize()
-    common.settings.width = size[0]//width
-    common.settings.height = size[1]//height
+    //width
+    common.settings.width = size[0]
+    //height
+    common.settings.height = size[1]
     common.saveSettings()
   })
 
@@ -342,7 +344,8 @@ function checkForUpdates () {
 
 function openUrl (url) {
   if (!common.settings.openInTor) {
-    shell.openExternal(url)//opens link in default browser
+    //opens link in default browser
+    shell.openExternal(url)
     common.log('opened link external', 0)
   }
   else {
@@ -444,7 +447,9 @@ else {
     }
   })
   app.on('ready', () => {
-    app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
+    //fixes blank screen bug... fucking hell...
+    app.commandLine.appendSwitch('disable-gpu-compositing')
+
     //Disable Electrons default application menu
     Menu.setApplicationMenu(null)
 
@@ -529,9 +534,10 @@ else {
         cmenu.append(new MenuItem({
           label: 'Copy URL',
           click (item, focusedWindow) {
-            let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
+            //Note to self: Don't use linkText. Doesn't work. Whoops.
+            let url = params.linkURL
 
-            if(focusedWindow.id === mainWindow.id && url.search('https://t.co') === 0) {
+            if(focusedWindow.id === mainWindow.id && url.search('https://t.co/') === 0) {
               // For explaination see mainWindows new-window event
               mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
                 .then((result) => {
@@ -654,15 +660,15 @@ else {
 
 function getWindowName(win) {
   switch(true) {
-    case mainWindow !== undefined && mainWindow.id == win.id:
+    case mainWindow !== undefined && mainWindow.id === win.id:
       return 'main window'
-    case loginWin !== undefined && loginWin.id == win.id:
+    case loginWin !== undefined && loginWin.id === win.id:
       return 'login window'
-    case twitterWin !== undefined && twitterWin.id == win.id:
+    case twitterWin !== undefined && twitterWin.id === win.id:
       return 'twitter window'
-    case settingsWin !== undefined && settingsWin.id == win.id:
+    case settingsWin !== undefined && settingsWin.id === win.id:
       return 'settings window'
-    case settingsWin !== undefined && aboutWin.id == win.id:
+    case settingsWin !== undefined && aboutWin.id === win.id:
       return 'about window'
     default:
       return 'unknown window'
@@ -688,7 +694,7 @@ function createMenu () {
               settingsWin = new BrowserWindow({ parent: mainWindow, show: false, modal: true, width: 450, height: 320, minwidth: 440, minheight: 315, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
               common.log('created settings window', 0)
               //settingsWin.removeMenu()
-              settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
+              settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
               if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
               }
@@ -775,7 +781,7 @@ function createMenu () {
           common.log('created about window', 0)
           //aboutWin.removeMenu()
 
-          aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
+          aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
 
           //Set window icon for Linux
           if (process.platform === 'linux') {

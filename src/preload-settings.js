@@ -12,9 +12,7 @@ contextBridge.exposeInMainWorld(
         if (validChannels.includes(channel)) {
           return ipcRenderer.sendSync(channel, data)
         }
-        else {
-          common.log('prevented invalid ipc call', 0)
-        }
+        common.log('prevented invalid ipc call', 0)
       }
     },
     common: {
