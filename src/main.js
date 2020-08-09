@@ -83,7 +83,7 @@ function createWindow () {
       else common.log('failed to insert custom theme. File doesn\'t exist', 0)
     }
   })
-  //Read out every t.co url and real url from tweets and media and save result when mouse hovers over a link
+
   mainWindow.webContents.on('update-target-url', (event, url) => {
     //Only execute JS on t.co links
     if (url.search('https://t.co/') === 0) {
@@ -105,8 +105,7 @@ function createWindow () {
       /*
         Replaces href attributes of images in column preview with background-image style attribute
       */
-      //TODO: Remove ?format... from links
-      mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1)} }`)
+      mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1).split('?')[0]} }`)
     }
   })
 
@@ -133,7 +132,7 @@ function createWindow () {
               Also executes on non-t.co
       */
       //TODO: Maybe move image related stuff to update-target-url
-      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
+      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1).split('?')[0]}`)
         .then((result) => {
           common.log(`found: ${result}`, 1)
           if(result) {
@@ -539,7 +538,7 @@ else {
 
             if(focusedWindow.id === mainWindow.id && url.search('https://t.co/') === 0) {
               // For explaination see mainWindows new-window event
-              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1)}`)
+              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1).split('?')[0]}`)
                 .then((result) => {
                   common.log(`found: ${result}`, 1)
                   if(result) {
