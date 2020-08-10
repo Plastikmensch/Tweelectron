@@ -28,7 +28,7 @@ let themeAll
 let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
 
-//process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
+//NOTE: process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
 function getTorFile () {
   if (process.platform === 'linux') {
     return path.join(process.resourcesPath, 'tor-linux', 'tor')
@@ -103,6 +103,7 @@ function createWindow () {
       mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
       /*
         Replaces href attributes of images in column preview with background-image style attribute
+        Also removes ?format... from image links
       */
       mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1).split('?')[0]} }`)
     }
@@ -313,12 +314,9 @@ function checkForUpdates () {
     let data = ''
     //Warning: gets called multiple times
     response.on('data', (d) => {
-      //console.log(d)
       data += d
     })
     response.on('end', () => {
-      //console.log(data)
-      //console.log("end of response")
       let fulldata = JSON.parse(data)
       common.log(`tag_name: ${fulldata.tag_name}`, 1)
       common.log(`body: ${fulldata.body}`, 1)
@@ -342,14 +340,14 @@ function checkForUpdates () {
 
 function openUrl (url) {
   if (!common.settings.openInTor) {
-    //opens link in default browser
+    //Opens link in default browser
     shell.openExternal(url)
     common.log('opened link external', 0)
   }
   else {
     if (common.settings.torBrowserExe !== null) {
       common.log(common.settings.torBrowserExe, 1)
-      //allow remote and new tab might break opening links with other browsers
+      //NOTE: allow remote and new tab might break opening links with other browsers
       const linkChild = childProcess.spawn(common.settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
       linkChild.on('error', (err) => {
         common.log(err, 0)
@@ -357,6 +355,7 @@ function openUrl (url) {
       common.log('opened link in torbrowser', 0)
     }
     else {
+      //Show dialog if no path is specified
       dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
       common.log('failed to open in tor', 0)
     }
@@ -769,34 +768,45 @@ function createMenu () {
     },
     {
       label: 'About',
-      click () {
-        if (aboutWin !== undefined) {
-          aboutWin.focus()
-          common.log('focusing about window', 0)
-        }
-        else {
-          aboutWin = new BrowserWindow({ parent: mainWindow, show: false, width: 500, height: 300, minwidth: 500, minheight: 300, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
-          common.log('created about window', 0)
-          //aboutWin.removeMenu()
+      submenu: [
+        {
+          label: 'Report Issues',
+          click () {
+            shell.openExternal('https://github.com/Plastikmensch/Tweelectron/issues')
+          }
+        },
+        {
+          label: 'About',
+          click () {
+            if (aboutWin !== undefined) {
+              aboutWin.focus()
+              common.log('focusing about window', 0)
+            }
+            else {
+              aboutWin = new BrowserWindow({ parent: mainWindow, show: false, width: 500, height: 300, minwidth: 500, minheight: 300, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
+              common.log('created about window', 0)
+              //aboutWin.removeMenu()
 
-          aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
+              aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
 
-          //Set window icon for Linux
-          if (process.platform === 'linux') {
-            aboutWin.setIcon(icon)
+              //Set window icon for Linux
+              if (process.platform === 'linux') {
+                aboutWin.setIcon(icon)
+              }
+            }
+
+            aboutWin.on('closed', () => {
+              aboutWin = undefined
+              common.log('closed about window', 0)
+            })
+
+            aboutWin.webContents.on('will-navigate', (event, url) => {
+              event.preventDefault()
+              shell.openExternal(url)
+            })
           }
         }
-
-        aboutWin.on('closed', () => {
-          aboutWin = undefined
-          common.log('closed about window', 0)
-        })
-
-        aboutWin.webContents.on('will-navigate', (event, url) => {
-          event.preventDefault()
-          shell.openExternal(url)
-        })
-      }
+      ]
     }
   ]
 
