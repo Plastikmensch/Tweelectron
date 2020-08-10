@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help this project improve
 title: ''
 labels: bug
 assignees: ''
@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS/Distro: [e.g. Ubuntu]
- - App Version [e.g. 1.1.0]
+ - App Version: [e.g. 1.1.0]
 
 **Additional context**
 Add any other context about the problem here.

@@ -23,15 +23,16 @@ The `settings.json` file is in the same folder as `Tweelectron.exe`<br>
 Example:
 ```
 {
-"use-tor" :true,
-"use-round-pics" :false,
-"theme" :0,
-"width" :1336,
-"height" :720,
-"use-custom-proxy" :false,
-"customProxy" :"foopy:80",
-"links-in-torbrowser" :false,
-"tor-browser-exe" :"null"
+    "useTor": true,
+    "useRoundPics": false,
+    "theme": 0,
+    "width": 1336,
+    "height": 720,
+    "useCustomProxy": false,
+    "customProxy": "foopy:80",
+    "openInTor": false,
+    "torBrowserExe": null,
+    "logLevel": 0
 }
 ```
 Or use the in-app settings! Press `Alt` click `App` -> `Settings`

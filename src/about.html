@@ -1,28 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <link rel="stylesheet" type="text/css" href="pages.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-fcvsOwr5JlJCGhCpDXIWrowx3Dpcr5PnWMaRVxCt4JA='">
 </head>
 <body>
   <h1>About Tweelectron</h1>
   <p class="about">
-    Tweelectron version:
-    <script>
-      const fs = require('fs')
-      const path = require('path')
-      document.write(fs.readFileSync(path.join(__dirname, 'tweelectron-version'),'utf8'))
-    </script><br>
-    Electron version: <script>document.write(process.versions.electron)</script><br>
-    Tor version:
-    <script>
-    if(process.platform == "linux"){
-      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-linux'),'utf8'))
-    }
-    else if(process.platform=="win32"){
-      document.write(fs.readFileSync(path.join(__dirname, 'tor-version-win'), 'utf8'))
-    }
-    </script><br>
-    GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a>
+    Tweelectron version: <span id="app-version"></span><br>
+    Electron version: <span id="electron-version"></span><br>
+    Tor version: <span id="tor-version"></span><br>
+    GitHub Page: <a href="https://github.com/Plastikmensch/Tweelectron">https://github.com/Plastikmensch/Tweelectron</a> *<br>
+    * Opens in default browser
   </p>
+  <script type="text/javascript">
+    document.getElementById("app-version").innerText = window.version.app
+    document.getElementById("electron-version").innerText = window.version.electron
+    document.getElementById("tor-version").innerText = window.version.tor
+  </script>
 </body>
 </html>

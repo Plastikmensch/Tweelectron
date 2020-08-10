@@ -16,7 +16,8 @@
     "rules": {
         "indent": [
             "error",
-            2
+            2,
+            {"SwitchCase" : 1}
         ],
         "linebreak-style": [
             "error",
@@ -37,6 +38,32 @@
             "stroustrup"
         ],
         "no-trailing-spaces": "error",
-        "no-path-concat": "error"
+        "no-path-concat": "error",
+        "eqeqeq": "error",
+        "no-else-return": "error",
+        "no-self-compare": "error",
+        "yoda": [
+            "error",
+            "never",
+            {"exceptRange": true}
+        ],
+        "array-bracket-newline": [
+            "error",
+            "consistent"
+        ],
+        "key-spacing": "error",
+        "no-inline-comments": "error",
+        "prefer-template": "error",
+        "template-curly-spacing": "error",
+        "no-useless-concat": "error",
+        "block-spacing": "error",
+        "comma-spacing": "error",
+        "no-var": "error",
+        "prefer-arrow-callback": [
+            "error",
+            {"allowNamedFunctions": true}
+        ],
+        "func-call-spacing": "error",
+        "function-paren-newline": "error"
     }
 }

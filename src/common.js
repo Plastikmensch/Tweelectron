@@ -1,106 +1,154 @@
 const path = require('path')
 const fs = require('fs')
-let app
-if (process.type === 'browser') {//(path.basename(require.main.filename) === 'main.js') {
-  app = require('electron').app
+
+let firstLog = true
+//Fix for backup being created if common is required in other scripts
+if (process.type !== 'browser') {
+  firstLog = false
 }
-else {
-  app = require('electron').remote.app
-}
 
-//const logFile = path.join(app.getPath('userData'), 'tweelectron.log')
-
-const Settings = [
-  [undefined, '"use-tor" :'], //useTor
-  [false, '"use-round-pics" :'], //roundPics
-  [0, '"theme" :'], //theme
-  [1336, '"width" :'], //windowWidth
-  [720, '"height" :'], //windowHeight
-  [false, '"use-custom-proxy" :'], //useProxy
-  ['foopy:80', '"customProxy" :'], //customProxy
-  [false, '"links-in-torbrowser" :'], //openInTor
-  ['null', '"tor-browser-exe" :'] //torExe
-]
-
-const settingsFile = SettingsFile()
-function SettingsFile () {
+const settingsFile = getSettingsFile()
+function getSettingsFile() {
   if (process.platform === 'linux') {
-    return process.env.HOME + '/.config/Tweelectron/settings.json'
+    return `${process.env.HOME}/.config/Tweelectron/settings.json`
+  }
+  //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
+  return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
+}
+
+function readSettings () {
+  if (fs.existsSync(settingsFile)) {
+    JSON.parse(fs.readFileSync(settingsFile, 'utf8'), (key, value) => {
+      //Doing Settings[key] = value is more efficient but breaks backwards compability
+      switch (key) {
+        case 'use-tor':
+        case 'useTor':
+          if (typeof value === 'boolean' ) {
+            methods.settings.useTor = value
+          }
+          else foundError(key)
+          break
+        case 'use-round-pics':
+        case 'useRoundPics':
+          if (typeof value === 'boolean') {
+            methods.settings.useRoundPics = value
+          }
+          else foundError(key)
+          break
+        case 'theme':
+          if (typeof value === 'number' && value >= 0) {
+            methods.settings.theme = value
+          }
+          else foundError(key)
+          break
+        case 'width':
+          if (typeof value === 'number' && value >= 0) {
+            methods.settings.width = value
+          }
+          else foundError(key)
+          break
+        case 'height':
+          if (typeof value === 'number' && value >= 0) {
+            methods.settings.height = value
+          }
+          else foundError(key)
+          break
+        case 'use-custom-proxy':
+        case 'useCustomProxy':
+          if (typeof value === 'boolean') {
+            methods.settings.useCustomProxy = value
+          }
+          else foundError(key)
+          break
+        case 'customProxy':
+          if (typeof value === 'string') {
+            methods.settings.customProxy = value
+          }
+          else foundError(key)
+          break
+        case 'links-in-torbrowser':
+        case 'openInTor':
+          if (typeof value === 'boolean') {
+            methods.settings.openInTor = value
+          }
+          else foundError(key)
+          break
+        case 'tor-browser-exe':
+        case 'torBrowserExe':
+          if (typeof value === 'string' && value !== 'null') {
+            methods.settings.torBrowserExe = value
+          }
+          break
+        case 'logLevel':
+          if (typeof value === 'number' && value >= 0) {
+            methods.settings.logLevel = value
+          }
+          else foundError(key)
+          break
+        default:
+          methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
+      }
+    })
   }
   else {
-    //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
-    return path.join(app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)), 'settings.json')
+    methods.log('Settings file doesn\'t exist', 0)
   }
 }
-/*
-app.on('ready', () => {
-  if (app.hasSingleInstanceLock() && fs.existsSync(logFile)) {
-    fs.renameSync(logFile, logFile + '.backup')
-  }
-})
-*/
-var methods = {
-  readSettings: function () {
-    if (fs.existsSync(settingsFile)) {
-      const settingsData = fs.readFileSync(settingsFile, 'utf8')
-      //Redo this mess
-      for (let i = 0; i < Settings.length; i++) {
-        if (settingsData.search('=') === -1) {
-          //slice from start of key + length of key to end of the current line and trim the sliced part to remove whitespaces
-          Settings[i][0] = settingsData.slice(settingsData.search(Settings[i][1]) + Settings[i][1].length, settingsData.indexOf('\n', settingsData.search(Settings[i][1]))).trim()
-        }
-        else {
-          this.log('Settings file has wrong format')
-          const temp = settingsData.split('\n')
-          if (i < temp.length - 1) {
-            Settings[i][0] = temp[i].slice(temp[i].search('=') + 1)
-          }
-        }
-        //remove ","
-        if (Settings[i][0].search(',') !== -1) {
-          Settings[i][0] = Settings[i][0].slice(0, -1)
-        }
-        //if setting is "true" or "false", convert to boolean
-        if (Settings[i][0] === 'true' || Settings[i][0] === 'false') {
-          Settings[i][0] = (Settings[i][0] === 'true')
-        }
-        //if setting is a number, convert to integer
-        else if (!isNaN(Number(Settings[i][0]))) {
-          Settings[i][0] = Number(Settings[i][0])
-        }
-        //else remove ""
-        else if (Settings[i][0].search('"') !== -1) {
-          Settings[i][0] = Settings[i][0].slice(1, Settings[i][0].lastIndexOf('"'))
-        }
-        this.log(`${Settings[i][1]} ${Settings[i][0]}`)
-      }
-    }
-    return Settings
-  },
-  saveSettings: function (Settings) {
-    let saveSettings = '{\n'
-    for (let i = 0; i < Settings.length; i++) {
-      if (isNaN(Settings[i][0]) || Settings[i][0] === null) {
-        //console.log(Settings[i][0] + " is not a number or boolean")
-        saveSettings += (Settings[i][1] + '"' + Settings[i][0] + '"')
-      }
-      else {
-        //console.log(Settings[i][0] + " is a number or boolean")
-        saveSettings += (Settings[i][1] + Settings[i][0])
-      }
-      if (i === Settings.length - 1) saveSettings += '\n'
-      else saveSettings += ',\n'
-    }
-    saveSettings += '}'
-    fs.writeFileSync(settingsFile, saveSettings)
-    this.log('Settings saved')
-  },
-  log: function (message) {
-    fs.appendFileSync(this.logFile, message + '\n')
-    console.log(message)
-  },
-  themeDir: path.join(app.getPath('userData'), 'themes'),
-  appDir: app.getPath('exe').slice(0, app.getPath('exe').lastIndexOf(path.sep)),
-  logFile: path.join(app.getPath('userData'), 'tweelectron.log')
+
+function foundError (key) {
+  methods.log(`Error in Settings: value of ${key} is of invalid type`)
+  methods.errorInSettings.found = true
+  methods.errorInSettings.title = 'Error in Settings'
+  methods.errorInSettings.message += `value of ${key} is invalid\n`
 }
+
+const methods = {
+  saveSettings: function () {
+    fs.writeFileSync(settingsFile, JSON.stringify(this.settings, null, 4))
+    this.log('Settings saved', 0)
+    readSettings()
+  },
+  log: function (message, level = 0) {
+    if (level <= this.settings.logLevel) {
+      if (firstLog) {
+        firstLog = false
+        if (fs.existsSync(this.logFile)) {
+          fs.renameSync(this.logFile, `${this.logFile}.backup`)
+          fs.appendFileSync(this.logFile, 'created backup of logs\n')
+          console.log('created backup of logs')
+        }
+      }
+      // Stringify message if it's an object, so logs don't say [object Object]
+      if (!Array.isArray(message) && typeof message === 'object') {
+        message = JSON.stringify(message)
+      }
+      //Append message to log file
+      fs.appendFileSync(this.logFile, `${message}\n`)
+      console.log(message)
+    }
+  },
+  themeDir: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'themes') : path.join(process.env.HOME, '.config', 'Tweelectron', 'themes'),
+  appDir: process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)),
+  logFile: process.platform === 'win32' ? path.join(process.env.APPDATA, 'Tweelectron', 'tweelectron.log') : path.join(process.env.HOME, '.config', 'Tweelectron', 'tweelectron.log'),
+  settings: {
+    useTor: null,
+    useRoundPics: false,
+    theme: 0,
+    width: 1336,
+    height: 720,
+    useCustomProxy: false,
+    customProxy: 'foopy:80',
+    openInTor: false,
+    torBrowserExe: null,
+    logLevel: 0
+  },
+  errorInSettings: {
+    found: false,
+    title: '',
+    message: ''
+  }
+}
+
+readSettings()
+
 module.exports = methods

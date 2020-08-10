@@ -1,623 +1,551 @@
 /*
-    TO-DO: [x] = done, [\] = won't do
-
-     Internal:
-     [] find motivation to work on this list
-     [x] push new release 1.0.10 (it's about time)
-     [x] write install script for linux
-        - find out why sudo doesn't work and script fails to execute (probably for security reasons)
-        (forgot chmod +x... btw changed it to require being run as root instead of using sudo inside script)
-     [] add more comments
-     [x] change file structure to be more compliant
-     [] update Readme (How to use scripts, requirements etc., settings)
-     [x] sort this list with version numbers, so it's clear why new releases take so long
-     [] include pictures in Readme
-     [] (Maybe) move to-do list to issues as task list
-     Misc:
-     [x] use an array or object to store settings variables
-     [x] save settings when app quits
-     [x] add custom proxy support
-     [x] create function to process settingsData
-     [x] add in-app settings
-     [x] make settings beautiful
-     [x] add 'already saved' to settings
-     [x] add about page
-     [x] adjust theme for TweetDecks awful color choice.
-     [x] rework old theme
-     [x] add theme selection
-     [x] find a way to include Tor in linux
-     [x] rework windows
-     [x] change location of settingsFile (EACCESS ERROR)
-     [x] make tor process close when Tweelectron closes
-        - avoid closing tor when not started by Tweelectron
-     [\] (optional) include torbrowser (Maybe just download it for reduced filesize?)
-     [\] (Maybe) Get rid of old theme (Truly Dark)
-     [] rework theme (turns out: TweetDecks theme doesn't suck anymore)
-     [] (Maybe) implement configurable text shortcuts (like replace *shrug with ¯\_(ツ)_/¯)
-     [x] Actually use json format for settings or just change it to .cfg
-     [x] move theme code to files in theme folder
-        - create files on first start
-     [x] rewrite code (avoid repetition and optimize)
-     [x] please linter (what a pain in the ass...)
-     [x] create logfile
-        - backup last logfile
-     [] fix Truly Dark theme (aka wait for TweetDeck to remove !important from their stylesheet)
-     [x] move all settingsFile related stuff to common.js
-     [x] show titles in changelog
-     [] (Maybe) use app directory to store all files to be more portable and easier deletion
-        - keep EACCESS in mind (linux)
-     [] create loglevel setting, so it's not necessary to comment logs
-     1.1 Release:
-     [x] find a way to bypass t.co links (Need help)
-        - https://github.com/Spaxe/Goodbye--t.co- ?
-        - read out "data-full-url" (But how?)
-     [x] Update notifier
-     [x] give option to open links in tor
-        - (optional) let users, who already have torbrowser, pick a path
-     [x] add support for custom themes
-     1.1.1 Release:
-     [x] bypass t.co when clicking on pictures
-        - (optional) open them in new window
-     [x] fix font issues
-     [x] rewrite for Electron 7 (uuuuuuuugh)
-     1.2 Release:
-     [] bypass t.co on links in profiles (not really possible...)
-     [] rewrite so settings are not duplicated through scripts
-        - let common.js handle settings completely
-     [] fix logs so backup is created before new stuff logs
-        - everything logged before the ready event ends up in backup
-     [] optimise code
-     [] Threadmaker
-
+NOTE: This is just a proof of concept and will not be included,
+      since altering tweet content is out of scope
+      You can implement or run this code yourself, if you really want to
+Blocking Emojis (replacing them with text)
+var t= document.getElementsByClassName('emoji')
+for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span'); span.innerText='(smoking emoji)';e.replaceWith(span)}}
 */
+
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
 const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
 
-let Settings = common.readSettings()
-let child
-
-const tor = TorFile()
+const torFile = getTorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
 const singleInstance = app.requestSingleInstanceLock()
 
-let themeAll, urlList
-let mainWindow, settingsWin, twitterwin, aboutWin
+const nav = {
+  home: 'https://tweetdeck.twitter.com/',
+  fail: `file://${path.join(app.getAppPath(), 'fail.html')}`,
+  checkTor: 'https://check.torproject.org/',
+  twitter: 'https://twitter.com/'
+}
 
-//process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
-function TorFile () {
+let themeAll
+let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
+let torProcess
+
+//NOTE: process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
+function getTorFile () {
   if (process.platform === 'linux') {
-    return process.resourcesPath + '/tor-linux/tor'
+    return path.join(process.resourcesPath, 'tor-linux', 'tor')
   }
-  else {
-    return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
-  }
+  return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
 }
 
 function createWindow () {
-  //Disable nodeIntegration before release!
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: Settings[3][0], height: Settings[4][0], minWidth: 371, minHeight: 200/*, webPreferences:{nodeIntegration: true}*/ })
+  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, show: false, webPreferences: { contextIsolation: true, enableRemoteModule: false } })
   createMenu()
-  //common.log(Settings)
-  common.log(common.themeDir)
-  common.log(common.appDir)
-  const url2 = 'file://' + path.join(app.getAppPath(), 'fail.html')
-  const home = 'https://tweetdeck.twitter.com/'
+
+  common.log(common.settings, 1)
+  common.log(common.themeDir, 1)
+  common.log(common.appDir, 1)
+
   let retries = 0
-  if (Settings[5][0]) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: Settings[6][0] })
-    if (proxy) {
-      mainWindow.loadURL(home)
-      common.log('using custom Proxy')
-    }
-    else {
-      common.log('custom proxy failed')
-    }
-  }
-  else if (Settings[0][0]) {
-    let proxy = mainWindow.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-    if (proxy) {
-      mainWindow.loadURL(home)
-      common.log('using Tor')
-    }
-    else {
-      common.log('connection to tor failed')
-    }
-  }
-  else {
-    mainWindow.loadURL(home)
-    common.log('Not using Tor or custom Proxy')
-  }
+
+  checkProxy(mainWindow, nav.home)
+
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`)
-    if (validatedURL === home) {
+    common.log(`failed to load. Retrying...\nError: ${errorCode}  ${errorDescription}  ${validatedURL}`, 0)
+    if (validatedURL === nav.home) {
       if (retries === 3) {
-        mainWindow.loadURL(url2)
-        common.log('loading fail page')
+        mainWindow.loadURL(nav.fail)
+        common.log('loading fail page', 0)
       }
       else {
-        mainWindow.loadURL(home)
+        mainWindow.loadURL(nav.home)
         retries++
-        common.log('Retrying...')
+        common.log('Retrying...', 0)
       }
     }
   })
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
-    if (!Settings[1][0] && mainWindow.webContents.getURL().search(home) === 0) {
-      mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')// makes profile pics angular shaped again Woohoo!
-      common.log('inserted code for angular profile pics')
+    if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(nav.home) === 0) {
+      // makes profile pics angular shaped again Woohoo!
+      mainWindow.webContents.insertCSS('.avatar{border-radius:0 !important}')
+      common.log('inserted code for angular profile pics', 0)
     }
-    /*
-    if(Settings[2][0]==2 && mainWindow.webContents.getURL().search("https://tweetdeck.twitter.com/") == 0)
-    {
-      //First: Dropdown menu (Settings, account actions)
-      //Second: Keyboard shortcuts
-      //Third: Settings
-      //Fourth: Search
-      //Fifth: Profile
-      //Sixth: Profile -> Tweets, Mentions, Lists etc.
-      //Seventh: Tweets (Pictures, Videos)
 
-      //Twitter bg color #15202b
-      //Not needed anymore
-      //mainWindow.webContents.insertCSS("html.dark .bg-color-twitter-white{background-color: #243447!important}")
-
-      //Basically not needed anymore and full of obsolete stuff
-
-      /*html.dark .dropdown-menu{background-color: #243447 !important}\
-      html.dark .non-selectable-item{color: #e1e8ed !important}\
-      html.dark .dropdown-menu .typeahead-item, html.dark .dropdown-menu [data-action]{color: #e1e8ed !important}\
-      html.dark .dropdown-menu .dropdown-menu-url-item{color: #e1e8ed !important}\
-      \
-      html.dark .mdl{background-color: #243447 !important}\
-      html.dark .text-like-keyboard-key{color: #292f33 !important}\
-      html.dark .keyboard-shortcut-list{color: #e1e8ed !important}\
-      html.dark .mdl-header{color: #e1e8ed !important}\
-      html.dark .mdl-dismiss{color: #e1e8ed !important}\
-      .txt-r-deep-gray{color: #e1e8ed !important}\
-      .bg-r-white{background-color: #243447 !important}\
-      \
-      html.dark .mdl-col-settings{background-color: #243447 !important}\
-      html.dark .frm{color: #e1e8ed !important}\
-      html.dark .bg-color-twitter-lightest-gray{background-color: #243447 !important}\
-      html.dark .is-inverted-dark .list-link{color: #e1e8ed !important}\
-      html.dark .list-filter{color: #e1e8ed !important}\
-      html.dark .list-link:hover:hover{color: #e1e8ed !important; background-color: #1B2836 !important}\
-      \
-      html.dark .is-inverted-dark .accordion .is-active{color: #e1e8ed !important}\
-      .txt-twitter-dark-black{color: #e1e8ed !important}\
-      html.dark .is-inverted-dark{color: #e1e8ed !important}\
-      html.dark .popover{background-color: #243447 !important}\
-      .caret-inner{border-bottom: 6px solid #243447 !important}\
-      html.dark .list-item{color: #e1e8ed !important}\
-      html.dark .bg-color-twitter-white{background-color: #243447 !important}\
-      html.dark .color-twitter-dark-gray{color:#fff !important}\
-      html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #1B2836 !important}\
-      html.dark .Button{background-color: #1B2836 !important}\
-      html.dark .Button:hover{background-color: #1B2836 !important}\
-      \
-      html.dark .prf-meta{background-color: #1B2836 !important}\
-      html.dark .prf-stats a strong{color: #e1e8ed !important}\
-      html.dark .social-proof-container{background-color: #1B2836 !important}\
-      html.dark .is-inverted-dark .btn:hover, html.dark .is-inverted-dark .btn:focus{background-color: #243447 !important}\
-      html.dark .Button{background-color: #1B2836 !important}\
-      html.dark .btn-round{background-color: #1B2836 !important}\
-      html.dark .Button:hover{background-color: #243447 !important}\
-      html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\
-      html.dark .s-thats-you .thats-you-text{background-color: #1B2836 !important}\
-      html.dark .s-thats-you .thats-you-text:hover{background-color: #243447 !important}\
-      html.dark .s-not-following .follow-text{background-color: #1b2836 !important}\
-      \
-      html.dark .mdl-column-med{background: #243447 !important}\
-      html.dark .mdl-column-rhs{background: #243447 !important}\
-      html.dark .is-inverted-dark .stream-item{background-color: #1B2836 !important}\
-      html.dark .is-inverted-dark .account-link{color: #e1e8ed !important}\
-      html.dark .list-account .fullname{color: #e1e8ed !important}\
-      html.dark .column-background-fill{background-color: #243447 !important}\
-      html.dark .is-inverted-dark .scroll-conversation{background: #1B2836 !important}\
-      .list-btn{background-color: #243447 !important;border-color: #000 !important}\
-      .list-btn:hover{background-color: #1B2836 !important}\
-      .list-explaination{background-color: #243447 !important}\
-      .page-bottom{background-color: #243447 !important;color: #7a8994 !important}\
-      html.dark .modal-content-with-border{border: 1px solid #000 !important}\
-      .list-btn:first-of-type{border: 2px solid #000 !important}\
-      \
-      html.dark .med-fullpanel{background-color: #14171A !important}\
-      html.dark .is-unread{background-color: #2d4a6d !important}\
-      html.dark .color-twitter-dark-black{color: #fff !important}\
-      ")
-      console.log("inserted code for blue theme")
-    }
-    */
-    if (Settings[2][0] > 0 && mainWindow.webContents.getURL().search('https://tweetdeck.twitter.com/') === 0) {
-      const themeFile = path.join(common.themeDir, themeAll[Settings[2][0] - 1])
+    //If theme is selected and url matches tweetdeck, read theme file and insert css
+    if (common.settings.theme > 0 && mainWindow.webContents.getURL().search(nav.home) === 0) {
+      const themeFile = path.join(common.themeDir, themeAll[common.settings.theme - 1])
       if (fs.existsSync(themeFile)) {
         const fileContent = fs.readFileSync(themeFile, 'utf8').trim()
-        common.log(themeFile)
-        //common.log(fileContent)
+        common.log(themeFile, 1)
         mainWindow.webContents.insertCSS(fileContent)
-        common.log('inserted custom theme')
+        common.log('inserted custom theme', 0)
       }
-      else common.log('failed to insert custom theme. File doesn\'t exist')
+      else common.log('failed to insert custom theme. File doesn\'t exist', 0)
     }
   })
+
   mainWindow.webContents.on('update-target-url', (event, url) => {
-    mainWindow.webContents.executeJavaScript('function getURL() {var x = document.querySelectorAll(\'.url-ext\');var y = document.querySelectorAll(\'.js-media-image-link\');var urls = []; for(var i=0;i<x.length;i++) {urls.push([x[i].getAttributeNode(\'href\').value,x[i].getAttributeNode(\'data-full-url\').value])} for (var i=0;i<y.length;i++) {if (y[i].hasAttribute(\'style\')) urls.push([y[i].getAttributeNode(\'href\').value, y[i].getAttributeNode(\'style\').value.slice(21,-1)])} return urls}; getURL()').then((result) => { //`var x = document.querySelectorAll('.url-ext'); for(var i=0;i<x.length;i++) {x[i].getAttributeNode('data-full-url').value}`
-      urlList = result
-    })
+    //Only execute JS on t.co links
+    if (url.search('https://t.co/') === 0) {
+      /*
+        Tweets: t.co refers to the link, so you can read out the data-full-url attribute,
+        which is used to show link destination
+
+        Pictures: t.co refers to the tweet, not the image,
+        which makes getting the correct image difficult
+      */
+
+      //Replace t.co link on images with image src
+      /*
+        Replaces href attribute of parentElement of images with the image src attribute
+        media-img is the class attribute of the images shown in preview
+      */
+      //NOTE: Removal of ?format... here breaks url
+      mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
+      /*
+        Replaces href attributes of images in column preview with background-image style attribute
+        Also removes ?format... from image links
+      */
+      mainWindow.webContents.executeJavaScript(`var i = document.querySelectorAll('[href="${url}"]'); if (i.length > 1) {for (const e of i) {if (!e.hasAttribute('data-full-url') && e.hasAttribute('style')) e.href = e.getAttribute('style').slice(21,-1).split('?')[0]} }`)
+    }
   })
 
   mainWindow.webContents.on('new-window', (event, url) => {
-    if (url.search('https://tweetdeck.twitter.com/') !== 0 || url.search('https://twitter.com/') !== 0) {
-      event.preventDefault()
-      //common.log(urlList)
-      for (let i = 0; i < urlList.length; i++) {
-        //common.log(`${urlList[i][0]},${urlList[i][1]}`)
-        if (url === urlList[i][0]) {
-          //remove ?format=X&name=XxX from image links
-          if(urlList[i][1].search('https://pbs.twimg.com/media') === 0) {
-            url = urlList[i][1].slice(0, urlList[i][1].lastIndexOf('?'))
-            //common.log(`${urlList[i][1]} is twitter media`)
+    //prevent default behavior
+    event.preventDefault()
+    //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
+    if (url.search(nav.home) !== 0 && url.search(nav.twitter) !== 0) {
+      //common.log(urlList, 1)
+      common.log(`clicked on ${url}`, 1)
+
+      //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
+
+      /*
+        Selects the element which has the href attribute with url
+        and tries to get it's data-full-url or style attribute value
+        Opens real url on success (has data-full-url or style attribute)
+        Opens url on failure (doesn't have data-full-url or style attribute)
+      */
+      /*NOTE: Doesn't work as own function,
+              because promise of executeJavascript seems to never get resolved,
+              so there is no way to return the result
+              Alternative solution: Do the same as with images, replace href.
+              Also executes on non-t.co
+      */
+      //TODO: Maybe move image related stuff to update-target-url
+      mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1).split('?')[0]}`)
+        .then((result) => {
+          common.log(`found: ${result}`, 1)
+          if(result) {
+            openUrl(result)
           }
-          else url = urlList[i][1]
-          //common.log(`found matching ${urlList[i][0]} to ${urlList[i][1]} url: ${url} index: ${i}`)
-          break
-        }
-      }
-      if (!Settings[7][0]) {
-        shell.openExternal(url)//opens link in default browser
-        common.log('opened link external')
+          else openUrl(url)
+        })
+    }
+    else {
+      //open new window
+      if (twitterWin === undefined) {
+        twitterWin = new BrowserWindow({ parent: mainWindow, show: false, width: 600, height: 700, resizable: false, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
+        common.log('created twitterWin', 0)
+        twitterWin.removeMenu()
+
+        checkProxy(twitterWin, url)
+
+        twitterWin.webContents.on('did-fail-load', () => {
+          twitterWin.loadURL(nav.fail)
+          common.log('failed to load', 0)
+        })
+
+        twitterWin.webContents.on('did-finish-load', () => {
+          /*NOTE: navigation is still possible
+                  there is no good way of preventing it
+                  and I don't want to use executeJavaScript.
+                  There is also no good way to access the twitter settings
+                  Disabling the back button also disables some other buttons
+                  on a profile page, like sending a DM
+                  Good to know: Twitter creates all elements via JS,
+                  which makes did-navigate-in-page event useless,
+                  even though it gets called, because url doesn't change
+          */
+          //make navigation bar and back button invisible
+          const css =
+          `[role="banner"] {display: none !important}
+          .r-u0dd49 {display: none !important}`
+          twitterWin.webContents.insertCSS(css.trim())
+        })
+        //Disable navigation
+        twitterWin.webContents.on('will-navigate', (event) =>{
+          event.preventDefault()
+        })
+
+        twitterWin.on('closed', () => {
+          twitterWin = undefined
+          common.log('closed twitterWin', 0)
+        })
+        event.newGuest = twitterWin
       }
       else {
-        //Settings[8][0] browser exec
-        //Settings[8][0] + url
-        if (Settings[8][0] !== 'null') {
-          common.log(Settings[8][0])
-          //allow remote and new tab might break opening links with other browsers
-          const linkChild = childProcess.spawn(Settings[8][0], ['--allow-remote', '--new-tab', url])
-          linkChild.on('error', (err) => {
-            common.log(err)
-          })
-          common.log('opened link in torbrowser')
-        }
-        else {
-          dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
-          common.log('failed to open in tor')
-        }
+        twitterWin.loadURL(url)
       }
     }
   })
-  //Login button doesn't call this anymore
+
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (url.search('https://twitter.com/login') === 0) {
-      event.preventDefault()
-      twitterwin = new BrowserWindow({ parent: mainWindow })
-      twitterwin.removeMenu()
-      if (Settings[5][0]) {
-        let proxy = twitterwin.webContents.session.setProxy({ proxyRules: Settings[6][0] })
-        if (proxy) {
-          twitterwin.loadURL(url)
-          common.log('using custom Proxy')
-        }
-        else {
-          common.log('custom proxy failed')
-        }
-      }
-      else {
-        if (Settings[0][0]) {
-          let proxy = twitterwin.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
-          if (proxy) {
-            twitterwin.loadURL(url)
-            common.log('using Tor')
-          }
-          else {
-            common.log('tor connection failed')
-          }
-        }
-        else {
-          twitterwin.loadURL(url)
-          common.log('Not using Tor or custom Proxy')
-        }
-      }
-      twitterwin.webContents.on('did-fail-load', () => {
-        twitterwin.loadURL(url2)
-        common.log('failed to load')
+    event.preventDefault()
+    if (url.search('https://mobile.twitter.com/login') === 0) {
+      loginWin = new BrowserWindow({ parent: mainWindow, modal: true, show: false, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
+      loginWin.removeMenu()
+
+      checkProxy(loginWin, url)
+
+      loginWin.webContents.on('did-fail-load', () => {
+        loginWin.loadURL(nav.fail)
+        common.log('failed to load', 0)
       })
-      event.newGuest = twitterwin
-      twitterwin.webContents.on('will-navigate', (event, url) => {
+      event.newGuest = loginWin
+      loginWin.webContents.on('will-navigate', (event, url) => {
+        //NOTE: Having to solve a captcha, loads twitter instead
         mainWindow.loadURL(url)
-        twitterwin.close()
+        loginWin.close()
       })
     }
   })
-  mainWindow.on('close', (event) => {
+
+  mainWindow.on('close', () => {
     const size = mainWindow.getSize()
-    Settings[3][0] = size[0]//width
-    Settings[4][0] = size[1]//height
-    common.saveSettings(Settings)
+    //width
+    common.settings.width = size[0]
+    //height
+    common.settings.height = size[1]
+    common.saveSettings()
   })
+
   mainWindow.on('closed', () => {
     app.quit()
   })
+
   ipcMain.on('Settings', (event, newSettings) => {
-    common.log(newSettings)
-    if (newSettings.toString() === Settings.toString()) {
-      event.returnValue = false
-    }
-    else {
-      let reload = false
-      //check if theme is changed
-      if (Settings[2][0] !== newSettings[2][0]) {
-        reload = true
+    common.log('newSettings:', 1)
+    common.log(newSettings, 1)
+    for (let i in common.settings) {
+      if (common.settings[i] !== newSettings[i]) {
+        common.log('change in Settings', 1)
+        let reload = false
+        if (common.settings.theme !== newSettings.theme) {
+          reload = true
+        }
+
+        common.settings = newSettings
+
+        if (reload) {
+          mainWindow.reload()
+        }
+
+        common.saveSettings()
+        common.log('Settings:', 1)
+        common.log(common.settings, 1)
+        event.returnValue = true
       }
-      Settings = newSettings
-      //reload TweetDeck if theme is changed
-      if (reload) {
-        mainWindow.reload()
-      }
-      common.saveSettings(Settings)
-      event.returnValue = true
     }
-    common.log(Settings)
+    event.returnValue = false
   })
-  CheckForUpdates()
+  ipcMain.on('Themes', (event) => {
+    checkThemes()
+    event.returnValue = themeAll
+  })
+
+  checkForUpdates()
   //Set icon on Linux
   if (process.platform === 'linux') {
     mainWindow.setIcon(icon)
   }
 }
 function startTor () {
-  common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`)
-  common.log('starting Tor')
-  child = childProcess.execFile(tor, (err) => {
+  common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`, 1)
+  common.log('starting Tor', 0)
+  torProcess = childProcess.execFile(torFile, (err) => {
     if (err) {
-      common.log('couldn\'t start tor. (already running?)')
-      common.log(err)
+      common.log('couldn\'t start tor. (already running?)', 0)
+      common.log(err, 0)
     }
   })
-  common.log(`pid: ${child.pid}`)
+  common.log(`pid: ${torProcess.pid}`, 1)
 
-  child.on('exit', (code, signal) => {
-    common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`)
-    child = undefined
+  torProcess.on('exit', (code, signal) => {
+    common.log(`Tor stopped:\ncode: ${code} signal: ${signal}`, 0)
+    torProcess = undefined
   })
 }
 
-function CheckForUpdates () {
+function checkProxy (win, url) {
+  if (common.settings.useCustomProxy) {
+    let proxy = win.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
+    if (proxy) {
+      win.loadURL(url)
+      common.log('using custom Proxy', 0)
+    }
+    else {
+      common.log('custom proxy failed', 0)
+    }
+  }
+  else {
+    if (common.settings.useTor) {
+      let proxy = win.webContents.session.setProxy({ proxyRules: 'socks5://127.0.0.1:9050' })
+      if (proxy) {
+        win.loadURL(url)
+        common.log('using Tor', 0)
+      }
+      else {
+        common.log('tor connection failed', 0)
+      }
+    }
+    else {
+      win.loadURL(url)
+      common.log('Not using Tor or custom Proxy', 0)
+    }
+  }
+}
+
+function checkForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
-    if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`)
-    //console.log(JSON.stringify(response.headers))
-    response.setEncoding('utf8')//makes d readable
+    if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
+    //Make response readable
+    response.setEncoding('utf8')
+
     let data = ''
     //Warning: gets called multiple times
     response.on('data', (d) => {
-      //console.log(d)
       data += d
     })
     response.on('end', () => {
-      //console.log(data)
-      //console.log("end of response")
-      if (data.search('tag_name') !== -1) {
-        //get tag_name by slicing data from "v" after "tag_name" to "," after "tag_name", Well also removes ""
-        const latest = data.slice(data.indexOf(':', data.search('tag_name')) + 3, data.indexOf(',', data.search('tag_name')) - 1)
-        //console.log("latest: " + latest)
-        const body = data.slice(data.indexOf(':', data.search('body')) + 2, -2)
-        const splitBody = body.split('\\r\\n')
-        let slicedBody = ''
-        for (let i = 1; i < splitBody.length; i++) {
-          if (splitBody[i].search('_') !== -1) {
-            splitBody[i] = splitBody[i].slice(splitBody[i].indexOf('_') + 2, splitBody[i].lastIndexOf('_') - 1) + ':'
-          }
-          slicedBody += splitBody[i] + '\n'//.slice(0, splitBody[i].indexOf('\\r\\n')) + '\n'
-        }
-        //Note: use trim() when reading from files or \n is also part of string. The fuck JS?
-        const current = fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()
-        //console.log("current: " + current)
-        if (current !== latest) {
-          dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: v${current}\nlatest version: v${latest}\n\nChanges:\n${slicedBody}` })
-          common.log('Update available')
-        }
-        else common.log('No update available')
+      let fulldata = JSON.parse(data)
+      common.log(`tag_name: ${fulldata.tag_name}`, 1)
+      common.log(`body: ${fulldata.body}`, 1)
+
+      const current = `v${fs.readFileSync(path.join(__dirname, 'tweelectron-version'), 'utf8').trim()}`
+
+      fulldata.body = fulldata.body.replace(/__.+__/g, (x) => {
+        return `${x.replace(/_/g, '')}:`
+      })
+
+      if(current !== fulldata.tag_name) {
+        dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: ${current}\nlatest version: ${fulldata.tag_name}\n\n${fulldata.body}` })
+        common.log('Update available', 0)
       }
+      else common.log('No update available', 0)
     })
   }).on('error', (err) => {
-    common.log(`Error:\n${err.message}`)
+    common.log(`Error:\n${err.message}`, 0)
   })
 }
+
+function openUrl (url) {
+  if (!common.settings.openInTor) {
+    //Opens link in default browser
+    shell.openExternal(url)
+    common.log('opened link external', 0)
+  }
+  else {
+    if (common.settings.torBrowserExe !== null) {
+      common.log(common.settings.torBrowserExe, 1)
+      //NOTE: allow remote and new tab might break opening links with other browsers
+      const linkChild = childProcess.spawn(common.settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
+      linkChild.on('error', (err) => {
+        common.log(err, 0)
+      })
+      common.log('opened link in torbrowser', 0)
+    }
+    else {
+      //Show dialog if no path is specified
+      dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+      common.log('failed to open in tor', 0)
+    }
+  }
+}
+
+function checkThemes () {
+  const includedThemes = fs.readdirSync(path.join(__dirname, 'themes'), 'utf-8')
+  common.log(includedThemes, 1)
+  // If theme directory doesn't exist, create it and themes
+  // else check themes for updates
+  if (!fs.existsSync(common.themeDir)) {
+    fs.mkdirSync(common.themeDir)
+    common.log('created theme directory', 0)
+    for (const theme of includedThemes) {
+      fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+      common.log(`created ${theme}`, 0)
+    }
+  }
+  else {
+    for (const theme of includedThemes) {
+      //create theme file if it doesn't exist
+      //else if theme file doesn't match internal file, overwrite it
+      if (!fs.existsSync(path.join(common.themeDir, theme))) {
+        fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+        common.log(`created missing ${theme}`, 0)
+      }
+      else if (fs.readFileSync(path.join(common.themeDir, theme), 'utf-8').trim() !== fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8').trim()) {
+        fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
+        common.log(`updated ${theme}`, 0)
+      }
+    }
+  }
+
+  //Read theme directory
+  themeAll = fs.readdirSync(common.themeDir)
+  common.log(`found ${themeAll.length} theme(s)`, 0)
+}
+
+//Block remote modules
+//NOTE: The new default of disabling the remote module makes this obsolete in Electron 10
 app.on('remote-require', (event, webContents, moduleName) => {
-  common.log(`remote ${moduleName} required`)
+  common.log(`remote ${moduleName} required`, 1)
   event.preventDefault()
 })
 
 app.on('remote-get-builtin', (event, webContents, moduleName) => {
-  common.log(`remote get builtin ${moduleName}`)
-  if (moduleName !== 'app') {
-    event.preventDefault()
-    common.log(`preventing ${moduleName} from loading`)
-  }
+  common.log(`remote get builtin ${moduleName}`, 1)
+  event.preventDefault()
 })
 
 app.on('remote-get-global', (event, webContents, globalName) => {
-  common.log(`remote get global ${globalName}`)
+  common.log(`remote get global ${globalName}`, 1)
   event.preventDefault()
 })
 
-app.on('remote-get-current-window', (event, webContents) => {
-  common.log('remote get current window')
+app.on('remote-get-current-window', (event) => {
+  common.log('remote get current window', 1)
   event.preventDefault()
 })
 
-app.on('remote-get-current-web-contents', (event, webContents) => {
-  common.log('remote get current webcontents')
+app.on('remote-get-current-web-contents', (event) => {
+  common.log('remote get current webcontents', 1)
   event.preventDefault()
 })
 
-app.on('remote-get-guest-web-contents', (event, webContents, guestWebContents) => {
-  common.log('remote get guest web contents')
+app.on('remote-get-guest-web-contents', (event) => {
+  common.log('remote get guest web contents', 1)
   event.preventDefault()
 })
 
+//NOTE: Single instance lock seems to not work when primary instance crashed
+//Only allow single instance
 if (!singleInstance) {
   //Close second instance
   app.quit()
-  common.log('quitting second instance')
+  common.log('quitting second instance', 0)
 }
 else {
-  if (fs.existsSync(common.logFile)) {
-    fs.renameSync(common.logFile, common.logFile + '.backup')
-  }
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', () => {
     //Focus mainWindow when started a second time
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.focus()
-      common.log('tried to start second instance, focusing main window')
+      common.log('tried to start second instance, focusing main window', 0)
     }
   })
   app.on('ready', () => {
-    app.commandLine.appendSwitch('disable-gpu-compositing')//fixes blank screen bug... fucking hell...
-    Menu.setApplicationMenu(null)//needed, because Electron has a default menu now.
+    //fixes blank screen bug... fucking hell...
+    app.commandLine.appendSwitch('disable-gpu-compositing')
 
-    if (Settings[0][0] === undefined) {
-      common.log('tor variable unset')
+    //Disable Electrons default application menu
+    Menu.setApplicationMenu(null)
+
+    //exit immediately if settings are faulty
+    if (common.errorInSettings.found) {
+      dialog.showMessageBoxSync({type: 'error', buttons: ['Quit'], message: common.errorInSettings.message, title: common.errorInSettings.title})
+      app.exit()
+    }
+
+    //Show dialog asking if user wants to use tor if useTor is unset
+    if (common.settings.useTor === null) {
+      common.log('tor variable unset', 0)
       const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
 
       if (dialogTor) {
-        Settings[0][0] = true
-        common.log('clicked YES')
+        common.settings.useTor = true
+        common.log('clicked YES', 0)
       }
       else {
-        Settings[0][0] = false
-        common.log('clicked NO')
+        common.settings.useTor = false
+        common.log('clicked NO', 0)
       }
-      common.saveSettings(Settings)
+      common.saveSettings()
     }
-    if (Settings[0][0] && !Settings[1][0]) {
+    if (common.settings.useTor && !common.settings.useCustomProxy) {
       startTor()
     }
+
     createWindow()
 
-    const themeTrulyDark =
-    //Overall appearance (Tweets, sidebar etc.)
-    'html.dark .stream-item{background-color: #222426 !important}\n' +
-    'html.dark .column-nav-item{background-color: #292f33 !important}\n' +
-    'html.dark .app-header{background-color: #292f33 !important}\n' +
-    'html.dark .app-navigator{background-color: #292f33 !important}\n' +
-    'html.dark .app-title{background-color: #292f33 !important}\n' +
-    'html.dark .column-header, html.dark .column-header-temp{background-color: #292f33 !important}\n' +
-    'html.dark .column-message{background-color: #292f33 !important}\n' +
-    'html.dark .app-content{background-color: #222426 !important}\n' +
-    'html.dark .column{background-color: #222426 !important}\n' +
-    'html.dark .app-columns-container{background-color: #14171a !important}\n' +
-    'html.dark .is-inverted-dark .accordion .is-active{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark{color: #fff !important}\n' +
-    'html.dark .scroll-conversation{background: #222426 !important}\n' +
-    'html.dark .detail-view-inline{background-color: #222426 !important}\n' +
-    'html.dark .detail-view-inline-text{background-color: #292f33 !important}\n' +
-    'html.dark .app-search-input{background-color: #222426 !important}\n' +
-    'html.dark .column-scroller{background-color: #222426 !important}\n' +
-    'html.dark .compose{background-color: #495966 !important}\n' +
-    'html.dark .old-composer-footer{background-color: #495966 !important}\n' +
-    'html.dark .attach-compose-buttons .Button.tweet-button, html.dark .attach-compose-buttons button.tweet-button, html.dark .attach-compose-buttons input.tweet-button[type=button]{background-color: #495966 !important}\n' +
-    'html.dark .column-panel{background-color: #495966 !important}\n' +
-    'html.dark .accounts-drawer{background-color: #495966 !important}\n' + //TweetDeck, please stop using !important in your stylesheet
-    'html.dark .popover{background-color: #222426 !important}\n' +
-    'html.dark input, html.dark select, html.dark textarea{background-color: #111 !important}\n' +
-    'html.dark .account-settings-row{background-color: #292f33 !important}\n' +
-    'html.dark .join-team{background-color: #292f33 !important}\n' +
-    'html.dark .app-nav-tab.is-selected{background-color: #111 !important}\n' +
-    'html.dark input.light-on-dark{color: #fff !important}\n' +
-    'html.dark #caltoday{color: #444 !important}\n' +
-    //Column options
-    'html.dark .column-options{background-color: #2a2c2d !important}\n' +
-    'html.dark .column-options .button-tray{background-color: #2a2c2d !important}\n' +
-    'html.dark .is-options-open .column-settings-link{background-color: #2a2c2d !important}\n' +
-    'html.dark .facet-type.is-active{background-color: #2a2c2d !important}\n' +
-    //Dropdown
-    '.caret-inner{border-bottom: 6px solid #222426 !important}\n' +
-    '.dropdown-menu,.dropdown-menu [data-action]{background-color: #222426 !important;color: #fff !important}\n' +
-    'html.dark .non-selectable-item{color: #fff !important}\n' +
-    //Search Tips
-    'html.dark .bg-color-twitter-white{background-color: #222426 !important}\n' +
-    'html.dark .color-twitter-dark-gray{color: #fff !important}\n' +
-    'html.dark .hover-bg-color-twitter-faint-blue:hover, html.dark .hover-bg-color-twitter-faint-blue:focus{background-color: #111 !important}\n' +
-    'html.dark .Button{background-color: #111 !important}\n' +
-    'html.dark .Button:hover{background-color: #111 !important}\n' +
-    'html.dark .mdl-dismiss{color: #fff !important}\n' +
-    //Keyboard shortcuts
-    'html.dark .color-twitter-dark-black{color: #fff !important}\n' +
-    '.text-like-keyboard-key{color: #000 !important}\n' +
-    //Settings
-    '.list-link:hover{background-color: #0e0e0e !important}\n' +
-    'html.dark .mdl{background-color: #222426 !important}\n' +
-    'html.dark .mdl-col-settings{background-color: #222426 !important}\n' +
-    'html.dark .bg-color-twitter-lightest-gray{background-color: #222426 !important}\n' +
-    'html.dark .frm{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark .list-link{color: #fff !important}\n' +
-    'html.dark .list-link:hover:hover{color: #fff !important}\n' +
-    'html.dark .list-filter{color: #fff !important}\n' +
-    'html.dark .mdl-header{color: #fff !important}\n' +
-    'html.dark .is-inverted-dark .link-normal-dark{color: #fff !important}\n' +
-    //Profile
-    'html.dark .social-proof-container{background-color: #292f33 !important}\n' +
-    '.prf-stats a strong{color: #8899a6 !important}\n' +
-    'html.dark .prf-meta{background-color: #222426 !important}\n' +
-    'html.dark .is-inverted-dark .btn:hover{background-color: #292f33 !important}\n' +
-    'html.dark .mdl-column-med{background: #222426 !important}\n' +
-    'html.dark .list-account .fullname{color: #fff !important}\n' +
-    'html.dark .list-account:hover:hover{background: #111 !important}\n' +
-    'html.dark .is-inverted-dark .account-link{color: #fff !important}\n' +
-    'html.dark .column-header-temp{background-color: #222426 !important}\n' +
-    'html.dark .column-background-fill{background-color: #222426 !important}\n' +
-    'html.dark .is-inverted-dark .scroll-conversation{background: #222426 !important}\n' +
-    'html.dark .Button{background-color: #222426 !important}\n' +
-    'html.dark .btn-round{background-color: #222426 !important}\n' +
-    'html.dark .Button:hover{background-color: #292f33 !important}\n' +
-    'html.dark .is-condensed .tweet-button{background-color: #1da1f2 !important}\n' +
-    'html.dark .s-thats-you .thats-you-text:hover{background-color: #292f33 !important}\n' +
-    'html.dark .s-thats-you .thats-you-text{background-color: #222426 !important}\n' +
-    'html.dark .s-not-following .follow-text{background-color: #222426 !important}\n'
-    const fileTrulyDark = path.join(common.themeDir, 'Truly Dark.css')
-    if (!fs.existsSync(common.themeDir)) {
-      fs.mkdirSync(common.themeDir)
-      fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-      common.log('created Truly Dark.css')
-    }
-    if (fs.existsSync(common.themeDir)) {
-      themeAll = fs.readdirSync(common.themeDir)
-      if (fs.existsSync(fileTrulyDark)) {
-        const themeTemp = fs.readFileSync(fileTrulyDark, 'utf8').trim()
-        if (themeTemp !== themeTrulyDark.trim()) {
-          fs.writeFileSync(fileTrulyDark, themeTrulyDark)
-          common.log('updated Truly Dark')
-        }
-      }
-      common.log(themeAll)
-      common.log(`found ${themeAll.length} themes`)
-    }
+    checkThemes()
   })
+
   //"Crashinfo"
   app.on('gpu-process-crashed', (event, killed) => {
-    if (!killed) common.log('GPU process crashed')
+    if (!killed) common.log('GPU process crashed', 0)
   })
   app.on('renderer-process-crashed', (event, webContents, killed) => {
-    if (!killed) common.log('Renderer crashed')
+    if (!killed) common.log('Renderer crashed', 0)
   })
+  app.on('render-process-gone', (event, webContents, details) => {
+    common.log(`Renderer gone ${details.reason}`)
+  })
+
+  /*NOTE: Moving everything inside this to browser-window-created
+          could have the advantage of having a window reference
+  */
+  /*NOTE: Not a good idea to prevent will-navigate event here,
+          breaks login window and other functionality
+  */
+  app.on('web-contents-created', (event, contents) => {
+    //Prevent webview tags
+    contents.on('will-attach-webview', (event) => {
+      event.preventDefault()
+      common.log('prevented webview tag', 0)
+    })
+    //Deny all permissions by default
+    contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+      common.log(`${webContents.getURL()} requested ${permission}`, 0)
+      return callback(false)
+    })
+  })
+
   app.on('browser-window-created', (event, win) => {
+    //Log console messages (test)
+    //NOTE: Doesn't always work. Might be an issue with logging
+    win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      common.log(`${getWindowName(win)}: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
+    })
+    //Prevent any window from opening new windows
+    win.webContents.on('new-window', (event) => {
+      event.preventDefault()
+      common.log(`prevented ${getWindowName(win)} from opening new window`, 0)
+    })
+    // show windows gracefully
+    win.once('ready-to-show', () => {
+      win.show()
+    })
     win.webContents.on('context-menu', (e, params) => {
       const cmenu = new Menu()
       if (params.linkURL && params.mediaType === 'none') {
         cmenu.append(new MenuItem({
           label: 'Copy URL',
-          click () {
-            let url = params.linkURL //Note to self: Don't use linkText. Doesn't work. Whoops.
-            for (let i = 0; i < urlList.length; i++) {
-              if (url === urlList[i][0]) url = urlList[i][1]
+          click (item, focusedWindow) {
+            //Note to self: Don't use linkText. Doesn't work. Whoops.
+            let url = params.linkURL
+
+            if(focusedWindow.id === mainWindow.id && url.search('https://t.co/') === 0) {
+              // For explaination see mainWindows new-window event
+              mainWindow.webContents.executeJavaScript(`var x = document.querySelector('[href="${url}"]'); if(x.hasAttribute('data-full-url')) {x.getAttribute('data-full-url')} else if (x.hasAttribute('style')) {x.getAttribute('style').slice(21,-1).split('?')[0]}`)
+                .then((result) => {
+                  common.log(`found: ${result}`, 1)
+                  if(result) {
+                    clipboard.writeText(result)
+                  }
+                  else clipboard.writeText(url)
+                })
             }
-            clipboard.writeText(url)
+            else clipboard.writeText(url)
           }
         }))
         if (params.linkText.charAt(0) === '#') {
@@ -638,6 +566,15 @@ else {
         }
       }
       else if (params.mediaType === 'image') {
+        cmenu.append(new MenuItem({
+          label: 'Open Image',
+          click () {
+            if (params.srcURL.search('https://pbs.twimg.com/media') === 0) {
+              params.srcURL = `${params.srcURL.slice(0, params.srcURL.lastIndexOf('?'))}.jpg`
+            }
+            openUrl(params.srcURL)
+          }
+        }))
         cmenu.append(new MenuItem({
           label: 'Copy Image',
           click () {
@@ -660,10 +597,41 @@ else {
         }))
       }
       else if (params.mediaType === 'none') {
+        if (params.misspelledWord) {
+          for (const word of params.dictionarySuggestions) {
+            cmenu.append(new MenuItem({
+              label: word,
+              click (item, focusedWindow) {
+                if (focusedWindow) focusedWindow.webContents.replaceMisspelling(word)
+              }
+            }))
+          }
+          cmenu.append(new MenuItem({
+            label: 'Add to Dictionary',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+            }
+          }))
+          cmenu.append(new MenuItem({type: 'separator'}))
+        }
         cmenu.append(new MenuItem({ role: 'copy' }))
         cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
         cmenu.append(new MenuItem({ role: 'cut' }))
         cmenu.append(new MenuItem({ role: 'selectall' }))
+        if (params.isEditable && win === mainWindow) {
+          cmenu.append(new MenuItem({
+            label: 'insert',
+            type: 'submenu',
+            submenu: [{
+              //NOTE: This label is most likely bad for accessibility, needs testing
+              label: '¯\\_(ツ)_/¯',
+              click (item, focusedWindow) {
+                common.log('clicked shrug', 1)
+                if (focusedWindow) focusedWindow.webContents.insertText('¯\\_(ツ)_/¯')
+              }
+            }]
+          }))
+        }
       }
       else {
         cmenu.append(new MenuItem({ label: '...' }))
@@ -675,16 +643,35 @@ else {
   app.on('window-all-closed', () => {
     app.quit()
   })
+
   app.on('quit', () => {
+    common.log('Quitting Tweelectron', 0)
     //terminate tor when app is closed
-    if (child !== undefined) {
-      child.kill()
-      common.log('stopped tor')
+    if (torProcess !== undefined) {
+      torProcess.kill()
+      common.log('stopped tor', 0)
     }
-    else common.log('tor wasn\'t running')
-    common.log('Quitting Tweelectron')
+    else common.log('tor wasn\'t running', 0)
   })
 }
+
+function getWindowName(win) {
+  switch(true) {
+    case mainWindow !== undefined && mainWindow.id === win.id:
+      return 'main window'
+    case loginWin !== undefined && loginWin.id === win.id:
+      return 'login window'
+    case twitterWin !== undefined && twitterWin.id === win.id:
+      return 'twitter window'
+    case settingsWin !== undefined && settingsWin.id === win.id:
+      return 'settings window'
+    case settingsWin !== undefined && aboutWin.id === win.id:
+      return 'about window'
+    default:
+      return 'unknown window'
+  }
+}
+
 function createMenu () {
   const template = [
     {
@@ -698,13 +685,13 @@ function createMenu () {
           click () {
             if (settingsWin !== undefined) {
               settingsWin.focus()
-              common.log('focusing settings window')
+              common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ width: 450, height: 310, parent: mainWindow, webPreferences: { nodeIntegration: true } })
-              common.log('created settings window')
-              settingsWin.removeMenu()
-              settingsWin.loadURL('file://' + path.join(app.getAppPath(), 'settings.html'))
+              settingsWin = new BrowserWindow({ parent: mainWindow, show: false, modal: true, width: 450, height: 320, minwidth: 440, minheight: 315, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
+              common.log('created settings window', 0)
+              //settingsWin.removeMenu()
+              settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
               if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
               }
@@ -712,7 +699,7 @@ function createMenu () {
             }
             settingsWin.on('closed', () => {
               settingsWin = undefined
-              common.log('closed settings window')
+              common.log('closed settings window', 0)
             })
           }
         }
@@ -743,19 +730,21 @@ function createMenu () {
         {
           label: 'TweetDeck',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://tweetdeck.twitter.com/')
+            if (focusedWindow) focusedWindow.loadURL(nav.home)
           }
         },
+        /*
         {
           label: 'Twitter',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://twitter.com/')
+            if (focusedWindow) focusedWindow.loadURL(nav.twitter)
           }
         },
+        */
         {
           label: 'Check Tor',
           click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.loadURL('https://check.torproject.org/')
+            if (focusedWindow) focusedWindow.loadURL(nav.checkTor)
           }
         },
         {
@@ -779,34 +768,50 @@ function createMenu () {
     },
     {
       label: 'About',
-      click () {
-        if (aboutWin !== undefined) {
-          aboutWin.focus()
-          common.log('focusing about window')
-        }
-        else {
-          aboutWin = new BrowserWindow({ width: 500, height: 300, parent: mainWindow, webPreferences: { nodeIntegration: true } })
-          common.log('created about window')
-          aboutWin.removeMenu()
-          aboutWin.loadURL('file://' + path.join(app.getAppPath(), 'about.html'))
-          if (process.platform === 'linux') {
-            aboutWin.setIcon(icon)
+      submenu: [
+        {
+          label: 'Report Issues',
+          click () {
+            shell.openExternal('https://github.com/Plastikmensch/Tweelectron/issues')
+          }
+        },
+        {
+          label: 'About',
+          click () {
+            if (aboutWin !== undefined) {
+              aboutWin.focus()
+              common.log('focusing about window', 0)
+            }
+            else {
+              aboutWin = new BrowserWindow({ parent: mainWindow, show: false, width: 500, height: 300, minwidth: 500, minheight: 300, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
+              common.log('created about window', 0)
+              //aboutWin.removeMenu()
+
+              aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
+
+              //Set window icon for Linux
+              if (process.platform === 'linux') {
+                aboutWin.setIcon(icon)
+              }
+            }
+
+            aboutWin.on('closed', () => {
+              aboutWin = undefined
+              common.log('closed about window', 0)
+            })
+
+            aboutWin.webContents.on('will-navigate', (event, url) => {
+              event.preventDefault()
+              shell.openExternal(url)
+            })
           }
         }
-        aboutWin.on('closed', () => {
-          aboutWin = undefined
-          common.log('closed about window')
-        })
-        aboutWin.webContents.on('will-navigate', (event, url) => {
-          event.preventDefault()
-          shell.openExternal(url)
-        })
-      }
+      ]
     }
   ]
 
   const menu = Menu.buildFromTemplate(template)
-  //win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
+  //NOTE: win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
-  common.log('created app menu')
+  common.log('created app menu', 0)
 }

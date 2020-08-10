@@ -1,6 +1,5 @@
-Fixes # .
+**Fixes**
+* list and link fixed issues
 
-Changes:
--
--
--
+**Changes**
+* list of changes made

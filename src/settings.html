@@ -1,92 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4pfg1FrcNClAWjb9crVIvumeMWsEcgFnL2hM8pr4Hn4='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
   <div class='form'>
-    <input type="checkbox" id="use-tor">Use Tor</input><br>
+    <input type="checkbox" id="useTor">Use Tor</input><br>
     <input type="checkbox" id="openInTor">Open links in Torbrowser</input><br>
-    <input type="checkbox" id="use-round-pics">Round profile pics</input><br>
+    <input type="checkbox" id="useRoundPics">Round profile pics</input><br>
     Theme: <select id="theme">
       <option>TweetDeck</option>
     </select><br>
-    <input type="checkbox" id="use-custom-proxy">Use custom Proxy</input><br>
+    <input type="checkbox" id="useCustomProxy">Use custom Proxy</input><br>
     Proxy Address:<input type="text" id="customProxy"></input><br>
-    Select Tor Browser: <input type="file" id="torExe" onchange="fileChanged()"></input><br>
-    <button type='button' class='button' onclick="saveData()">Save</button>
+    Select Tor Browser: <input type="file" id="torBrowserExe"></input><br>
+    Loglevel: <select id="logLevel">
+      <option>Info</option>
+      <option>Debug</option>
+    </select><br>
+    <button type='button' class='button' id="saveButton">Save</button>
   </div>
 <p id="success"></p>
 
 <script type="text/javascript">
-const fs = require('fs')
-const {ipcRenderer} = require('electron')
-const common = require('./common.js')
 var changed = false
-const Settings = common.readSettings()
 
-if(fs.existsSync(common.themeDir))
-{
-  const themeFiles = fs.readdirSync(common.themeDir)
-  for(var i=0;i<themeFiles.length;i++) {
-    var option = document.createElement("option")
-    option.text=themeFiles[i].slice(0,themeFiles[i].lastIndexOf('.'))
-    document.getElementById("theme").add(option)
-  }
+//add event listeners, because CSP blocks event attributes
+document.getElementById('torBrowserExe').addEventListener('change', fileChanged)
+document.getElementById('saveButton').addEventListener('click', saveData)
+
+//Send ipc to main to get themes and add options to theme element
+const themes = window.api.ipc.sendSync('Themes')
+for (const theme of themes) {
+  var option = document.createElement('option')
+  option.text = theme.slice(0,theme.lastIndexOf('.'))
+  document.getElementById('theme').add(option)
 }
-if(Settings[0][0]){
-  document.getElementById("use-tor").checked=true
-}
-if(Settings[7][0]){
-  document.getElementById("openInTor").checked=true
-}
-if(Settings[1][0]){
-  document.getElementById("use-round-pics").checked=true
-}
-//check if index exists
-if(Settings[2][0] > document.getElementById("theme").length-1) {
-  document.getElementById("theme").selectedIndex= 0
+
+//Set values of elements to match settings
+document.getElementById('useTor').checked = window.api.common.settings.useTor
+document.getElementById('openInTor').checked = window.api.common.settings.openInTor
+document.getElementById('useRoundPics').checked = window.api.common.settings.useRoundPics
+document.getElementById('useCustomProxy').checked = window.api.common.settings.useCustomProxy
+document.getElementById('customProxy').value = window.api.common.settings.customProxy
+//check if index exists, default to 0
+if (window.api.common.settings.theme > document.getElementById('theme').length-1) {
+  document.getElementById('theme').selectedIndex= 0
 }
 else {
-  document.getElementById("theme").selectedIndex= Settings[2][0]
+  document.getElementById('theme').selectedIndex= window.api.common.settings.theme
 }
-if(Settings[5][0]){
-  document.getElementById("use-custom-proxy").checked=true
+//check if index exists, default to highest option
+if (window.api.common.settings.logLevel > document.getElementById('logLevel').length-1) {
+  document.getElementById('logLevel').selectedIndex = document.getElementById('logLevel').length-1
 }
-document.getElementById("customProxy").value= Settings[6][0]
+else {
+  document.getElementById('logLevel').selectedIndex = window.api.common.settings.logLevel
+}
 
 function fileChanged() {
-  changed=true;
+  changed=true
 }
+
 function saveData() {
   var timer
+  var path = window.api.common.settings.torBrowserExe
+
   clearTimeout(timer)
-  var path = Settings[8][0]
-  if(changed)
-  {
-    path= document.getElementById("torExe").files[0].path
+
+  //Set path to the selected file, if one is selected
+  if(changed) {
+    path = document.getElementById('torBrowserExe').files[0].path
+    //Reset changed 
+    changed = false
   }
-  var newSettings = [
-    [document.getElementById("use-tor").checked,Settings[0][1]],
-    [document.getElementById("use-round-pics").checked,Settings[1][1]],
-    [document.getElementById("theme").selectedIndex,Settings[2][1]],
-    [Settings[3][0],Settings[3][1]],
-    [Settings[4][0],Settings[4][1]],
-    [document.getElementById("use-custom-proxy").checked,Settings[5][1]],
-    [document.getElementById("customProxy").value,Settings[6][1]],
-    [document.getElementById("openInTor").checked,Settings[7][1]],
-    [path,Settings[8][1]]
-  ]
-  if(ipcRenderer.sendSync('Settings',newSettings))
-  {
-    document.getElementById("success").innerHTML = "<b>Settings saved!</b>"
-    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+
+  const newSettings = {
+    useTor: document.getElementById('useTor').checked,
+    useRoundPics: document.getElementById('useRoundPics').checked,
+    theme: document.getElementById('theme').selectedIndex,
+    width: window.api.common.settings.width,
+    height: window.api.common.settings.height,
+    useCustomProxy: document.getElementById('useCustomProxy').checked,
+    customProxy: document.getElementById('customProxy').value,
+    openInTor: document.getElementById('openInTor').checked,
+    torBrowserExe: path,
+    logLevel: document.getElementById('logLevel').selectedIndex
+  }
+
+  window.api.common.log(newSettings, 1)
+
+  if (window.api.ipc.sendSync('Settings', newSettings)) {
+    document.getElementById('success').innerHTML = '<b>Settings saved!</b>'
   }
   else {
-    document.getElementById("success").innerHTML = "<b>Already saved!</b>"
-    timer = setTimeout(()=>{document.getElementById("success").innerHTML = ""},3000)
+    document.getElementById('success').innerHTML = '<b>Already saved!</b>'
   }
+
+  timer = setTimeout(function () { document.getElementById('success').innerHTML = '' }, 3000)
 }
 </script>
 </body>
