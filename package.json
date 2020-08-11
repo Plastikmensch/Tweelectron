@@ -14,16 +14,6 @@
   "standard": {
     "linter": "standardx"
   },
-  "eslintConfig": {
-    "rules": {
-      "spaced-comment": 0,
-      "no-unused-vars": "warn",
-      "brace-style": [
-        "error",
-        "stroustrup"
-      ]
-    }
-  },
   "devDependencies": {
     "electron": "^9.2.0",
     "standardx": "^5.0.0"
