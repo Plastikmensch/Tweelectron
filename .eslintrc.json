@@ -64,6 +64,21 @@
             {"allowNamedFunctions": true}
         ],
         "func-call-spacing": "error",
-        "function-paren-newline": "error"
+        "function-paren-newline": [
+            "error",
+            "consistent"
+        ],
+        "object-curly-newline": [
+            "error",
+            {"minProperties": 3, "consistent": true}
+        ],
+        "object-curly-spacing": [
+            "error",
+            "always"
+        ],
+        "object-property-newline": [
+            "error",
+            {"allowAllPropertiesOnSameLine": true}
+        ]
     }
 }
