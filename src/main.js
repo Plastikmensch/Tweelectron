@@ -7,11 +7,14 @@ var t= document.getElementsByClassName('emoji')
 for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span'); span.innerText='(smoking emoji)';e.replaceWith(span)}}
 */
 
+//Disable object-curly-newline rule for node imports
+/* eslint-disable object-curly-newline*/
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
 const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
 const common = require('./common.js')
+/* eslint-enable object-curly-newline*/
 
 const torFile = getTorFile()
 const icon = nativeImage.createFromPath(path.join(common.appDir, 'tweelectron.png'))
@@ -37,7 +40,18 @@ function getTorFile () {
 }
 
 function createWindow () {
-  mainWindow = new BrowserWindow({ autoHideMenuBar: true, width: common.settings.width, height: common.settings.height, minWidth: 371, minHeight: 200, show: false, webPreferences: { contextIsolation: true, enableRemoteModule: false } })
+  mainWindow = new BrowserWindow({
+    autoHideMenuBar: true,
+    width: common.settings.width,
+    height: common.settings.height,
+    minWidth: 371,
+    minHeight: 200,
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      enableRemoteModule: false
+    }
+  })
   createMenu()
 
   common.log(common.settings, 1)
@@ -144,7 +158,17 @@ function createWindow () {
     else {
       //open new window
       if (twitterWin === undefined) {
-        twitterWin = new BrowserWindow({ parent: mainWindow, show: false, width: 600, height: 700, resizable: false, webPreferences: { enableRemoteModule: false, contextIsolation: true}})
+        twitterWin = new BrowserWindow({
+          parent: mainWindow,
+          show: false,
+          width: 600,
+          height: 700,
+          resizable: false,
+          webPreferences: {
+            enableRemoteModule: false,
+            contextIsolation: true
+          }
+        })
         common.log('created twitterWin', 0)
         twitterWin.removeMenu()
 
@@ -192,7 +216,15 @@ function createWindow () {
   mainWindow.webContents.on('will-navigate', (event, url) => {
     event.preventDefault()
     if (url.search('https://mobile.twitter.com/login') === 0) {
-      loginWin = new BrowserWindow({ parent: mainWindow, modal: true, show: false, webPreferences: { enableRemoteModule: false, contextIsolation: true } })
+      loginWin = new BrowserWindow({
+        parent: mainWindow,
+        modal: true,
+        show: false,
+        webPreferences: {
+          enableRemoteModule: false,
+          contextIsolation: true
+        }
+      })
       loginWin.removeMenu()
 
       checkProxy(loginWin, url)
@@ -328,7 +360,12 @@ function checkForUpdates () {
       })
 
       if(current !== fulldata.tag_name) {
-        dialog.showMessageBox(mainWindow, { type: 'info', buttons: ['OK'], title: 'Update available', message: `There is an Update available!\n\nCurrent version: ${current}\nlatest version: ${fulldata.tag_name}\n\n${fulldata.body}` })
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          buttons: ['OK'],
+          title: 'Update available',
+          message: `There is an Update available!\n\nCurrent version: ${current}\nlatest version: ${fulldata.tag_name}\n\n${fulldata.body}`
+        })
         common.log('Update available', 0)
       }
       else common.log('No update available', 0)
@@ -356,7 +393,12 @@ function openUrl (url) {
     }
     else {
       //Show dialog if no path is specified
-      dialog.showMessageBox({ type: 'error', buttons: ['OK'], title: 'Error occured', message: 'No file specified to open link' })
+      dialog.showMessageBox({
+        type: 'error',
+        buttons: ['OK'],
+        title: 'Error occured',
+        message: 'No file specified to open link'
+      })
       common.log('failed to open in tor', 0)
     }
   }
@@ -452,14 +494,23 @@ else {
 
     //exit immediately if settings are faulty
     if (common.errorInSettings.found) {
-      dialog.showMessageBoxSync({type: 'error', buttons: ['Quit'], message: common.errorInSettings.message, title: common.errorInSettings.title})
+      dialog.showMessageBoxSync({
+        type: 'error',
+        buttons: ['Quit'],
+        message: common.errorInSettings.message,
+        title: common.errorInSettings.title
+      })
       app.exit()
     }
 
     //Show dialog asking if user wants to use tor if useTor is unset
     if (common.settings.useTor === null) {
       common.log('tor variable unset', 0)
-      const dialogTor = dialog.showMessageBoxSync({ type: 'question', buttons: ['No', 'Yes'], message: 'Do you want to use Tor?' })
+      const dialogTor = dialog.showMessageBoxSync({
+        type: 'question',
+        buttons: ['No', 'Yes'],
+        message: 'Do you want to use Tor?'
+      })
 
       if (dialogTor) {
         common.settings.useTor = true
@@ -612,7 +663,7 @@ else {
               if (focusedWindow) focusedWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
             }
           }))
-          cmenu.append(new MenuItem({type: 'separator'}))
+          cmenu.append(new MenuItem({ type: 'separator' }))
         }
         cmenu.append(new MenuItem({ role: 'copy' }))
         cmenu.append(new MenuItem({ label: 'Paste', role: 'pasteandmatchstyle' }))
@@ -688,7 +739,20 @@ function createMenu () {
               common.log('focusing settings window', 0)
             }
             else {
-              settingsWin = new BrowserWindow({ parent: mainWindow, show: false, modal: true, width: 450, height: 320, minwidth: 440, minheight: 315, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-settings.js') } })
+              settingsWin = new BrowserWindow({
+                parent: mainWindow,
+                show: false,
+                modal: true,
+                width: 450,
+                height: 320,
+                minwidth: 440,
+                minheight: 315,
+                webPreferences: {
+                  enableRemoteModule: false,
+                  contextIsolation: true,
+                  preload: path.join(__dirname, 'preload-settings.js')
+                }
+              })
               common.log('created settings window', 0)
               //settingsWin.removeMenu()
               settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
@@ -783,7 +847,19 @@ function createMenu () {
               common.log('focusing about window', 0)
             }
             else {
-              aboutWin = new BrowserWindow({ parent: mainWindow, show: false, width: 500, height: 300, minwidth: 500, minheight: 300, webPreferences: { enableRemoteModule: false, contextIsolation: true, preload: path.join(__dirname, 'preload-about.js') } })
+              aboutWin = new BrowserWindow({
+                parent: mainWindow,
+                show: false,
+                width: 500,
+                height: 300,
+                minwidth: 500,
+                minheight: 300,
+                webPreferences: {
+                  enableRemoteModule: false,
+                  contextIsolation: true,
+                  preload: path.join(__dirname, 'preload-about.js')
+                }
+              })
               common.log('created about window', 0)
               //aboutWin.removeMenu()
 
