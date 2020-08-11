@@ -18,7 +18,10 @@
             "command": "./package.sh",
             "group": "build",
             "dependsOrder": "sequence",
-            "dependsOn":["build"]
+            "dependsOn": [
+                "build"
+            ],
+            "problemMatcher": []
         }
     ]
 }
