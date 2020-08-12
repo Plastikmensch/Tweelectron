@@ -716,7 +716,7 @@ function getWindowName(win) {
       return 'twitter window'
     case settingsWin !== undefined && settingsWin.id === win.id:
       return 'settings window'
-    case settingsWin !== undefined && aboutWin.id === win.id:
+    case aboutWin !== undefined && aboutWin.id === win.id:
       return 'about window'
     default:
       return 'unknown window'
