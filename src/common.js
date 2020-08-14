@@ -8,6 +8,10 @@ if (process.type !== 'browser') {
 }
 
 const settingsFile = getSettingsFile()
+/**
+ * Gets the path to the settings file
+ * @return {string} Path to settings.json
+ */
 function getSettingsFile() {
   if (process.platform === 'linux') {
     return `${process.env.HOME}/.config/Tweelectron/settings.json`
@@ -16,6 +20,10 @@ function getSettingsFile() {
   return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
 }
 
+/**
+ * Reads settings.json and sets settings
+ * @return {void} No return value
+ */
 function readSettings () {
   if (fs.existsSync(settingsFile)) {
     JSON.parse(fs.readFileSync(settingsFile, 'utf8'), (key, value) => {
@@ -95,6 +103,11 @@ function readSettings () {
   }
 }
 
+/**
+ * Logs error and sets errorInSettings
+ * @param {string} key - the object key of the setting
+ * @return {void} No return value
+ */
 function foundError (key) {
   methods.log(`Error in Settings: value of ${key} is of invalid type`)
   methods.errorInSettings.found = true
@@ -103,11 +116,21 @@ function foundError (key) {
 }
 
 const methods = {
+  /**
+   * Save settings
+   * @return {void} No return value
+   */
   saveSettings: function () {
     fs.writeFileSync(settingsFile, JSON.stringify(this.settings, null, 4))
     this.log('Settings saved', 0)
     readSettings()
   },
+  /**
+   * Logs message in log file and console
+   * @param {string} message - The message to log
+   * @param {number} level - required level, default: 0
+   * @return {void} No return value
+   */
   log: function (message, level = 0) {
     if (level <= this.settings.logLevel) {
       if (firstLog) {

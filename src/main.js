@@ -32,6 +32,10 @@ let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
 let torProcess
 
 //NOTE: process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
+/**
+ * Gets the path to the tor executable
+ * @return {string} Path to tor executable
+ */
 function getTorFile () {
   if (process.platform === 'linux') {
     return path.join(process.resourcesPath, 'tor-linux', 'tor')
@@ -39,6 +43,10 @@ function getTorFile () {
   return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
 }
 
+/**
+ * Creates the mainWindow and handles it's events
+ * @return {void} No return value
+ */
 function createWindow () {
   mainWindow = new BrowserWindow({
     autoHideMenuBar: true,
@@ -52,6 +60,7 @@ function createWindow () {
       enableRemoteModule: false
     }
   })
+
   createMenu()
 
   common.log(common.settings, 1)
@@ -190,6 +199,12 @@ function createWindow () {
                   which makes did-navigate-in-page event useless,
                   even though it gets called, because url doesn't change
           */
+          /*TODO: Reenable back button on in-page navigation
+                  Disable it when returned to opened url
+                  - There is currently no way to tell,
+                    which "page" user is looking at/"navigated" to
+                    see note above
+          */
           //make navigation bar and back button invisible
           const css =
           `[role="banner"] {display: none !important}
@@ -291,6 +306,11 @@ function createWindow () {
     mainWindow.setIcon(icon)
   }
 }
+
+/**
+ * Starts the tor child process
+ * @return {void} No return value
+ */
 function startTor () {
   common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`, 1)
   common.log('starting Tor', 0)
@@ -308,6 +328,19 @@ function startTor () {
   })
 }
 
+/*
+  NOTE: Since all windows use the default session,
+        proxy could be set in default session at start.
+        But it's unclear how proxies handle file protocol,
+        requires testing.
+        For now it's done like this, because it's known working.
+*/
+/**
+ * Sets the proxy to be used for win
+ * @param {BrowserWindow} win - The window which should have a proxy
+ * @param {string} url - the url to open if proxy connection is successful
+ * @return {void} No return value
+ */
 function checkProxy (win, url) {
   if (common.settings.useCustomProxy) {
     let proxy = win.webContents.session.setProxy({ proxyRules: common.settings.customProxy })
@@ -337,6 +370,15 @@ function checkProxy (win, url) {
   }
 }
 
+/*
+  Sends a https get request to fetch the latest github release,
+  compares the release tag with current running app version,
+  and displays a dialog with the response body, when versions differ.
+*/
+/**
+ * Checks for updates
+ * @return {void} No return value
+ */
 function checkForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
     if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
@@ -375,6 +417,11 @@ function checkForUpdates () {
   })
 }
 
+/**
+ * Decides how url should be opened
+ * @param {string} url - url to open
+ * @return {void} No return value
+ */
 function openUrl (url) {
   if (!common.settings.openInTor) {
     //Opens link in default browser
@@ -404,6 +451,13 @@ function openUrl (url) {
   }
 }
 
+/**
+ * Reads and compares internal theme folder with external,
+ * Creates external folder if it doesn't exist,
+ * overwrites files in external folder if different
+ * sets themeAll variable
+ * @return {void} No return value
+ */
 function checkThemes () {
   const includedThemes = fs.readdirSync(path.join(__dirname, 'themes'), 'utf-8')
   common.log(includedThemes, 1)
@@ -706,6 +760,11 @@ else {
   })
 }
 
+/**
+ * Gets the name of a window
+ * @param {BrowserWindow} win - Window to get the name of
+ * @return {string} Name of the window
+ */
 function getWindowName(win) {
   switch(true) {
     case mainWindow !== undefined && mainWindow.id === win.id:
@@ -723,6 +782,10 @@ function getWindowName(win) {
   }
 }
 
+/**
+ * Creates a menu from a template
+ * @return {void} No return value
+ */
 function createMenu () {
   const template = [
     {
