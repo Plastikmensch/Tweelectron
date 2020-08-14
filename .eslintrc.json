@@ -11,7 +11,7 @@
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
-        "ecmaVersion": 2018
+        "ecmaVersion": 2020
     },
     "rules": {
         "indent": [
@@ -68,6 +68,7 @@
             "error",
             "consistent"
         ],
+        "default-param-last": "error",
         "object-curly-newline": [
             "error",
             {"minProperties": 3, "consistent": true}
@@ -79,6 +80,9 @@
         "object-property-newline": [
             "error",
             {"allowAllPropertiesOnSameLine": true}
-        ]
+        ],
+        "default-case": "error",
+        "no-new-wrappers": "error",
+        "no-eval": "error"
     }
 }
