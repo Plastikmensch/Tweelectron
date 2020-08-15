@@ -2,12 +2,14 @@ const path = require('path')
 const fs = require('fs')
 
 let firstLog = true
+
 //Fix for backup being created if common is required in other scripts
 if (process.type !== 'browser') {
   firstLog = false
 }
 
 const settingsFile = getSettingsFile()
+
 /**
  * Gets the path to the settings file
  * @return {string} Path to settings.json
@@ -16,6 +18,7 @@ function getSettingsFile() {
   if (process.platform === 'linux') {
     return `${process.env.HOME}/.config/Tweelectron/settings.json`
   }
+
   //Get path to the executable, delete /Tweelectron.exe and append /settings.json and return
   return path.join(process.execPath.slice(0, process.execPath.lastIndexOf(path.sep)), 'settings.json')
 }
@@ -27,7 +30,7 @@ function getSettingsFile() {
 function readSettings () {
   if (fs.existsSync(settingsFile)) {
     JSON.parse(fs.readFileSync(settingsFile, 'utf8'), (key, value) => {
-      //Doing Settings[key] = value is more efficient but breaks backwards compability
+      //NOTE: Doing Settings[key] = value is more efficient but breaks backwards compability
       switch (key) {
         case 'use-tor':
         case 'useTor':
@@ -125,6 +128,7 @@ const methods = {
     this.log('Settings saved', 0)
     readSettings()
   },
+
   /**
    * Logs message in log file and console
    * @param {string} message - The message to log
@@ -141,10 +145,12 @@ const methods = {
           console.log('created backup of logs')
         }
       }
+
       // Stringify message if it's an object, so logs don't say [object Object]
       if (!Array.isArray(message) && typeof message === 'object') {
         message = JSON.stringify(message)
       }
+
       //Append message to log file
       fs.appendFileSync(this.logFile, `${message}\n`)
       console.log(message)

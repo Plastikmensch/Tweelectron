@@ -85,6 +85,7 @@ function createWindow () {
       }
     }
   })
+
   //Gets called after did-fail-load, preventing timers from running
   mainWindow.webContents.on('did-finish-load', () => {
     if (!common.settings.useRoundPics && mainWindow.webContents.getURL().search(nav.home) === 0) {
@@ -124,6 +125,7 @@ function createWindow () {
       */
       //NOTE: Removal of ?format... here breaks url
       mainWindow.webContents.executeJavaScript('var m = document.getElementsByClassName("media-img"); if (m !== undefined) { for (const e of m) {e.parentElement.href = e.src} }')
+
       /*
         Replaces href attributes of images in column preview with background-image style attribute
         Also removes ?format... from image links
@@ -135,13 +137,15 @@ function createWindow () {
   mainWindow.webContents.on('new-window', (event, url) => {
     //prevent default behavior
     event.preventDefault()
+
     //If url doesn't start with tweetdeck or twitter, prevent it from opening and handle accordingly
     if (url.search(nav.home) !== 0 && url.search(nav.twitter) !== 0) {
       //common.log(urlList, 1)
       common.log(`clicked on ${url}`, 1)
 
-      //NOTE: Opening multiple links isn't desirable, because of "process already running" issue in firefox based browsers
-
+      /*NOTE: Opening multiple links isn't desirable,
+              because of "process already running" issue in firefox based browsers
+      */
       /*
         Selects the element which has the href attribute with url
         and tries to get it's data-full-url or style attribute value
@@ -211,6 +215,7 @@ function createWindow () {
           .r-u0dd49 {display: none !important}`
           twitterWin.webContents.insertCSS(css.trim())
         })
+
         //Disable navigation
         twitterWin.webContents.on('will-navigate', (event) =>{
           event.preventDefault()
@@ -259,10 +264,10 @@ function createWindow () {
 
   mainWindow.on('close', () => {
     const size = mainWindow.getSize()
-    //width
+
     common.settings.width = size[0]
-    //height
     common.settings.height = size[1]
+
     common.saveSettings()
   })
 
@@ -301,6 +306,7 @@ function createWindow () {
   })
 
   checkForUpdates()
+
   //Set icon on Linux
   if (process.platform === 'linux') {
     mainWindow.setIcon(icon)
@@ -382,10 +388,12 @@ function checkProxy (win, url) {
 function checkForUpdates () {
   require('https').get('https://api.github.com/repos/Plastikmensch/Tweelectron/releases/latest', { headers: { 'User-Agent': 'Tweelectron' } }, (response) => {
     if (response.statusCode !== 200) common.log(`Request failed. Response code: ${response.statusCode}`, 0)
+
     //Make response readable
     response.setEncoding('utf8')
 
     let data = ''
+
     //Warning: gets called multiple times
     response.on('data', (d) => {
       data += d
@@ -431,8 +439,10 @@ function openUrl (url) {
   else {
     if (common.settings.torBrowserExe !== null) {
       common.log(common.settings.torBrowserExe, 1)
+
       //NOTE: allow remote and new tab might break opening links with other browsers
       const linkChild = childProcess.spawn(common.settings.torBrowserExe, ['--allow-remote', '--new-tab', url])
+
       linkChild.on('error', (err) => {
         common.log(err, 0)
       })
@@ -461,6 +471,7 @@ function openUrl (url) {
 function checkThemes () {
   const includedThemes = fs.readdirSync(path.join(__dirname, 'themes'), 'utf-8')
   common.log(includedThemes, 1)
+
   // If theme directory doesn't exist, create it and themes
   // else check themes for updates
   if (!fs.existsSync(common.themeDir)) {
@@ -608,6 +619,7 @@ else {
       event.preventDefault()
       common.log('prevented webview tag', 0)
     })
+
     //Deny all permissions by default
     contents.session.setPermissionRequestHandler((webContents, permission, callback) => {
       common.log(`${webContents.getURL()} requested ${permission}`, 0)
@@ -621,11 +633,13 @@ else {
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
       common.log(`${getWindowName(win)}: Level: ${level} message: ${message} line: ${line} source: ${sourceId}`, 1)
     })
+
     //Prevent any window from opening new windows
     win.webContents.on('new-window', (event) => {
       event.preventDefault()
       common.log(`prevented ${getWindowName(win)} from opening new window`, 0)
     })
+
     // show windows gracefully
     win.once('ready-to-show', () => {
       win.show()
@@ -751,6 +765,7 @@ else {
 
   app.on('quit', () => {
     common.log('Quitting Tweelectron', 0)
+
     //terminate tor when app is closed
     if (torProcess !== undefined) {
       torProcess.kill()
@@ -817,11 +832,13 @@ function createMenu () {
                 }
               })
               common.log('created settings window', 0)
+
               //settingsWin.removeMenu()
               settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
               if (process.platform === 'linux') {
                 settingsWin.setIcon(icon)
               }
+
               //settingsWin.webContents.toggleDevTools()
             }
             settingsWin.on('closed', () => {
@@ -860,6 +877,7 @@ function createMenu () {
             if (focusedWindow) focusedWindow.loadURL(nav.home)
           }
         },
+
         /*
         {
           label: 'Twitter',
@@ -924,6 +942,7 @@ function createMenu () {
                 }
               })
               common.log('created about window', 0)
+
               //aboutWin.removeMenu()
 
               aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
@@ -950,6 +969,7 @@ function createMenu () {
   ]
 
   const menu = Menu.buildFromTemplate(template)
+
   //NOTE: win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
   common.log('created app menu', 0)
