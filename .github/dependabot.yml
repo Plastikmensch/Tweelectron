@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      # check for updates daily
+      interval: "daily"
+    # target latest development branch
+    target-branch: "1.2.x"
+    # add reviewers to pull requests
+    reviewers:
+      - "Plastikmensch"
+    # Labels on pull requests for security and version updates
+    labels:
+      - "dependencies"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every weekday
+      interval: "daily"
