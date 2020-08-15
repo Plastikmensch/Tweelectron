@@ -7,7 +7,7 @@ jobs:
     steps:
       # Checkout action must run prior to eslint check
     - name: Checkout 
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Lint
       uses: Krizzu/eslint-check-action@v1.1.0
       with:
