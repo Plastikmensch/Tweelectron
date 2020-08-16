@@ -5,7 +5,10 @@
         "es6": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:node/recommended"
+    ],
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
@@ -93,6 +96,12 @@
                 "allowObjectStart": true,
                 "allowArrayStart": true
             }
+        ],
+        "guard-for-in": "error",
+        "eol-last": "error",
+        "node/no-unpublished-require": [
+            "error",
+            {"allowModules": ["electron"]}
         ]
     }
 }
