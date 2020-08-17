@@ -1,11 +1,11 @@
 [Desktop Entry]
 Name=Tweelectron
 Comment=TweetDeck Client for Desktop
-Exec=/usr/share/tweelectron/Tweelectron
+Exec=Tweelectron
 Terminal=false
-Icon=/usr/share/tweelectron/tweelectron.png
+Icon=tweelectron
 Type=Application
-Categories=Network
+Categories=Network;
 StartupNotify=false
 StartupWMClass=tweelectron
 Name[en_US]=tweelectron
