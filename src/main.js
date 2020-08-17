@@ -320,11 +320,12 @@ function createWindow () {
 function startTor () {
   common.log(`Directory: ${__dirname}\nPath: ${app.getPath('exe')}`, 1)
   common.log('starting Tor', 0)
-  torProcess = childProcess.execFile(torFile, (err) => {
+  torProcess = childProcess.execFile(torFile, (err, stdout, stderr) => {
     if (err) {
       common.log('couldn\'t start tor. (already running?)', 0)
       common.log(err, 0)
     }
+    common.log(stderr, 0)
   })
   common.log(`pid: ${torProcess.pid}`, 1)
 
@@ -462,9 +463,9 @@ function openUrl (url) {
 }
 
 /**
- * Reads and compares internal theme folder with external,
- * Creates external folder if it doesn't exist,
- * overwrites files in external folder if different
+ * Reads and compares internal theme folder with external.
+ * Creates external folder if it doesn't exist.
+ * overwrites files in external folder if different.
  * sets themeAll variable
  * @return {void} No return value
  */
@@ -472,8 +473,10 @@ function checkThemes () {
   const includedThemes = fs.readdirSync(path.join(__dirname, 'themes'), 'utf-8')
   common.log(includedThemes, 1)
 
-  // If theme directory doesn't exist, create it and themes
-  // else check themes for updates
+  /*
+    If theme directory doesn't exist, create it and themes
+    else check themes for updates
+  */
   if (!fs.existsSync(common.themeDir)) {
     fs.mkdirSync(common.themeDir)
     common.log('created theme directory', 0)
@@ -484,8 +487,10 @@ function checkThemes () {
   }
   else {
     for (const theme of includedThemes) {
-      //create theme file if it doesn't exist
-      //else if theme file doesn't match internal file, overwrite it
+      /*
+        create theme file if it doesn't exist
+        else if theme file doesn't match internal file, overwrite it
+      */
       if (!fs.existsSync(path.join(common.themeDir, theme))) {
         fs.writeFileSync(path.join(common.themeDir, theme), fs.readFileSync(path.join(__dirname, 'themes', theme), 'utf-8'))
         common.log(`created missing ${theme}`, 0)
