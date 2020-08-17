@@ -1,5 +1,15 @@
 #!/bin/bash
 
 HERE="$(dirname "$(readlink -f "${0}")")"
+LIBS_PATH="$HERE/usr/lib:$HERE/usr/lib/x86_64-linux-gnu"
+
+if [ -z "$LD_LIBRARY_PATH" ]
+  then
+    LD_LIBRARY_PATH="$LIBS_PATH"
+else
+    LD_LIBRARY_PATH="$LIBS_PATH:$LD_LIBRARY_PATH"
+fi
+
+export LD_LIBRARY_PATH
 
 $HERE/usr/share/tweelectron/Tweelectron
