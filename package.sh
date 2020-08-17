@@ -16,12 +16,20 @@ if [ ! -d "Tweelectron.AppDir" ]
     mkdir ./Tweelectron.AppDir/usr/share
     mkdir ./Tweelectron.AppDir/usr/share/applications
     mkdir ./Tweelectron.AppDir/usr/share/icons
+    mkdir ./Tweelectron.AppDir/usr/lib
+    mkdir ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu
     echo "copying necessary files"
     cp ../tweelectron.desktop ./Tweelectron.AppDir/usr/share/applications/
     cp ../tweelectron.desktop ./Tweelectron.AppDir/
     cp ../tweelectron.png ./Tweelectron.AppDir/usr/share/icons/
     cp ../tweelectron.png ./Tweelectron.AppDir/
     cp ../AppRun ./Tweelectron.AppDir/
+    echo "copying libraries"
+    # required for tor if not build locally
+    libevent=$(ldd ../src/tor-linux/tor | grep "libevent" | awk '{print $3}')
+    libm=$(ldd ../src/tor-linux/tor | grep "libm" | awk '{print $3}')
+    cp $libevent ./Tweelectron.AppDir/usr/lib/$(basename "$libevent")
+    cp $libm ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu/$(basename "$libm")
 fi
 
 # remove tweelectron dir if it exists
