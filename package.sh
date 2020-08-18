@@ -18,6 +18,7 @@ if [ ! -d "Tweelectron.AppDir" ]
     mkdir ./Tweelectron.AppDir/usr/share/icons
     mkdir ./Tweelectron.AppDir/usr/lib
     mkdir ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu
+    mkdir ./Tweelectron.AppDir/usr/lib32
     echo "copying necessary files"
     cp ../tweelectron.desktop ./Tweelectron.AppDir/usr/share/applications/
     cp ../tweelectron.desktop ./Tweelectron.AppDir/
@@ -30,6 +31,15 @@ if [ ! -d "Tweelectron.AppDir" ]
     libm=$(ldd ../src/tor-linux/tor | grep "libm" | awk '{print $3}')
     cp $libevent ./Tweelectron.AppDir/usr/lib/$(basename "$libevent")
     cp $libm ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu/$(basename "$libm")
+    # required for Tweelectron ia32
+    # ldd ./Tweelectron-linux-ia32/Tweelectron | awk '{print $3}' | grep "/usr/lib32"
+    libs=$(ldd ./Tweelectron-linux-ia32/Tweelectron | awk '{print $3}' | grep "/usr/lib32" | grep 'libXcomposite\|libatk\|libgdk\|libgtk\|libpango\|libcairo\|libXrandr\|libatspi\|libcups\|libepoxy\|libfribidi\|libharfbuzz\|libfontconfig\|libfreetype\|libXinerama\|libxkbcommon\|libthai\|libpng\|libgnutls\|libpixman\|libdatrie\|libidn\|libnettle\|libhogweed\|libgmp\|libunistring')
+
+    for item in $libs
+    do
+        echo "copying $(basename "$item")"
+        cp $item ./Tweelectron.AppDir/usr/lib32/
+    done
 fi
 
 # remove tweelectron dir if it exists
@@ -44,11 +54,14 @@ echo "copying x64 version to AppDir"
 cp -r ./Tweelectron-linux-x64 ./Tweelectron.AppDir/usr/share/tweelectron
 
 # download appimagetool for x64
-wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+if [ ! -f "appimagetool-x86_64.AppImage" ]
+  then
+    wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+fi
 chmod +x appimagetool-x86_64.AppImage
 
 # create x64 AppImage
-./appimagetool-x86_64.AppImage ./Tweelectron.AppDir
+ARCH=x86_64 ./appimagetool-x86_64.AppImage ./Tweelectron.AppDir
 
 # remove x64 binary
 rm -r ./Tweelectron.AppDir/usr/share/tweelectron
@@ -58,11 +71,11 @@ echo "copying ia32 version to AppDir"
 cp -r ./Tweelectron-linux-ia32 ./Tweelectron.AppDir/usr/share/tweelectron
 
 # create ia32 AppImage
-ARCH=i686 ./appimagetool-x86_64.AppImage ./Tweelectron.AppDir
+ARCH=i386 ./appimagetool-x86_64.AppImage ./Tweelectron.AppDir
 
 # remove appimagetool
-echo "removing appimagetool"
-rm appimagetool-x86_64.AppImage
+#echo "removing appimagetool"
+#rm appimagetool-x86_64.AppImage
 
 # rename created AppImages
 echo "renaming AppImages"
