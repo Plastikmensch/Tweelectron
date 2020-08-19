@@ -15,7 +15,7 @@
     "linter": "standardx"
   },
   "devDependencies": {
-    "electron": "^9.2.0",
+    "electron": "^9.2.1",
     "standardx": "^5.0.0"
   },
   "dependencies": {}
