@@ -19,6 +19,7 @@ fi
 echo "creating AppDir"
 mkdir Tweelectron.AppDir
 mkdir ./Tweelectron.AppDir/usr
+mkdir ./Tweelectron.AppDir/usr/bin
 mkdir ./Tweelectron.AppDir/usr/share
 mkdir ./Tweelectron.AppDir/usr/share/applications
 mkdir ./Tweelectron.AppDir/usr/share/icons
@@ -33,6 +34,8 @@ cp ../tweelectron.desktop ./Tweelectron.AppDir/
 cp ../tweelectron.png ./Tweelectron.AppDir/usr/share/icons/
 cp ../tweelectron.png ./Tweelectron.AppDir/
 cp ../AppRun ./Tweelectron.AppDir/
+# create symlink to executable in order for .desktop file to work
+ln -s ../share/tweelectron/Tweelectron ./Tweelectron.AppDir/usr/bin/Tweelectron
 
 echo "copying libraries"
 # required for tor if not build locally
