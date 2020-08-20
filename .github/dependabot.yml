@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # Update development branch
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -18,3 +19,19 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every weekday
       interval: "daily"
+    target-branch: "1.2.x"
+    labels:
+      - "workflows"
+    reviewers:
+      - "Plastikmensch"
+  # Update master branch
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every weekday
+      interval: "daily"
+    target-branch: "master"
+    labels:
+      - "workflows"
+    reviewers:
+      - "Plastikmensch"
