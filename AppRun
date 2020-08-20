@@ -1,15 +1,20 @@
 #!/bin/bash
 
+# get location of this file
 HERE="$(dirname "$(readlink -f "${0}")")"
+# link to libs in Appimage
 LIBS_PATH="$HERE/usr/lib:$HERE/usr/lib/x86_64-linux-gnu:$HERE/usr/lib32"
 
+# set or append libs paths
 if [ -z "$LD_LIBRARY_PATH" ]
   then
     LD_LIBRARY_PATH="$LIBS_PATH"
-else
+  else
     LD_LIBRARY_PATH="$LIBS_PATH:$LD_LIBRARY_PATH"
 fi
 
+# export variable
 export LD_LIBRARY_PATH
 
+# execute Tweelectron
 $HERE/usr/share/tweelectron/Tweelectron
