@@ -54,7 +54,6 @@ function createWindow () {
     height: common.settings.height,
     minWidth: 371,
     minHeight: 200,
-    show: false,
     webPreferences: {
       contextIsolation: true,
       enableRemoteModule: false
@@ -173,7 +172,6 @@ function createWindow () {
       if (twitterWin === undefined) {
         twitterWin = new BrowserWindow({
           parent: mainWindow,
-          show: false,
           width: 600,
           height: 700,
           resizable: false,
@@ -239,7 +237,6 @@ function createWindow () {
       loginWin = new BrowserWindow({
         parent: mainWindow,
         modal: true,
-        show: false,
         webPreferences: {
           enableRemoteModule: false,
           contextIsolation: true
@@ -645,10 +642,6 @@ else {
       common.log(`prevented ${getWindowName(win)} from opening new window`, 0)
     })
 
-    // show windows gracefully
-    win.once('ready-to-show', () => {
-      win.show()
-    })
     win.webContents.on('context-menu', (e, params) => {
       const cmenu = new Menu()
       if (params.linkURL && params.mediaType === 'none') {
@@ -824,7 +817,6 @@ function createMenu () {
             else {
               settingsWin = new BrowserWindow({
                 parent: mainWindow,
-                show: false,
                 modal: true,
                 width: 450,
                 height: 320,
@@ -935,7 +927,6 @@ function createMenu () {
             else {
               aboutWin = new BrowserWindow({
                 parent: mainWindow,
-                show: false,
                 width: 500,
                 height: 300,
                 minwidth: 500,
