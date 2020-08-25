@@ -18,5 +18,8 @@
     "electron": "^9.2.1",
     "standardx": "^5.0.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "scripts": {
+    "lint": "eslint src"
+  }
 }
