@@ -55,8 +55,7 @@ function createWindow () {
     minWidth: 371,
     minHeight: 200,
     webPreferences: {
-      contextIsolation: true,
-      enableRemoteModule: false
+      contextIsolation: true
     }
   })
 
@@ -176,7 +175,6 @@ function createWindow () {
           height: 700,
           resizable: false,
           webPreferences: {
-            enableRemoteModule: false,
             contextIsolation: true
           }
         })
@@ -238,7 +236,6 @@ function createWindow () {
         parent: mainWindow,
         modal: true,
         webPreferences: {
-          enableRemoteModule: false,
           contextIsolation: true
         }
       })
@@ -504,38 +501,6 @@ function checkThemes () {
   common.log(`found ${themeAll.length} theme(s)`, 0)
 }
 
-//Block remote modules
-//NOTE: The new default of disabling the remote module makes this obsolete in Electron 10
-app.on('remote-require', (event, webContents, moduleName) => {
-  common.log(`remote ${moduleName} required`, 1)
-  event.preventDefault()
-})
-
-app.on('remote-get-builtin', (event, webContents, moduleName) => {
-  common.log(`remote get builtin ${moduleName}`, 1)
-  event.preventDefault()
-})
-
-app.on('remote-get-global', (event, webContents, globalName) => {
-  common.log(`remote get global ${globalName}`, 1)
-  event.preventDefault()
-})
-
-app.on('remote-get-current-window', (event) => {
-  common.log('remote get current window', 1)
-  event.preventDefault()
-})
-
-app.on('remote-get-current-web-contents', (event) => {
-  common.log('remote get current webcontents', 1)
-  event.preventDefault()
-})
-
-app.on('remote-get-guest-web-contents', (event) => {
-  common.log('remote get guest web contents', 1)
-  event.preventDefault()
-})
-
 //NOTE: Single instance lock seems to not work when primary instance crashed
 //Only allow single instance
 if (!singleInstance) {
@@ -601,9 +566,6 @@ else {
   //"Crashinfo"
   app.on('gpu-process-crashed', (event, killed) => {
     if (!killed) common.log('GPU process crashed', 0)
-  })
-  app.on('renderer-process-crashed', (event, webContents, killed) => {
-    if (!killed) common.log('Renderer crashed', 0)
   })
   app.on('render-process-gone', (event, webContents, details) => {
     common.log(`Renderer gone ${details.reason}`)
@@ -823,7 +785,6 @@ function createMenu () {
                 minwidth: 440,
                 minheight: 315,
                 webPreferences: {
-                  enableRemoteModule: false,
                   contextIsolation: true,
                   preload: path.join(__dirname, 'preload-settings.js')
                 }
@@ -932,7 +893,6 @@ function createMenu () {
                 minwidth: 500,
                 minheight: 300,
                 webPreferences: {
-                  enableRemoteModule: false,
                   contextIsolation: true,
                   preload: path.join(__dirname, 'preload-about.js')
                 }
