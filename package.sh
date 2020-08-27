@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # get current version
 version=$(<./src/tweelectron-version)
 
