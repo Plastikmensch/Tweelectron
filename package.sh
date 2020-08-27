@@ -9,7 +9,7 @@ tar -C ./dist -zcf Tweelectron-linux-x64-$version.tar.gz Tweelectron-linux-x64
 tar -C ./dist -zcf Tweelectron-linux-ia32-$version.tar.gz Tweelectron-linux-ia32
 
 # change directory do dist
-cd ./dist
+cd ./dist || exit
 
 # remove AppDir if it exists
 if [ -d "Tweelectron.AppDir" ]
