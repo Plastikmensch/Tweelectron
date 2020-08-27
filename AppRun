@@ -17,4 +17,4 @@ fi
 export LD_LIBRARY_PATH
 
 # execute Tweelectron
-$HERE/usr/share/tweelectron/Tweelectron
+"$HERE/usr/share/tweelectron/Tweelectron"

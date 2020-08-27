@@ -5,8 +5,8 @@ version=$(<./src/tweelectron-version)
 
 # still create tarballs
 echo "creating archives for Linux"
-tar -C ./dist -zcf Tweelectron-linux-x64-$version.tar.gz Tweelectron-linux-x64
-tar -C ./dist -zcf Tweelectron-linux-ia32-$version.tar.gz Tweelectron-linux-ia32
+tar -C ./dist -zcf Tweelectron-linux-x64-"$version".tar.gz Tweelectron-linux-x64
+tar -C ./dist -zcf Tweelectron-linux-ia32-"$version".tar.gz Tweelectron-linux-ia32
 
 # change directory do dist
 cd ./dist || exit
@@ -43,8 +43,8 @@ echo "copying libraries"
 # required for tor if not build locally
 libevent=$(ldd ../src/tor-linux/tor | grep "libevent" | awk '{print $3}')
 libm=$(ldd ../src/tor-linux/tor | grep "libm" | awk '{print $3}')
-cp $libevent ./Tweelectron.AppDir/usr/lib/
-cp $libm ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu/
+cp "$libevent" ./Tweelectron.AppDir/usr/lib/
+cp "$libm" ./Tweelectron.AppDir/usr/lib/x86_64-linux-gnu/
 
 # required for Tweelectron ia32
 libs=$(ldd ./Tweelectron-linux-ia32/Tweelectron | awk '{print $3}' | grep "/usr/lib32" | grep 'libXcomposite\|libatk\|libgdk\|libgtk\|libpango\|libcairo\|libXrandr\|libatspi\|libcups\|libepoxy\|libfribidi\|libharfbuzz\|libfontconfig\|libfreetype\|libXinerama\|libxkbcommon\|libthai\|libpng\|libgnutls\|libpixman\|libdatrie\|libidn\|libnettle\|libhogweed\|libgmp\|libunistring')
@@ -52,7 +52,7 @@ libs=$(ldd ./Tweelectron-linux-ia32/Tweelectron | awk '{print $3}' | grep "/usr/
 for item in $libs
 do
     echo "copying $(basename "$item")"
-    cp $item ./Tweelectron.AppDir/usr/lib32/
+    cp "$item" ./Tweelectron.AppDir/usr/lib32/
 done
 
 # Copy x64 binary
@@ -82,21 +82,23 @@ ARCH=i386 ./appimagetool-x86_64.AppImage ./Tweelectron.AppDir
 
 # rename created AppImages
 echo "renaming AppImages"
-mv Tweelectron-x86_64.AppImage ../Tweelectron-x86_64-$version.AppImage
-mv Tweelectron-i386.AppImage ../Tweelectron-ia32-$version.AppImage
+mv Tweelectron-x86_64.AppImage ../Tweelectron-x86_64-"$version".AppImage
+mv Tweelectron-i386.AppImage ../Tweelectron-ia32-"$version".AppImage
 
 echo "creating archives for Windows"
-zip -r ../Tweelectron-win32-ia32-$version.zip Tweelectron-win32-ia32
-zip -r ../Tweelectron-win32-x64-$version.zip Tweelectron-win32-x64
+zip -r ../Tweelectron-win32-ia32-"$version".zip Tweelectron-win32-ia32
+zip -r ../Tweelectron-win32-x64-"$version".zip Tweelectron-win32-x64
 
 # Move back to parent dir
 cd ..
 
 # create checksums
 echo "creating checksums"
-sha256sum Tweelectron-linux-x64-$version.tar.gz > SHA256SUMS.txt
-sha256sum Tweelectron-linux-ia32-$version.tar.gz >> SHA256SUMS.txt
-sha256sum Tweelectron-x86_64-$version.AppImage >> SHA256SUMS.txt
-sha256sum Tweelectron-ia32-$version.AppImage >> SHA256SUMS.txt
-sha256sum Tweelectron-win32-x64-$version.zip >> SHA256SUMS.txt
-sha256sum Tweelectron-win32-ia32-$version.zip >> SHA256SUMS.txt
+{
+sha256sum Tweelectron-linux-x64-"$version".tar.gz;
+sha256sum Tweelectron-linux-ia32-"$version".tar.gz;
+sha256sum Tweelectron-x86_64-"$version".AppImage;
+sha256sum Tweelectron-ia32-"$version".AppImage;
+sha256sum Tweelectron-win32-x64-"$version".zip;
+sha256sum Tweelectron-win32-ia32-"$version".zip
+} > SHA256SUMS.txt
