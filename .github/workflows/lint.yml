@@ -14,4 +14,4 @@ jobs:
         eslintConfig: ".eslintrc.json"
         eslintExt: "js"
     - name: Shellcheck
-        uses: azohra/shell-linter@latest
+      uses: azohra/shell-linter@latest
