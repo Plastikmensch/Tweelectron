@@ -1,17 +1,17 @@
 name: Lint
 on: [push, pull_request]
 jobs:
-  eslint_check:
-    name: Prepare action
+  lint_check:
     runs-on: ubuntu-latest
     steps:
       # Checkout action must run prior to eslint check
-    - name: Checkout 
-      uses: actions/checkout@v2
-    - name: Lint
+    - uses: actions/checkout@v2
+    - name: ESLint
       uses: Krizzu/eslint-check-action@v1.1.0
       with:
         ghToken: ${{ secrets.GITHUB_TOKEN }}
         eslintFiles: "src"
         eslintConfig: ".eslintrc.json"
         eslintExt: "js"
+    - name: Shellcheck
+        uses: azohra/shell-linter@latest
