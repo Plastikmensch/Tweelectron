@@ -15,3 +15,5 @@ jobs:
         eslintExt: "js"
     - name: Shellcheck
       uses: azohra/shell-linter@latest
+      with:
+        path: "AppRun,*.sh"
