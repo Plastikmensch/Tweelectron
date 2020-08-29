@@ -85,6 +85,7 @@
             {"allowAllPropertiesOnSameLine": true}
         ],
         "default-case": "error",
+        "default-case-last": "error",
         "no-new-wrappers": "error",
         "no-eval": "error",
         "lines-around-comment": [
