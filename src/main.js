@@ -268,8 +268,6 @@ function createWindow () {
   mainWindow.on('closed', () => {
     app.quit()
   })
-
-  checkForUpdates()
 }
 
 // IPC
@@ -558,6 +556,8 @@ else {
     createWindow()
 
     checkThemes()
+
+    checkForUpdates()
   })
 
   //"Crashinfo"
