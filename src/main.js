@@ -308,7 +308,6 @@ ipcMain.on('Themes', (event) => {
   checkThemes()
   event.returnValue = themeAll
 })
-
 /**
  * Starts the tor child process
  * @return {void} No return value
