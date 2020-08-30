@@ -179,7 +179,6 @@ function createWindow () {
           }
         })
         common.log('created twitterWin', 0)
-        twitterWin.removeMenu()
 
         checkProxy(twitterWin, url)
 
@@ -239,7 +238,6 @@ function createWindow () {
           contextIsolation: true
         }
       })
-      loginWin.removeMenu()
 
       checkProxy(loginWin, url)
 
@@ -790,7 +788,6 @@ function createMenu () {
               })
               common.log('created settings window', 0)
 
-              //settingsWin.removeMenu()
               settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
 
               //settingsWin.webContents.toggleDevTools()
@@ -897,8 +894,6 @@ function createMenu () {
                 }
               })
               common.log('created about window', 0)
-
-              //aboutWin.removeMenu()
 
               aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
             }
