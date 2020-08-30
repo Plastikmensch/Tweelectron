@@ -308,6 +308,7 @@ ipcMain.on('Themes', (event) => {
   checkThemes()
   event.returnValue = themeAll
 })
+
 /**
  * Starts the tor child process
  * @return {void} No return value
@@ -768,9 +769,6 @@ function createMenu () {
       label: 'App',
       submenu: [
         {
-          role: 'quit'
-        },
-        {
           label: 'Settings',
           click () {
             if (settingsWin !== undefined) {
@@ -805,6 +803,9 @@ function createMenu () {
               common.log('closed settings window', 0)
             })
           }
+        },
+        {
+          role: 'quit'
         }
       ]
     },
