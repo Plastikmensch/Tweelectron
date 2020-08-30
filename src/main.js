@@ -269,36 +269,6 @@ function createWindow () {
     app.quit()
   })
 
-  ipcMain.on('Settings', (event, newSettings) => {
-    common.log('newSettings:', 1)
-    common.log(newSettings, 1)
-    for (let i in common.settings) {
-      if (common.settings[i] !== newSettings[i]) {
-        common.log('change in Settings', 1)
-        let reload = false
-        if (common.settings.theme !== newSettings.theme) {
-          reload = true
-        }
-
-        common.settings = newSettings
-
-        if (reload) {
-          mainWindow.reload()
-        }
-
-        common.saveSettings()
-        common.log('Settings:', 1)
-        common.log(common.settings, 1)
-        event.returnValue = true
-      }
-    }
-    event.returnValue = false
-  })
-  ipcMain.on('Themes', (event) => {
-    checkThemes()
-    event.returnValue = themeAll
-  })
-
   checkForUpdates()
 
   //Set icon on Linux
@@ -306,6 +276,38 @@ function createWindow () {
     mainWindow.setIcon(icon)
   }
 }
+
+// IPC
+ipcMain.on('Settings', (event, newSettings) => {
+  common.log('newSettings:', 1)
+  common.log(newSettings, 1)
+  for (let i in common.settings) {
+    if (common.settings[i] !== newSettings[i]) {
+      common.log('change in Settings', 1)
+      let reload = false
+      if (common.settings.theme !== newSettings.theme) {
+        reload = true
+      }
+
+      common.settings = newSettings
+
+      if (reload) {
+        mainWindow.reload()
+      }
+
+      common.saveSettings()
+      common.log('Settings:', 1)
+      common.log(common.settings, 1)
+      event.returnValue = true
+    }
+  }
+  event.returnValue = false
+})
+
+ipcMain.on('Themes', (event) => {
+  checkThemes()
+  event.returnValue = themeAll
+})
 
 /**
  * Starts the tor child process
