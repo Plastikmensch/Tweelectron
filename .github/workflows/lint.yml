@@ -6,12 +6,12 @@ jobs:
     steps:
       # Checkout action must run prior to other actions
     - uses: actions/checkout@v2
-    - name: ESLint
-      uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - run: npm install
-    - run: npm run lint
+    - name: ESLint
+      run: npm install
+      run: npm run lint
     - name: Super Linter
       # allow super-linter to run when ESLint fails
       if: ${{ success() || failure() }}
