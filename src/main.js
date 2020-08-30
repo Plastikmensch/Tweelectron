@@ -270,11 +270,6 @@ function createWindow () {
   })
 
   checkForUpdates()
-
-  //Set icon on Linux
-  if (process.platform === 'linux') {
-    mainWindow.setIcon(icon)
-  }
 }
 
 // IPC
@@ -594,6 +589,11 @@ else {
   })
 
   app.on('browser-window-created', (event, win) => {
+    // Set window icon for linux
+    if (process.platform === 'linux') {
+      win.setIcon(icon)
+    }
+
     //Log console messages (test)
     //NOTE: Doesn't always work. Might be an issue with logging
     win.webContents.on('console-message', (event, level, message, line, sourceId) => {
@@ -792,9 +792,6 @@ function createMenu () {
 
               //settingsWin.removeMenu()
               settingsWin.loadURL(`file://${path.join(app.getAppPath(), 'settings.html')}`)
-              if (process.platform === 'linux') {
-                settingsWin.setIcon(icon)
-              }
 
               //settingsWin.webContents.toggleDevTools()
             }
@@ -904,11 +901,6 @@ function createMenu () {
               //aboutWin.removeMenu()
 
               aboutWin.loadURL(`file://${path.join(app.getAppPath(), 'about.html')}`)
-
-              //Set window icon for Linux
-              if (process.platform === 'linux') {
-                aboutWin.setIcon(icon)
-              }
             }
 
             aboutWin.on('closed', () => {
@@ -930,5 +922,5 @@ function createMenu () {
 
   //NOTE: win.removeMenu() doesn't work if Menu.setApplicationMenu(menu) is used. Also: easier.
   mainWindow.setMenu(menu)
-  common.log('created app menu', 0)
+  common.log('created menu', 0)
 }
