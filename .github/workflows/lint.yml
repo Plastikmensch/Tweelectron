@@ -10,8 +10,7 @@ jobs:
       with:
         node-version: '12'
     - name: ESLint
-      run: npm install
-      run: npm run lint
+      run: npm install && npm run lint
     - name: Super Linter
       # allow super-linter to run when ESLint fails
       if: ${{ success() || failure() }}
