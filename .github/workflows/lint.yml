@@ -10,9 +10,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - run: npm install
-    - run: npm run lint
+      run: npm install
+      run: npm run lint
     - name: Super Linter
+      # allow super-linter to run when ESLint fails
+      if: ${{ success() || failure() }}
       uses: github/super-linter@v3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
