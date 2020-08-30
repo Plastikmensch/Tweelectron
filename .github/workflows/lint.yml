@@ -4,15 +4,14 @@ jobs:
   lint_check:
     runs-on: ubuntu-latest
     steps:
-      # Checkout action must run prior to eslint check
+      # Checkout action must run prior to other actions
     - uses: actions/checkout@v2
     - name: ESLint
-      uses: Krizzu/eslint-check-action@v1.1.0
+      uses: actions/setup-node@v1
       with:
-        ghToken: ${{ secrets.GITHUB_TOKEN }}
-        eslintFiles: "src"
-        eslintConfig: ".eslintrc.json"
-        eslintExt: "js"
+        node-version: '12'
+    - run: npm install
+    - run: npm run lint
     - name: Super Linter
       uses: github/super-linter@v3
       env:
