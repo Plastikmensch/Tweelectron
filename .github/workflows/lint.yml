@@ -21,3 +21,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VALIDATE_BASH: true
         VALIDATE_BASH_EXEC: true
+  eslint_fork:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: plastikmensch/eslint-check-action@master
+      with:
+        ghToken: ${{ secrets.GITHUB_TOKEN }}
+        eslintFiles: "src"
+        eslintConfig: ".eslintrc.json"
+        eslintExt: "js"
