@@ -42,6 +42,7 @@ function getTorFile () {
   }
   return path.join(process.resourcesPath, 'tor-win32', 'Tor', 'tor.exe')
 }
+
 /**
  * Creates the mainWindow and handles it's events
  * @return {void} No return value
