@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld(
     ipc: {
       sendSync: (channel, data) => {
         // whitelist channels
-        let validChannels = ['Settings', 'Themes']
+        let validChannels = ['Settings', 'Themes', 'Languages']
 
         if (validChannels.includes(channel)) {
           return ipcRenderer.sendSync(channel, data)

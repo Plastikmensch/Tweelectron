@@ -12,7 +12,7 @@ for (var e of t) {if (e.alt === '🚬') {var span = document.createElement('span
 const fs = require('fs')
 const path = require('path')
 const childProcess = require('child_process')
-const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage } = require('electron')
+const { BrowserWindow, app, shell, Menu, MenuItem, clipboard, dialog, ipcMain, nativeImage, session } = require('electron')
 const common = require('./common.js')
 /* eslint-enable object-curly-newline*/
 
@@ -298,6 +298,10 @@ ipcMain.on('Settings', (event, newSettings) => {
 ipcMain.on('Themes', (event) => {
   checkThemes()
   event.returnValue = themeAll
+})
+
+ipcMain.on('Languages', (event) => {
+  event.returnValue = session.defaultSession.availableSpellCheckerLanguages
 })
 
 /**
