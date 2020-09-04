@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4pfg1FrcNClAWjb9crVIvumeMWsEcgFnL2hM8pr4Hn4='">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-so22l6f52WAhcf1qdrf3CPFm9ZTE6QGK2SnEi8J4xTo='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
@@ -20,6 +20,7 @@
       <option>Info</option>
       <option>Debug</option>
     </select><br>
+    Spellcheck language(s): <select id="language" multiple></select><br>
     <button type='button' class='button' id="saveButton">Save</button>
   </div>
 <p id="success"></p>
@@ -37,6 +38,15 @@ for (const theme of themes) {
   var option = document.createElement('option')
   option.text = theme.slice(0,theme.lastIndexOf('.'))
   document.getElementById('theme').add(option)
+}
+
+//Send ipc to main to get available languages
+const languages = window.api.ipc.sendSync('Languages')
+//Add options to language element
+for (const lang of languages) {
+  var option = document.createElement('option')
+  option.text = lang
+  document.getElementById('language').add(option)
 }
 
 //Set values of elements to match settings
@@ -73,7 +83,7 @@ function saveData() {
   //Set path to the selected file, if one is selected
   if(changed) {
     path = document.getElementById('torBrowserExe').files[0].path
-    //Reset changed 
+    //Reset changed
     changed = false
   }
 
