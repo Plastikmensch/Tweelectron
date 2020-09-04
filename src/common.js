@@ -96,6 +96,9 @@ function readSettings () {
           }
           else foundError(key)
           break
+        case 'language':
+          methods.settings.language = value
+          break
         default:
           methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
       }
@@ -169,7 +172,8 @@ const methods = {
     customProxy: 'foopy:80',
     openInTor: false,
     torBrowserExe: null,
-    logLevel: 0
+    logLevel: 0,
+    language: ['en_US']
   },
   errorInSettings: {
     found: false,
