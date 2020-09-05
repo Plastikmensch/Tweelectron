@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-so22l6f52WAhcf1qdrf3CPFm9ZTE6QGK2SnEi8J4xTo='">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xR/T34lfdPLRBdEixf6w9bZTS9YJOI3HTH9AS7oIZ88='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
@@ -45,9 +45,16 @@ const languages = window.api.ipc.sendSync('Languages')
 //Add options to language element
 for (const lang of languages) {
   var option = document.createElement('option')
-  option.text = lang
+  option.value = lang
+  option.text = window.api.common.langCodes[lang]
+  // select option if language setting includes lang
+  if (window.api.common.settings.language.includes(lang)) {
+    option.selected = true
+  }
   document.getElementById('language').add(option)
 }
+
+window.api.common.log(languages, 1)
 
 //Set values of elements to match settings
 document.getElementById('useTor').checked = window.api.common.settings.useTor
@@ -97,7 +104,15 @@ function saveData() {
     customProxy: document.getElementById('customProxy').value,
     openInTor: document.getElementById('openInTor').checked,
     torBrowserExe: path,
-    logLevel: document.getElementById('logLevel').selectedIndex
+    logLevel: document.getElementById('logLevel').selectedIndex,
+    language: []
+  }
+
+  // Get selected options and push lang code to language
+  for (option of document.getElementById('language').options) {
+    if (option.selected) {
+      newSettings.language.push(option.value)
+    }
   }
 
   window.api.common.log(newSettings, 1)
