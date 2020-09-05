@@ -549,12 +549,19 @@ else {
         common.settings.useTor = false
         common.log('clicked NO', 0)
       }
+
+      // set language to system language
+      common.settings.language = session.defaultSession.getSpellCheckerLanguages()
+
       common.saveSettings()
     }
 
     if (common.settings.useTor && !common.settings.useCustomProxy) {
       startTor()
     }
+
+    // set spellchecker languages
+    session.defaultSession.setSpellCheckerLanguages(common.settings.language)
 
     createWindow()
 
