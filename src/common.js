@@ -129,8 +129,16 @@ function checkValidity(settings) {
           }
           break
         case 'language':
+          //af,bg,ca,cs,cy,da,de,el,en-AU,en-CA,en-GB,en-US,es,es-419,es-AR,es-ES,es-MX,es-US,et,fa,fo,fr,he,hi,hr,hu,hy,id,it,ko,lt,lv,nb,nl,pl,pt-BR,pt-PT,ro,ru,sh,sk,sl,sq,sr,sv,ta,tg,tr,uk,vi
           if (!Array.isArray(settings[prop])) {
             foundError(prop)
+          }
+          else {
+            settings[prop].forEach( (value) => {
+              if (!Object.prototype.hasOwnProperty.call(methods.langCodes, value)) {
+                foundError(prop)
+              }
+            })
           }
           break
         default:
@@ -201,6 +209,58 @@ const methods = {
     found: false,
     title: '',
     message: ''
+  },
+  langCodes: {
+    af: 'Afrikaans',
+    bg: 'Bulgarian',
+    ca: 'Catalan',
+    cs: 'Czech',
+    cy: 'Welsh',
+    da: 'Danish',
+    de: 'German',
+    el: 'Greek',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'en-GB': 'English (Britain)',
+    'en-US': 'English (US)',
+    es: 'Spanish',
+    'es-419': 'Spanish (Latin America)',
+    'es-AR': 'Spanish (Argentina)',
+    'es-ES': 'Spanish (Spain)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-US': 'Spanish (US)',
+    et: 'Estonian',
+    fa: 'Persian',
+    fo: 'Faroese',
+    fr: 'French',
+    he: 'Hebrew',
+    hi: 'Hindi',
+    hr: 'Croatian',
+    hu: 'Hungarian',
+    hy: 'Armenian',
+    id: 'Indonesian',
+    it: 'Italian',
+    ko: 'Korean',
+    lt: 'Lithuanian',
+    lv: 'Latvian',
+    nb: 'Norwegian Bokmål',
+    nl: 'Dutch',
+    pl: 'Polish',
+    'pt-BR': 'Portugese (Brazil)',
+    'pt-PT': 'Portugese (Portugal)',
+    ro: 'Romanian',
+    ru: 'Russian',
+    sh: 'Serbo-Croatian',
+    sk: 'Slovak',
+    sl: 'Slovenian',
+    sq: 'Albanian',
+    sr: 'Serbian',
+    sv: 'Swedish',
+    ta: 'Tamil',
+    tg: 'Tajik',
+    tr: 'Turkish',
+    uk: 'Ukrainian',
+    vi: 'Vietnamese'
   }
 }
 
