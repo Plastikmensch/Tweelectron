@@ -29,80 +29,55 @@ function getSettingsFile() {
  */
 function readSettings () {
   if (fs.existsSync(settingsFile)) {
-    JSON.parse(fs.readFileSync(settingsFile, 'utf8'), (key, value) => {
-      //NOTE: Doing Settings[key] = value is more efficient but breaks backwards compability
+    /*TODO: rework this
+            parse and then check values
+            then set settings
+    */
+    let settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'), function (key, value) {
+      // Update keys from old format
+      /*
+        create new property and remove old property
+      */
       switch (key) {
         case 'use-tor':
-        case 'useTor':
-          if (typeof value === 'boolean' ) {
-            methods.settings.useTor = value
-          }
-          else foundError(key)
-          break
+          this.useTor = value
+          return
         case 'use-round-pics':
-        case 'useRoundPics':
-          if (typeof value === 'boolean') {
-            methods.settings.useRoundPics = value
-          }
-          else foundError(key)
-          break
-        case 'theme':
-          if (typeof value === 'number' && value >= 0) {
-            methods.settings.theme = value
-          }
-          else foundError(key)
-          break
-        case 'width':
-          if (typeof value === 'number' && value >= 0) {
-            methods.settings.width = value
-          }
-          else foundError(key)
-          break
-        case 'height':
-          if (typeof value === 'number' && value >= 0) {
-            methods.settings.height = value
-          }
-          else foundError(key)
-          break
+          this.useRoundPics = value
+          return
         case 'use-custom-proxy':
-        case 'useCustomProxy':
-          if (typeof value === 'boolean') {
-            methods.settings.useCustomProxy = value
-          }
-          else foundError(key)
-          break
-        case 'customProxy':
-          if (typeof value === 'string') {
-            methods.settings.customProxy = value
-          }
-          else foundError(key)
+          this.useCustomProxy = value
           break
         case 'links-in-torbrowser':
-        case 'openInTor':
-          if (typeof value === 'boolean') {
-            methods.settings.openInTor = value
-          }
-          else foundError(key)
+          this.openInTor = value
           break
         case 'tor-browser-exe':
-        case 'torBrowserExe':
-          if (typeof value === 'string' && value !== 'null') {
-            methods.settings.torBrowserExe = value
-          }
-          break
-        case 'logLevel':
-          if (typeof value === 'number' && value >= 0) {
-            methods.settings.logLevel = value
-          }
-          else foundError(key)
-          break
-        case 'language':
-          methods.settings.language = value
-          break
+          this.torBrowserExe = value
+          return
+        case 'test-key':
+          this.testKey = value
+          return
         default:
-          methods.log(`unknown key found: ${key} with value: ${JSON.stringify(value)}`, 0)
+          return value
       }
     })
+
+    // check validity of settings
+    checkValidity(settings)
+
+    // Set settings if no error found
+    if (!methods.errorInSettings.found) {
+      for (let prop in settings) {
+        if (Object.prototype.hasOwnProperty.call(settings, prop)) {
+          methods.settings[prop] = settings[prop]
+        }
+        else {
+          methods.log('unknown property in settings', 0)
+        }
+      }
+    }
+
+    methods.log(settings, 1)
   }
   else {
     methods.log('Settings file doesn\'t exist', 0)
@@ -119,6 +94,53 @@ function foundError (key) {
   methods.errorInSettings.found = true
   methods.errorInSettings.title = 'Error in Settings'
   methods.errorInSettings.message += `value of ${key} is invalid\n`
+}
+
+/**
+ * checks validity of settings.
+ * Calls foundError if error found
+ * @param {object} settings - object containing settings
+ * @return {void} No return value
+ */
+function checkValidity(settings) {
+  for (let prop in settings) {
+    if (Object.prototype.hasOwnProperty.call(settings, prop)) {
+      switch (prop) {
+        case 'theme':
+        case 'width':
+        case 'height':
+        case 'logLevel':
+          if (typeof settings[prop] !== 'number' || settings[prop] < 0) {
+            foundError(prop)
+          }
+          break
+        case 'useTor':
+        case 'useRoundPics':
+        case 'useCustomProxy':
+        case 'openInTor':
+          if (typeof settings[prop] !== 'boolean') {
+            foundError(prop)
+          }
+          break
+        case 'customProxy':
+        case 'torBrowserExe':
+          if (typeof settings[prop] !== 'string' && settings[prop] !== null) {
+            foundError(prop)
+          }
+          break
+        case 'language':
+          if (!Array.isArray(settings[prop])) {
+            foundError(prop)
+          }
+          break
+        default:
+          methods.log(`found ${prop} with value ${settings[prop]} of type ${typeof settings[prop]}`)
+      }
+    }
+    else {
+      methods.log('unknown property in validity check', 0)
+    }
+  }
 }
 
 const methods = {
@@ -173,7 +195,7 @@ const methods = {
     openInTor: false,
     torBrowserExe: null,
     logLevel: 0,
-    language: ['en_US']
+    language: ['en-US']
   },
   errorInSettings: {
     found: false,
