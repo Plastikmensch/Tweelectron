@@ -7,7 +7,7 @@ updates:
       # check for updates daily
       interval: "daily"
     # target latest development branch
-    target-branch: "1.2.x"
+    target-branch: "1.3.x"
     # add reviewers to pull requests
     reviewers:
       - "Plastikmensch"
@@ -19,7 +19,7 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every weekday
       interval: "daily"
-    target-branch: "1.2.x"
+    target-branch: "1.3.x"
     labels:
       - "workflows"
     reviewers:
