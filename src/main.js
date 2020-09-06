@@ -272,9 +272,10 @@ function createWindow () {
 ipcMain.on('Settings', (event, newSettings) => {
   common.log('newSettings:', 1)
   common.log(newSettings, 1)
-  for (let i in common.settings) {
-    if (common.settings[i] !== newSettings[i]) {
-      common.log('change in Settings', 1)
+  for (let prop in common.settings) {
+    //NOTE: array === array => false
+    if ((!Array.isArray(newSettings[prop]) && common.settings[prop] !== newSettings[prop]) || (Array.isArray(newSettings[prop]) && !isArrayEqual(common.settings[prop], newSettings[prop]))) {
+      common.log(`change in Settings: ${prop}`, 1)
       let reload = false
       if (common.settings.theme !== newSettings.theme) {
         reload = true
@@ -303,6 +304,26 @@ ipcMain.on('Themes', (event) => {
 ipcMain.on('Languages', (event) => {
   event.returnValue = session.defaultSession.availableSpellCheckerLanguages
 })
+
+/**
+ * checks if two arrays contain the same elements
+ * @param {array} arr - array to compare
+ * @param {array} other - array to compare
+ * @return {boolean} whether arrays are equal
+ */
+function isArrayEqual(arr, other) {
+  if(arr.length !== other.length){
+    return false
+  }
+
+  for (let value of arr) {
+    if(!other.includes(value)) {
+      return false
+    }
+  }
+
+  return true
+}
 
 /**
  * Starts the tor child process
@@ -790,7 +811,7 @@ function createMenu () {
                 parent: mainWindow,
                 modal: true,
                 width: 450,
-                height: 320,
+                height: 370,
                 minwidth: 440,
                 minheight: 315,
                 webPreferences: {
