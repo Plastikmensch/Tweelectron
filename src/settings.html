@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="pages.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-xR/T34lfdPLRBdEixf6w9bZTS9YJOI3HTH9AS7oIZ88='">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-PQrxT9/zJpGrA3nKnDU7pcmaPSw1ZXl/WYptimZ/XyE='">
 </head>
 <body>
   <h1 class='header'>Settings</h1>
@@ -53,8 +53,6 @@ for (const lang of languages) {
   }
   document.getElementById('language').add(option)
 }
-
-window.api.common.log(languages, 1)
 
 //Set values of elements to match settings
 document.getElementById('useTor').checked = window.api.common.settings.useTor
