@@ -810,10 +810,10 @@ function createMenu () {
               settingsWin = new BrowserWindow({
                 parent: mainWindow,
                 modal: true,
-                width: 450,
+                width: 500,
                 height: 370,
-                minwidth: 440,
-                minheight: 315,
+                minWidth: 440,
+                minHeight: 315,
                 webPreferences: {
                   contextIsolation: true,
                   preload: path.join(__dirname, 'preload-settings.js')
@@ -919,8 +919,8 @@ function createMenu () {
                 parent: mainWindow,
                 width: 500,
                 height: 300,
-                minwidth: 500,
-                minheight: 300,
+                minWidth: 500,
+                minHeight: 300,
                 webPreferences: {
                   contextIsolation: true,
                   preload: path.join(__dirname, 'preload-about.js')
