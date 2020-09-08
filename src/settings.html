@@ -6,23 +6,32 @@
 </head>
 <body>
   <h1 class='header'>Settings</h1>
-  <div class='form'>
-    <input type="checkbox" id="useTor">Use Tor</input><br>
-    <input type="checkbox" id="openInTor">Open links in Torbrowser</input><br>
-    <input type="checkbox" id="useRoundPics">Round profile pics</input><br>
-    Theme: <select id="theme">
+  <form class='form'>
+    <label for="useTor">Use Tor:</label>
+    <input type="checkbox" id="useTor"></input><br>
+    <label for="openInTor">Open links in Torbrowser:</label>
+    <input type="checkbox" id="openInTor"></input><br>
+    <label for="useRoundPics">Round profile pics:</label>
+    <input type="checkbox" id="useRoundPics"></input><br>
+    <label for="theme">Theme:</label>
+    <select id="theme">
       <option>TweetDeck</option>
     </select><br>
-    <input type="checkbox" id="useCustomProxy">Use custom Proxy</input><br>
-    Proxy Address:<input type="text" id="customProxy"></input><br>
-    Select Tor Browser: <input type="file" id="torBrowserExe"></input><br>
-    Loglevel: <select id="logLevel">
+    <label for="useCustomProxy">Use custom Proxy:</label>
+    <input type="checkbox" id="useCustomProxy"></input><br>
+    <label for="customProxy">Proxy Address:</label>
+    <input type="text" id="customProxy"></input><br>
+    <label for="torBrowserExe">Select Tor Browser:</label>
+    <input type="file" id="torBrowserExe"></input><br>
+    <label for="logLevel">Loglevel:</label>
+    <select id="logLevel">
       <option>Info</option>
       <option>Debug</option>
     </select><br>
-    Spellcheck language(s): <select id="language" multiple></select><br>
+    <label for="language">Spellcheck language(s):</label>
+    <select id="language" size="3" multiple></select><br>
     <button type='button' class='button' id="saveButton">Save</button>
-  </div>
+  </form>
 <p id="success"></p>
 
 <script type="text/javascript">
