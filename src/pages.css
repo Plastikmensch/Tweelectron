@@ -26,14 +26,14 @@ h1{
 .header {
   text-align: center;
   background: linear-gradient(141deg, #1b2836 40%, #1b2836 10%, #243447 60%);
-  width: 350px;
+  width: 85%;
   border-radius: 10px;
   margin-left: inherit;
   color:inherit;
 }
 .form {
   background: linear-gradient(141deg, #1b2836 40%, #1b2836 10%, #243447 60%);
-  width: 350px;
+  width: 85%;
   border-radius: 10px;
   margin-left: inherit;
   text-align: left;
@@ -56,11 +56,13 @@ h1{
 .button:focus {
   outline: none;
 }
+input, select{
+  margin: 3px 0px;
+}
 input[type=text] {
   border: none;
   border-radius: 4px;
   width: 230px;
-  margin-left: 10px;
   padding: 1px 2px;
 }
 input[type=text]:focus {
@@ -69,4 +71,11 @@ input[type=text]:focus {
 select {
   border: none;
   border-radius: 4px;
+}
+
+label {
+  vertical-align: top;
+  width: 45%;
+  display: inline-block;
+  margin-top: 3px;
 }
