@@ -810,9 +810,9 @@ function createMenu () {
               settingsWin = new BrowserWindow({
                 parent: mainWindow,
                 modal: true,
-                width: 500,
-                height: 370,
-                minWidth: 440,
+                width: 600,
+                height: 380,
+                minWidth: 540,
                 minHeight: 315,
                 webPreferences: {
                   contextIsolation: true,
@@ -825,6 +825,11 @@ function createMenu () {
 
               //settingsWin.webContents.toggleDevTools()
             }
+
+            settingsWin.on('close', () => {
+              common.log(settingsWin.getSize(), 1)
+            })
+
             settingsWin.on('closed', () => {
               settingsWin = undefined
               common.log('closed settings window', 0)
