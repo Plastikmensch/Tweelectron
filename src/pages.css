@@ -73,6 +73,10 @@ select {
   border-radius: 4px;
 }
 
+option {
+  padding: 4px;
+}
+
 label {
   vertical-align: top;
   width: 45%;
