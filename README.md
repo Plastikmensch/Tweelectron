@@ -1,3 +1,5 @@
+**No longer mantained**
+
 # Tweelectron
 Missing TweetDeck for Desktop? This is for you.<br>
 TweetDeck client built with [Electron](https://electron.atom.io/)
