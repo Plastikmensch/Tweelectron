@@ -1,0 +1,23 @@
+name: Lint
+on: [push, pull_request]
+jobs:
+  super_linter:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Super Linter
+      uses: github/super-linter@v3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_BASH: true
+        VALIDATE_BASH_EXEC: true
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: plastikmensch/eslint-check-action@testing
+      with:
+        ghToken: ${{ secrets.GITHUB_TOKEN }}
+        eslintFiles: "src"
+        eslintConfig: ".eslintrc.json"
+        eslintExt: "js"
