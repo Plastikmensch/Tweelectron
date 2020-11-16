@@ -28,7 +28,7 @@ const nav = {
 }
 
 let themeAll
-let mainWindow, settingsWin, loginWin, aboutWin, twitterWin
+let mainWindow, settingsWin, /*loginWin,*/ aboutWin, twitterWin
 let torProcess
 
 //NOTE: process.resourcesPath not really working as intended when starting app with "electron ." (in dev)
@@ -230,6 +230,17 @@ function createWindow () {
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
     event.preventDefault()
+    common.log(`prevented navigation to ${url}`)
+
+    if (url.search('https://mobile.twitter.com/login') === 0) {
+      mainWindow.loadURL(url)
+    }
+
+    if (url.search('https://mobile.twitter.com/sessions') === 0) {
+      mainWindow.loadURL(url)
+    }
+
+    /*
     if (url.search('https://mobile.twitter.com/login') === 0) {
       loginWin = new BrowserWindow({
         parent: mainWindow,
@@ -249,9 +260,11 @@ function createWindow () {
       loginWin.webContents.on('will-navigate', (event, url) => {
         //NOTE: Having to solve a captcha, loads twitter instead
         mainWindow.loadURL(url)
+        common.log(`login done. Navigating to ${url}`)
         loginWin.close()
       })
     }
+    */
   })
 
   mainWindow.on('close', () => {
@@ -777,8 +790,8 @@ function getWindowName(win) {
   switch(true) {
     case mainWindow !== undefined && mainWindow.id === win.id:
       return 'main window'
-    case loginWin !== undefined && loginWin.id === win.id:
-      return 'login window'
+    //case loginWin !== undefined && loginWin.id === win.id:
+      //return 'login window'
     case twitterWin !== undefined && twitterWin.id === win.id:
       return 'twitter window'
     case settingsWin !== undefined && settingsWin.id === win.id:
