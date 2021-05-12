@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checkout action must run prior to other actions
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
     - uses: actions/setup-node@v2.1.2
       with:
         node-version: '12'
@@ -14,7 +14,7 @@ jobs:
   super_linter:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
     - name: Super Linter
       uses: github/super-linter@v3
       env:
@@ -24,7 +24,7 @@ jobs:
   eslint_fork:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
     - uses: plastikmensch/eslint-check-action@testing
       with:
         ghToken: ${{ secrets.GITHUB_TOKEN }}
