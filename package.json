@@ -15,7 +15,7 @@
     "linter": "standardx"
   },
   "devDependencies": {
-    "electron": "^10.1.5",
+    "electron": "^13.1.7",
     "eslint": "^7.12.1",
     "eslint-plugin-node": "^11.1.0"
   },
